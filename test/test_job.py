@@ -191,7 +191,7 @@ class TestJob(TestQless):
         self.client.queues['foo'].pop().process()
         job = self.client.jobs['jid']
         self.assertEqual(job.state, 'failed')
-        self.assertEqual(job.failure['group'], 'foo-ImportError')
+        self.assertEqual(job.failure['group'], 'foo-ModuleNotFoundError')
 
     def test_nonstatic(self):
         '''Rasises an error if the relevant function's not static'''
