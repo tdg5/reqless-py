@@ -101,14 +101,15 @@ class TestQueues(TestQless):
         self.assertEqual(self.client.queues.counts, {})
         self.client.queues['foo'].put('Foo', {})
         self.assertEqual(self.client.queues.counts, [{
-            'scheduled': 0,
+            'depends': 0,
             'name': 'foo',
             'paused': False,
-            'waiting': 1,
-            'depends': 0,
+            'recurring': 0,
             'running': 0,
+            'scheduled': 0,
             'stalled': 0,
-            'recurring': 0
+            'throttled': 0,
+            'waiting': 1,
         }])
 
     def test_attribute_error(self):

@@ -1,3 +1,3 @@
 [submodule "qless/qless-core"]
 	path = qless/qless-core
-	url = git://github.com/seomoz/qless-core.git
+	url = https://github.com/tdg5/qless-core.git

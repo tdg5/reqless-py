@@ -26,7 +26,8 @@ class TestQueue(TestQless):
             'running': 0,
             'scheduled': 0,
             'stalled': 0,
-            'waiting': 1
+            'throttled': 0,
+            'waiting': 1,
         })
 
     def test_pause(self):
