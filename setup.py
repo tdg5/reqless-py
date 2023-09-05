@@ -24,7 +24,7 @@ stats, notifications, and a whole lot more.''',
     },
     package_data={
         'qless': [
-            'qless-core/*.lua'
+            'lua/*.lua'
         ]
     },
     include_package_data=True,

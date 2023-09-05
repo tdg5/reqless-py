@@ -13,6 +13,8 @@ clean:
 qless-core:
 	# Ensure qless is built
 	make -C qless/qless-core/
+	cp qless/qless-core/qless.lua qless/lua/
+	cp qless/qless-core/qless-lib.lua qless/lua/
 
 .PHONY: nose
 nose: qless-core

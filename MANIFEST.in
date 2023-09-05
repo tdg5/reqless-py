@@ -1,1 +1,1 @@
-include qless/qless-core/*.lua
+include qless/lua/*.lua

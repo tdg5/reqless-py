@@ -143,7 +143,7 @@ class Client(object):
         self.workers = Workers(self)
 
         # We now have a single unified core script.
-        data = pkgutil.get_data('qless', 'qless-core/qless.lua')
+        data = pkgutil.get_data('qless', 'lua/qless.lua')
         self._lua = self.redis.register_script(data)
 
     def __getattr__(self, key):
