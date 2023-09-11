@@ -28,6 +28,7 @@ class BaseJob(object):
         object.__setattr__(self, 'queue_name', kwargs['queue'])
         # Because of how Lua parses JSON, empty tags comes through as {}
         object.__setattr__(self, 'tags', kwargs['tags'] or [])
+        object.__setattr__(self, 'throttles', kwargs.get('throttles') or [])
         object.__setattr__(self, 'data', json.loads(kwargs['data']))
 
     def __setattr__(self, key, value):
@@ -179,9 +180,18 @@ class Job(BaseJob):
         delay, and dependencies'''
         logger.info('Moving %s to %s from %s',
             self.jid, queue, self.queue_name)
-        return self.client('put', self.worker_name,
-            queue, self.jid, self.klass_name,
-            json.dumps(self.data), delay, 'depends', json.dumps(depends or [])
+        return self.client(
+            'put',
+            self.worker_name,
+            queue,
+            self.jid,
+            self.klass_name,
+            json.dumps(self.data),
+            delay,
+            'depends',
+            json.dumps(depends or []),
+            'throttles',
+            json.dumps(self.throttles or []),
         )
 
     def complete(self, nextq=None, delay=None, depends=None):
@@ -282,6 +292,7 @@ class RecurringJob(BaseJob):
         object.__setattr__(self, 'klass_name', kwargs['klass'])
         object.__setattr__(self, 'queue_name', kwargs['queue'])
         object.__setattr__(self, 'tags', self.tags or [])
+        object.__setattr__(self, 'throttles', self.throttles or [])
         object.__setattr__(self, 'data', json.loads(kwargs['data']))
 
     def __setattr__(self, key, value):

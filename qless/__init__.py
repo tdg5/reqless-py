@@ -126,6 +126,17 @@ class Queues(object):
         return Queue(queue_name, self.client, self.client.worker_name)
 
 
+class Throttles(object):
+    def __init__(self, client):
+        self.client = client
+
+    def __getitem__(self, throttle_name):
+        return Throttle(
+            client=self.client,
+            name=throttle_name,
+        )
+
+
 class Client(object):
     '''Basic qless client object.'''
     def __init__(self, url='redis://localhost:6379', hostname=None, **kwargs):
@@ -139,6 +150,7 @@ class Client(object):
         self.redis = redis.Redis.from_url(url, **kwargs)
         self.jobs = Jobs(self)
         self.queues = Queues(self)
+        self.throttles = Throttles(self)
         self.config = Config(self)
         self.workers = Workers(self)
 
@@ -179,5 +191,6 @@ class Client(object):
 
 from .job import Job, RecurringJob
 from .queue import Queue
+from .throttle import Throttle
 from .config import Config
 from .listener import Events

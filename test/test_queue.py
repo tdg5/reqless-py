@@ -75,3 +75,45 @@ class TestQueue(TestQless):
         '''Exposes the length of a queue'''
         self.client.queues['foo'].put('Foo', {})
         self.assertEqual(len(self.client.queues['foo']), 1)
+
+    def test_throttle(self):
+        '''Exposes the queue's throttle'''
+        queue_name = 'foo'
+        queue = self.client.queues[queue_name]
+        throttle = queue.throttle
+        self.assertEqual(throttle.name, f'ql:q:{queue_name}')
+
+    def test_put_with_throttles(self):
+        '''Test put with throttles given'''
+        queue = self.client.queues['foo']
+        queue.put(
+            'Foo', {}, jid='jid', throttles=['throttle']
+        )
+        job = self.client.jobs['jid']
+        queue_throttle = queue.throttle.name
+        self.assertEqual(job.throttles, ['throttle', queue_throttle])
+
+    def test_requeue_with_throttles(self):
+        '''Test requeue with throttles given'''
+        queue = self.client.queues['foo']
+        queue.put(
+            'Foo', {}, jid='jid', throttles=['throttle']
+        )
+        job_to_fail = queue.pop()
+        job_to_fail.fail('foo', 'bar')
+
+        queue.requeue(
+            'Foo', {}, jid='jid', throttles=['other-throttle']
+        )
+        job = self.client.jobs['jid']
+        queue_throttle = queue.throttle.name
+        self.assertEqual(job.throttles, ['other-throttle', queue_throttle])
+
+    def test_recur_with_throttles(self):
+        '''Test recur with throttles given'''
+        queue = self.client.queues['foo']
+        queue.recur('Foo', {}, 60, jid='jid', throttles=['throttle'])
+
+        job = self.client.jobs['jid']
+        queue_throttle = queue.throttle.name
+        self.assertEqual(job.throttles, ['throttle', queue_throttle])

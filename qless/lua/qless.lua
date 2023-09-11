@@ -1,4 +1,4 @@
--- Current SHA: 1e30f5defc5c8875d18ab0e881c1362871ce245d
+-- Current SHA: da32fd3159502081b4f503744b82fc3fe4d7769e
 -- This is a generated file
 local Qless = {
   ns = 'ql:'
@@ -1630,9 +1630,19 @@ function QlessQueue:recur(now, jid, klass, raw_data, spec, ...)
     local count, old_queue = unpack(redis.call('hmget', 'ql:r:' .. jid, 'count', 'queue'))
     count = count or 0
 
+    local throttles = options['throttles'] or {}
+
     if old_queue then
       Qless.queue(old_queue).recurring.remove(jid)
+
+      for index, tname in ipairs(throttles) do
+        if tname == old_queue then
+          table.remove(throttles, index)
+        end
+      end
     end
+
+    table.insert(throttles, QlessQueue.ns .. self.name)
 
     redis.call('hmset', 'ql:r:' .. jid,
       'jid'      , jid,
@@ -1647,7 +1657,7 @@ function QlessQueue:recur(now, jid, klass, raw_data, spec, ...)
       'interval' , interval,
       'retries'  , options.retries,
       'backlog'  , options.backlog,
-      'throttles', cjson.encode(options.throttles or {}))
+      'throttles', cjson.encode(throttles))
     self.recurring.add(now + offset, jid)
 
     if redis.call('zscore', 'ql:queues', self.name) == false then
@@ -1876,7 +1886,7 @@ end
 function QlessRecurringJob:data()
   local job = redis.call(
     'hmget', 'ql:r:' .. self.jid, 'jid', 'klass', 'state', 'queue',
-    'priority', 'interval', 'retries', 'count', 'data', 'tags', 'backlog')
+    'priority', 'interval', 'retries', 'count', 'data', 'tags', 'backlog', 'throttles')
   
   if not job[1] then
     return nil
@@ -1893,7 +1903,8 @@ function QlessRecurringJob:data()
     count        = tonumber(job[8]),
     data         = job[9],
     tags         = cjson.decode(job[10]),
-    backlog      = tonumber(job[11] or 0)
+    backlog      = tonumber(job[11] or 0),
+    throttles    = cjson.decode(job[12] or '[]'),
   }
 end
 
@@ -1918,10 +1929,22 @@ function QlessRecurringJob:update(now, ...)
       elseif key == 'klass' then
         redis.call('hset', 'ql:r:' .. self.jid, 'klass', value)
       elseif key == 'queue' then
-        local queue_obj = Qless.queue(
-          redis.call('hget', 'ql:r:' .. self.jid, 'queue'))
+        local old_queue_name = redis.call('hget', 'ql:r:' .. self.jid, 'queue')
+        local queue_obj = Qless.queue(old_queue_name)
         local score = queue_obj.recurring.score(self.jid)
+
         queue_obj.recurring.remove(self.jid)
+        local throttles = cjson.decode(redis.call('hget', 'ql:r:' .. self.jid, 'throttles') or '{}')
+        for index, tname in ipairs(throttles) do
+          if tname == QlessQueue.ns .. old_queue_name then
+            table.remove(throttles, index)
+          end
+        end
+
+
+        table.insert(throttles, QlessQueue.ns .. value)
+        redis.call('hset', 'ql:r:' .. self.jid, 'throttles', cjson.encode(throttles))
+
         Qless.queue(value).recurring.add(score, self.jid)
         redis.call('hset', 'ql:r:' .. self.jid, 'queue', value)
         if redis.call('zscore', 'ql:queues', value) == false then
@@ -1931,6 +1954,9 @@ function QlessRecurringJob:update(now, ...)
         value = assert(tonumber(value),
           'Recur(): Arg "backlog" not a number: ' .. tostring(value))
         redis.call('hset', 'ql:r:' .. self.jid, 'backlog', value)
+      elseif key == 'throttles' then
+        local throttles = assert(cjson.decode(value), 'Recur(): Arg "throttles" is not JSON-encoded: ' .. tostring(value))
+        redis.call('hset', 'ql:r:' .. self.jid, 'throttles', cjson.encode(throttles))
       else
         error('Recur(): Unrecognized option "' .. key .. '"')
       end

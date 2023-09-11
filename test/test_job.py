@@ -26,11 +26,11 @@ class TestJob(TestQless):
     def test_attributes(self):
         '''Has all the basic attributes we'd expect'''
         self.client.queues['foo'].put('Foo', {'whiz': 'bang'}, jid='jid',
-            tags=['foo'], retries=3)
+            tags=['foo'], retries=3, throttles=['throttle'])
         job = self.client.jobs['jid']
         atts = ['data', 'jid', 'priority', 'klass_name', 'queue_name', 'tags',
             'expires_at', 'original_retries', 'retries_left', 'worker_name',
-            'dependents', 'dependencies']
+            'dependents', 'dependencies', 'throttles']
         values = [getattr(job, att) for att in atts]
         self.assertEqual(dict(zip(atts, values)), {
             'data': {'whiz': 'bang'},
@@ -44,7 +44,8 @@ class TestJob(TestQless):
             'queue_name': 'foo',
             'retries_left': 3,
             'tags': ['foo'],
-            'worker_name': u''
+            'worker_name': u'',
+            'throttles': ['throttle', 'ql:q:foo'],
         })
 
     def test_set_priority(self):
@@ -105,9 +106,15 @@ class TestJob(TestQless):
 
     def test_move(self):
         '''Able to move jobs through the move method'''
-        self.client.queues['foo'].put('Foo', {}, jid='jid')
+        self.client.queues['foo'].put(
+            'Foo', {}, jid='jid', throttles=['throttle']
+        )
         self.client.jobs['jid'].move('bar')
-        self.assertEqual(self.client.jobs['jid'].queue.name, 'bar')
+        job = self.client.jobs['jid']
+        queue = self.client.queues['bar']
+        self.assertEqual(queue.name, 'bar')
+        queue_throttle = queue.throttle.name
+        self.assertEqual(job.throttles, ['throttle', queue_throttle])
 
     def test_complete(self):
         '''Able to complete a job'''
@@ -153,7 +160,10 @@ class TestJob(TestQless):
         self.client.queues['foo'].put('Foo', {}, jid='c', depends=['a'])
         self.assertEqual(self.client.jobs['c'].dependencies, ['a'])
         self.client.jobs['c'].depend('b')
-        self.assertEqual(self.client.jobs['c'].dependencies, ['a', 'b'])
+        actual_dependencies = self.client.jobs['c'].dependencies
+        # Redis sets have an undefined order
+        actual_dependencies.sort()
+        self.assertEqual(actual_dependencies, ['a', 'b'])
         self.client.jobs['c'].undepend('a')
         self.assertEqual(self.client.jobs['c'].dependencies, ['b'])
         self.client.jobs['c'].undepend(all=True)
@@ -284,9 +294,16 @@ class TestRecurring(TestQless):
 
     def test_move(self):
         '''Exposes a way to move a job'''
-        self.client.queues['foo'].recur('Foo', {}, 60, jid='jid')
+        self.client.queues['foo'].recur(
+            'Foo', {}, 60, jid='jid', throttles=['throttle']
+        )
         self.client.jobs['jid'].move('bar')
-        self.assertEqual(self.client.jobs['jid'].queue.name, 'bar')
+
+        job = self.client.jobs['jid']
+        queue = self.client.queues['bar']
+        self.assertEqual(queue.name, 'bar')
+        queue_throttle = queue.throttle.name
+        self.assertEqual(job.throttles, ['throttle', queue_throttle])
 
     def test_cancel(self):
         '''Exposes a way to cancel jobs'''

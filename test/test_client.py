@@ -117,6 +117,43 @@ class TestQueues(TestQless):
         self.assertRaises(AttributeError, lambda: self.client.queues.foo)
 
 
+class TestThrottles(TestQless):
+    '''Test the Throttles class'''
+    def test_basic(self):
+        '''Give us access to throttles'''
+        self.assertNotEqual(self.client.throttles['foo'], None)
+
+    def test_throttle_operations(self):
+        throttle_name = 'foo'
+        throttle = self.client.throttles[throttle_name]
+
+        self.assertEqual(throttle.name, throttle_name)
+        self.assertEqual(throttle.maximum(), 0)
+        # The throttle shouldn't actually exist at this time, so ttl should
+        # return -2
+        self.assertEqual(throttle.ttl(), -2)
+
+        new_maximum = 5
+        throttle.set_maximum(new_maximum)
+        self.assertEqual(throttle.maximum(), new_maximum)
+        # Now that the throttle exists, it should not have an expiration
+        self.assertEqual(throttle.ttl(), -1)
+
+        new_expiration = 999
+        throttle.set_maximum(None, new_expiration)
+        self.assertEqual(throttle.maximum(), new_maximum)
+        # Now that the throttle exists, it should not have an expiration
+        self.assertLessEqual(throttle.ttl(), new_expiration)
+
+        self.assertEqual(throttle.locks(), [])
+        self.assertEqual(throttle.pending(), [])
+
+        throttle.delete()
+        # The throttle shouldn't actually exist at this time, so ttl should
+        # return -2
+        self.assertEqual(throttle.ttl(), -2)
+
+
 class TestWorkers(TestQless):
     '''Test the Workers class'''
     def test_individual(self):

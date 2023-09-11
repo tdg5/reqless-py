@@ -55,6 +55,8 @@ class Queue(object):
             conf = self.client.config.all
             return int(conf.get(
                 self.name + '-heartbeat', conf.get('heartbeat', 60)))
+        if key == 'throttle':
+            return self.client.throttles[f'ql:q:{self.name}']
         raise AttributeError('qless.Queue has no attribute %s' % key)
 
     def __setattr__(self, key, value):
@@ -76,7 +78,7 @@ class Queue(object):
         return self.client('unpause', self.name)
 
     def put(self, klass, data, priority=None, tags=None, delay=None,
-        retries=None, jid=None, depends=None):
+        retries=None, jid=None, depends=None, throttles=None):
         '''Either create a new job in the provided queue with the provided
         attributes, or move that job into that queue. If the job is being
         serviced by a worker, subsequent attempts by that worker to either
@@ -87,7 +89,9 @@ class Queue(object):
         should be a JSON array of the tags associated with the instance and
         the `valid after` argument should be in how many seconds the instance
         should be considered actionable.'''
-        return self.client('put', self.worker_name,
+        return self.client(
+            'put',
+            self.worker_name,
             self.name,
             jid or uuid.uuid4().hex,
             self.class_string(klass),
@@ -96,14 +100,17 @@ class Queue(object):
             'priority', priority or 0,
             'tags', json.dumps(tags or []),
             'retries', retries or 5,
-            'depends', json.dumps(depends or [])
+            'depends', json.dumps(depends or []),
+            'throttles', json.dumps(throttles or []),
         )
 
     '''Same function as above but check if the job already exists in the DB beforehand.
     You can re-queue for instance failed ones.'''
     def requeue(self, klass, data, priority=None, tags=None, delay=None,
-        retries=None, jid=None, depends=None):
-        return self.client('requeue', self.worker_name,
+        retries=None, jid=None, depends=None, throttles=None):
+        return self.client(
+            'requeue',
+            self.worker_name,
             self.name,
             jid or uuid.uuid4().hex,
             self.class_string(klass),
@@ -112,20 +119,24 @@ class Queue(object):
             'priority', priority or 0,
             'tags', json.dumps(tags or []),
             'retries', retries or 5,
-            'depends', json.dumps(depends or [])
+            'depends', json.dumps(depends or []),
+            'throttles', json.dumps(throttles or []),
         )
 
     def recur(self, klass, data, interval, offset=0, priority=None, tags=None,
-        retries=None, jid=None):
+        retries=None, jid=None, throttles=None):
         '''Place a recurring job in this queue'''
-        return self.client('recur', self.name,
+        return self.client(
+            'recur',
+            self.name,
             jid or uuid.uuid4().hex,
             self.class_string(klass),
             json.dumps(data),
             'interval', interval, offset,
             'priority', priority or 0,
             'tags', json.dumps(tags or []),
-            'retries', retries or 5
+            'retries', retries or 5,
+            'throttles', json.dumps(throttles or []),
         )
 
     def pop(self, count=None):
