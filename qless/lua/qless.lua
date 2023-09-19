@@ -1,4 +1,4 @@
--- Current SHA: da32fd3159502081b4f503744b82fc3fe4d7769e
+-- Current SHA: 09dc4ef4bb3cf089ef285d0a92a51b9af398ca03
 -- This is a generated file
 local Qless = {
   ns = 'ql:'
@@ -890,6 +890,9 @@ function QlessJob:timeout(now)
     self:history(now, 'timed-out')
     local queue = Qless.queue(queue_name)
     queue.locks.remove(self.jid)
+
+    self:throttles_release(now)
+
     queue.work.add(now, math.huge, self.jid)
     redis.call('hmset', QlessJob.ns .. self.jid,
       'state', 'stalled', 'expires', 0)
