@@ -3,15 +3,13 @@
 from setuptools import setup
 
 setup(
-    name='qless-py',
+    name='qless-with-throttles',
     version='0.11.4',
     description='Redis-based Queue Management',
-    long_description='''
-Redis-based queue management, with heartbeating, job tracking,
-stats, notifications, and a whole lot more.''',
-    url='http://github.com/seomoz/qless-py',
-    author='Dan Lecocq',
-    author_email='dan@moz.com',
+    long_description='Fork of seomoz/qless-py with support for throttles.',
+    url='http://github.com/tdg5/qless-py',
+    author='Danny Guinther',
+    author_email='dannyguinther@gmail.com',
     license="MIT License",
     keywords='redis, qless, job',
     packages=[
