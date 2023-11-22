@@ -10,7 +10,7 @@ import threading
 
 # The stuff we're actually testing
 import qless
-from qless.workers import Worker
+from qless.workers.worker import Worker
 from qless.workers.forking import ForkingWorker
 
 

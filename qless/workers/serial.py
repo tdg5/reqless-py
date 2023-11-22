@@ -3,7 +3,7 @@
 import os
 import time
 
-from . import Worker
+from qless.workers.worker import Worker
 
 
 class SerialWorker(Worker):

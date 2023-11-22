@@ -6,10 +6,9 @@ import signal
 
 from six import string_types
 
-# Internal imports
-from . import Worker
 from qless import logger, util
-from .serial import SerialWorker
+from qless.workers.serial import SerialWorker
+from qless.workers.worker import Worker
 
 try:
     NUM_CPUS = multiprocessing.cpu_count()

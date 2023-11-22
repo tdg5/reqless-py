@@ -4,7 +4,7 @@
 from common import TestQless
 
 import qless
-from qless.workers import Worker
+from qless.workers.worker import Worker
 
 # External dependencies
 import os

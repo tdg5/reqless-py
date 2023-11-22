@@ -5,8 +5,8 @@ import gevent
 import gevent.pool
 from six import next
 
-from . import Worker
 from qless import logger
+from qless.workers.worker import Worker
 
 
 class GeventWorker(Worker):
