@@ -95,7 +95,7 @@ three steps: 1) collect underpants, 2) ? 3) profit!
 
 ```python
 # In gnomes.py
-class GnomesJob(object):
+class GnomesJob:
 	# This would be invoked when a GnomesJob is popped off the 'underpants' queue
 	@staticmethod
 	def underpants(job):
@@ -127,7 +127,7 @@ meant as a convenience for pipelines:
 
 ```python
 # Alternative gnomes.py
-class GnomesJob(object):
+class GnomesJob:
 	# This method would be invoked at every stage
 	@staticmethod
 	def process(job):
@@ -484,6 +484,8 @@ def callback(evt, jid):
 	print '%s => %s' % (jid, evt)
 
 from functools import partial
+
+
 for evt in ['canceled', 'completed', 'failed', 'popped', 'put', 'stalled', 'track', 'untrack']:
 	client.events.on(evt, partial(callback, evt))
 client.events.listen()

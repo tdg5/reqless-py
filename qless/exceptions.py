@@ -1,13 +1,15 @@
 #! /usr/bin/env python
 
-'''Some exception classes'''
+"""Some exception classes"""
 
 
-class QlessException(Exception):
-    '''Any and all qless exceptions'''
+class QlessError(Exception):
+    """Any and all qless exceptions"""
+
     pass
 
 
-class LostLockException(QlessException):
-    '''Lost lock on a job'''
+class LostLockError(QlessError):
+    """Lost lock on a job"""
+
     pass

@@ -1,0 +1,31 @@
+[build-system]
+requires = ['setuptools>=42']
+build-backend = 'setuptools.build_meta'
+
+[tool.pytest.ini_options]
+markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\")"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = ['qless', 'test']
+exclude = ['README.md']
+
+[tool.isort]
+include_trailing_comma = true
+known_first_party = ["qless", "test"]
+line_length = 88
+lines_after_imports = 2
+multi_line_output = 3
+profile = "black"
+sections = ["FUTURE","STDLIB","THIRDPARTY","FIRSTPARTY","LOCALFOLDER"]
+skip_glob = ["qless/lua", "qless/qless-core"]
+use_parentheses = true
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+exclude = '^(qless/qless-core|qless/lua|fixtures|.*?\.js|.*?\.json)'
+
+[tool.pydantic-mypy]
+init_forbid_extra = true

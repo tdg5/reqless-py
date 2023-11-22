@@ -4,7 +4,7 @@
 build/*
 dist/*
 htmlcov/*
-qless_py.egg-info/*
+qless_with_throttles.egg-info/*
 .vagrant
 MANIFEST
 .tox/
