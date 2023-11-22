@@ -5,10 +5,9 @@ import signal
 import threading
 import time
 
-from common import TestQless
-
 from qless.workers.forking import ForkingWorker
 from qless.workers.worker import Worker
+from qless_test.common import TestQless
 
 
 class Foo:

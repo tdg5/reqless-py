@@ -3,11 +3,11 @@
 import time
 from threading import Thread
 
-from common import TestQless
 from six import next
 
 from qless import logger
 from qless.workers.serial import SerialWorker
+from qless_test.common import TestQless
 
 
 class SerialJob:

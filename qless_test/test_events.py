@@ -1,6 +1,6 @@
 """Tests about events"""
 
-from common import TestQless
+from qless_test.common import TestQless
 
 
 class TestEvents(TestQless):

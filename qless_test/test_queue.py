@@ -1,6 +1,6 @@
 """Basic tests about the Job class"""
 
-from common import TestQless
+from qless_test.common import TestQless
 
 
 class TestQueue(TestQless):

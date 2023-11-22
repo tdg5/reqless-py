@@ -3,11 +3,11 @@
 import itertools
 import os
 
-from common import TestQless
 from six import next
 
 import qless
 from qless.workers.worker import Worker
+from qless_test.common import TestQless
 
 
 class TestWorker(TestQless):

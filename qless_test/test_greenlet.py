@@ -3,10 +3,10 @@
 import time
 
 import gevent
-from common import TestQless
 from six import next
 
 from qless.workers.greenlet import GeventWorker
+from qless_test.common import TestQless
 
 
 class GeventJob:

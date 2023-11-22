@@ -1,6 +1,6 @@
 """Tests about the config class"""
 
-from common import TestQless
+from qless_test.common import TestQless
 
 
 class TestConfig(TestQless):

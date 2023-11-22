@@ -1,9 +1,9 @@
 """Basic tests about the client"""
 
-from common import TestQless
 
 from qless import retry
 from qless.workers.worker import Worker
+from qless_test.common import TestQless
 
 
 class TestClient(TestQless):

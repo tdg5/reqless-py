@@ -13,7 +13,7 @@ exclude = ['README.md']
 
 [tool.isort]
 include_trailing_comma = true
-known_first_party = ["qless", "test"]
+known_first_party = ["qless", "qless_test"]
 line_length = 88
 lines_after_imports = 2
 multi_line_output = 3

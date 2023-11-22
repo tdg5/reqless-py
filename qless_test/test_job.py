@@ -1,10 +1,10 @@
 """Basic tests about the Job class"""
 
 import mock
-from common import TestQless
 from six import PY3
 
 from qless.job import Job
+from qless_test.common import TestQless
 
 
 class Foo:
@@ -247,8 +247,8 @@ class TestJob(TestQless):
         """Don't blow up we cannot check the modification time of a module."""
         exc = OSError("Could not stat file")
         with mock.patch("qless.job.os.stat", side_effect=exc):
-            Job._import("test_job.Foo")
-            Job._import("test_job.Foo")
+            Job._import("qless_test.test_job.Foo")
+            Job._import("qless_test.test_job.Foo")
 
 
 class TestRecurring(TestQless):
