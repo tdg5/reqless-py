@@ -2,6 +2,7 @@
 
 import json
 import pkgutil
+import socket
 import time
 
 import decorator
@@ -137,8 +138,6 @@ class Client:
     """Basic qless client object."""
 
     def __init__(self, url="redis://localhost:6379", hostname=None, **kwargs):
-        import socket
-
         # This is our unique identifier as a worker
         self.worker_name = hostname or socket.gethostname()
         if PY3:
