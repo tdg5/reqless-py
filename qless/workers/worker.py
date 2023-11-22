@@ -2,9 +2,8 @@
 
 """Our base worker"""
 
-from __future__ import print_function
-
 import code
+import json
 import os
 import shutil
 import signal
@@ -21,12 +20,6 @@ from qless import exceptions, logger
 from qless.job import Job
 from qless.listener import Listener
 
-
-# Try to use the fast json parser
-try:
-    import simplejson as json
-except ImportError:  # pragma: no cover
-    import json  # type: ignore[no-redef]
 
 # Setting the process title
 try:

@@ -9,7 +9,13 @@ def _long_description() -> Tuple[str, str]:
     return open("README.md", "r", encoding="utf-8").read()
 
 
-_dependencies = ["argparse", "decorator", "hiredis", "redis", "six", "simplejson"]
+_dependencies = [
+    "argparse",
+    "decorator",
+    "hiredis",
+    "redis",
+    "six",
+]
 
 _dev_dependencies = [
     "black==21.5b2",
@@ -21,11 +27,16 @@ _dev_dependencies = [
     "safety==2.3.5",
     "types-decorator==5.1.8.4",
     "types-mock==5.1.0.2",
-    "types-simplejson==3.19.0.2",
     "types-six==1.16.21.",
 ]
 
-_test_dependencies = ["coverage", "mock", "nose", "rednose", "setuptools>=17.1"]
+_test_dependencies = [
+    "coverage",
+    "mock",
+    "nose",
+    "rednose",
+    "setuptools>=17.1",
+]
 
 
 def _extra_requires() -> Dict:
@@ -65,8 +76,6 @@ setup(
     tests_requires=_test_requires(),
     classifiers=[
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",

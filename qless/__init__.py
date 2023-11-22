@@ -1,11 +1,11 @@
 """Main qless business"""
 
+import json
 import pkgutil
 import time
 
 import decorator
 import redis
-import simplejson as json
 from six import PY3
 
 from qless.config import Config

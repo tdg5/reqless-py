@@ -1,7 +1,5 @@
 """Some utilities for profiling"""
 
-from __future__ import print_function
-
 from collections import defaultdict
 from typing import Any, Dict
 

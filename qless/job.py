@@ -2,13 +2,13 @@
 
 """Both the regular Job and RecurringJob classes"""
 
+import json
 import os
 import time
 import traceback
 import types
 from typing import Dict
 
-import simplejson as json
 from six.moves import reload_module
 
 from qless.exceptions import LostLockError, QlessError

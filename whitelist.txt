@@ -60,7 +60,6 @@ sigquit
 sigterm
 sigusr1
 sigusr2
-simplejson
 subcommand
 subworkers
 tmp

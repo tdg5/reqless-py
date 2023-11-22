@@ -1,6 +1,6 @@
 """All our configuration operations"""
 
-import simplejson as json
+import json
 
 
 class Config:

@@ -2,10 +2,10 @@
 
 """Our Queue and supporting classes"""
 
+import json
 import time
 import uuid
 
-import simplejson as json
 from six import string_types
 
 from qless.job import Job
