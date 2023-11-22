@@ -1,8 +1,10 @@
 qless [![Build Status](https://travis-ci.org/seomoz/qless-py.svg?branch=master)](https://travis-ci.org/seomoz/qless-py)
 =====
-Qless is a powerful `Redis`-based job queueing system inspired by
-[resque](https://github.com/defunkt/resque#readme),
-but built on a collection of Lua scripts, maintained in the
+
+This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) with
+support for throttles. Qless is a powerful `Redis`-based job queueing system
+inspired by [resque](https://github.com/defunkt/resque#readme), but built on a
+collection of Lua scripts, maintained in the
 [qless-core](https://github.com/seomoz/qless-core) repo. Be sure to check the
 changelog below.
 
@@ -41,7 +43,7 @@ Features
 	to be processed and how long they take to be processed. Currently, we keep
 	track of the count, mean, standard deviation, and a histogram of these
 	times.
-1. __Job data is stored temporarily__ -- Job info sticks around for a 
+1. __Job data is stored temporarily__ -- Job info sticks around for a
 	configurable amount of time so you can still look back on a job's history,
 	data, etc.
 1. __Priority__ -- Jobs with the same priority get popped in the order they
@@ -83,7 +85,7 @@ sudo python setup.py install
 Business Time!
 ==============
 You've read this far -- you probably want to write some code now and turn them
-into jobs. Jobs are described essentially by two pieces of information -- a 
+into jobs. Jobs are described essentially by two pieces of information -- a
 class` and `data`. The class should have static methods that know how to
 process this type of job depending on the queue it's in. For those thrown for
 a loop by this example, it's in reference to a
@@ -101,14 +103,14 @@ class GnomesJob(object):
 		...
 		# Complete and advance to the next step, 'unknown'
 		job.complete('unknown')
-	
+
 	@staticmethod
 	def unknown(job):
 		# 2) ?
 		...
 		# Complete and advance to the next step, 'profit'
 		job.complete('profit')
-	
+
 	@staticmethod
 	def profit(job):
 		# 3) Profit
@@ -214,7 +216,7 @@ qless-py-worker --host foo.bar --port 1234 ...
 ```
 
 In the absence of the `--workers` argument, qless will spawn as many workers
-as there are cores on the machine. The interval specifies how often to poll 
+as there are cores on the machine. The interval specifies how often to poll
 in seconds) for work items. Future versions may have a mechanism to support
 blocking pop.
 
@@ -310,7 +312,7 @@ enqueue a single job while the worker is running:
 	# Supposing that I have /my/awesome/project/awesomeproject.py
 	# In one terminal...
 	qless-py-worker --path /my/awesome/project --queue foo --workers 1 --interval 10 --verbose
-	
+
 	# In another terminal...
 	>>> import qless
 	>>> import awesomeproject
@@ -516,7 +518,7 @@ jobs = queue.pop(20)
 
 Heartbeating
 ------------
-Each job object has a notion of when you must either check in with a heartbeat 
+Each job object has a notion of when you must either check in with a heartbeat
 or turn it in as completed. You can get the absolute time until it expires, or
 how long you have left:
 
@@ -542,10 +544,10 @@ job.complete('anotherQueue')
 
 Stats
 -----
-One of the selling points of qless is that it keeps stats for you about your 
+One of the selling points of qless is that it keeps stats for you about your
 underpants hijinks. It tracks the average wait time, number of jobs that have
 waited in a queue, failures, retries, and average running time. It also keeps
-histograms for the number of jobs that have waited _x_ time, and the number 
+histograms for the number of jobs that have waited _x_ time, and the number
 that took _x_ time to run.
 
 Frankly, these are best viewed using the web app.
