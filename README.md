@@ -1,5 +1,4 @@
-qless [![Build Status](https://travis-ci.org/seomoz/qless-py.svg?branch=master)](https://travis-ci.org/seomoz/qless-py)
-=====
+# qless [![Build Status](https://travis-ci.org/seomoz/qless-py.svg?branch=master)](https://travis-ci.org/seomoz/qless-py)
 
 This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) with
 support for throttles. Qless is a powerful `Redis`-based job queueing system
@@ -8,8 +7,8 @@ collection of Lua scripts, maintained in the
 [qless-core](https://github.com/seomoz/qless-core) repo. Be sure to check the
 changelog below.
 
-Philosophy and Nomenclature
-===========================
+## Philosophy and Nomenclature
+
 A `job` is a unit of work identified by a job id or `jid`. A `queue` can
 contain several jobs that are scheduled to be run at a certain time, several
 jobs that are waiting to run, and jobs that are currently running. A `worker`
@@ -29,46 +28,45 @@ problematic state about the job. A worker should only fail a job if the error
 is likely not a transient one; otherwise, that worker should just drop it and
 let the system reclaim it.
 
-Features
-========
+## Features
 
 1. __Jobs don't get dropped on the floor__ -- Sometimes workers drop jobs.
-	Qless automatically picks them back up and gives them to another worker
+    Qless automatically picks them back up and gives them to another worker
 1. __Tagging / Tracking__ -- Some jobs are more interesting than others. Track
-	those jobs to get updates on their progress. Tag jobs with meaningful
-	identifiers to find them quickly in the UI.
+    those jobs to get updates on their progress. Tag jobs with meaningful
+    identifiers to find them quickly in the UI.
 1. __Job Dependencies__ -- One job might need to wait for another job to
-	complete
+    complete
 1. __Stats__ -- `qless` automatically keeps statistics about how long jobs wait
-	to be processed and how long they take to be processed. Currently, we keep
-	track of the count, mean, standard deviation, and a histogram of these
-	times.
+    to be processed and how long they take to be processed. Currently, we keep
+    track of the count, mean, standard deviation, and a histogram of these
+    times.
 1. __Job data is stored temporarily__ -- Job info sticks around for a
-	configurable amount of time so you can still look back on a job's history,
-	data, etc.
+    configurable amount of time so you can still look back on a job's history,
+    data, etc.
 1. __Priority__ -- Jobs with the same priority get popped in the order they
-	were inserted; a higher priority means that it gets popped faster
+    were inserted; a higher priority means that it gets popped faster
 1. __Retry logic__ -- Every job has a number of retries associated with it,
-	which are renewed when it is put into a new queue or completed. If a job
-	is repeatedly dropped, then it is presumed to be problematic, and is
-	automatically failed.
+    which are renewed when it is put into a new queue or completed. If a job
+    is repeatedly dropped, then it is presumed to be problematic, and is
+    automatically failed.
 1. __Web App__ -- With the advent of a Ruby client, there is a Sinatra-based
-	web app that gives you control over certain operational issues
+    web app that gives you control over certain operational issues
 1. __Scheduled Work__ -- Until a job waits for a specified delay (defaults to
-	0), jobs cannot be popped by workers
+    0), jobs cannot be popped by workers
 1. __Recurring Jobs__ -- Scheduling's all well and good, but we also support
-	jobs that need to recur periodically.
+    jobs that need to recur periodically.
 1. __Notifications__ -- Tracked jobs emit events on pubsub channels as they get
-	completed, failed, put, popped, etc. Use these events to get notified of
-	progress on jobs you're interested in.
+    completed, failed, put, popped, etc. Use these events to get notified of
+    progress on jobs you're interested in.
 
 Interest piqued? Then read on!
 
-Installation
-============
+## Installation
+
 Install from pip:
 
-	pip install qless-py
+    pip install qless-py
 
 Alternatively, install qless-py from source by checking it out from github,
 and checking out the qless-core submodule:
@@ -82,11 +80,11 @@ git submodule update
 sudo python setup.py install
 ```
 
-Business Time!
-==============
+## Business Time!
+
 You've read this far -- you probably want to write some code now and turn them
 into jobs. Jobs are described essentially by two pieces of information -- a
-class` and `data`. The class should have static methods that know how to
+`class` and `data`. The class should have static methods that know how to
 process this type of job depending on the queue it's in. For those thrown for
 a loop by this example, it's in reference to a
 [South Park](http://en.wikipedia.org/wiki/Gnomes_%28South_Park%29#Plot)
@@ -96,27 +94,27 @@ three steps: 1) collect underpants, 2) ? 3) profit!
 ```python
 # In gnomes.py
 class GnomesJob:
-	# This would be invoked when a GnomesJob is popped off the 'underpants' queue
-	@staticmethod
-	def underpants(job):
-		# 1) Collect Underpants
-		...
-		# Complete and advance to the next step, 'unknown'
-		job.complete('unknown')
+    # This would be invoked when a GnomesJob is popped off the 'underpants' queue
+    @staticmethod
+    def underpants(job):
+        # 1) Collect Underpants
+        ...
+        # Complete and advance to the next step, 'unknown'
+        job.complete('unknown')
 
-	@staticmethod
-	def unknown(job):
-		# 2) ?
-		...
-		# Complete and advance to the next step, 'profit'
-		job.complete('profit')
+    @staticmethod
+    def unknown(job):
+        # 2) ?
+        ...
+        # Complete and advance to the next step, 'profit'
+        job.complete('profit')
 
-	@staticmethod
-	def profit(job):
-		# 3) Profit
-		...
-		# Complete the job
-		job.complete()
+    @staticmethod
+    def profit(job):
+        # 3) Profit
+        ...
+        # Complete the job
+        job.complete()
 ```
 
 This makes it easy to describe how a `GnomesJob` might move through a pipeline,
@@ -128,20 +126,20 @@ meant as a convenience for pipelines:
 ```python
 # Alternative gnomes.py
 class GnomesJob:
-	# This method would be invoked at every stage
-	@staticmethod
-	def process(job):
-		if job['queue'] == 'underpants':
-			...
-			job.complete('underpants')
-		elif job['queue'] == 'unknown':
-			...
-			job.complete('profit')
-		elif job['queue'] == 'profit':
-			...
-			job.complete()
-		else:
-			job.fail('unknown-stage', 'What what?')
+    # This method would be invoked at every stage
+    @staticmethod
+    def process(job):
+        if job['queue'] == 'underpants':
+            ...
+            job.complete('underpants')
+        elif job['queue'] == 'unknown':
+            ...
+            job.complete('profit')
+        elif job['queue'] == 'profit':
+            ...
+            job.complete()
+        else:
+            job.fail('unknown-stage', 'What what?')
 ```
 
 Jobs have user data associated with them that can be modified as it goes
@@ -152,14 +150,14 @@ it's accessible through `job.data`. For example, you might update the data...
 ```python
 @staticmethod
 def underpants(job):
-	# Record how many underpants we collected
-	job['collected'] = ...
+    # Record how many underpants we collected
+    job['collected'] = ...
 
 @staticmethod
 def unknown(job):
-	# Make some decision based on how many we've collected.
-	if job['collected'] ...:
-		...
+    # Make some decision based on how many we've collected.
+    if job['collected'] ...:
+        ...
 ```
 
 Great! With all this in place, let's put them in the queue so that they can
@@ -180,7 +178,7 @@ queue = client.queues['underpants']
 
 import gnomes
 for i in range(1000):
-	queue.put(gnomes.GnomesJob, {})
+    queue.put(gnomes.GnomesJob, {})
 ```
 
 Alternatively, if the job class is not importable from where you're adding
@@ -189,15 +187,15 @@ jobs, you can use the full path of the job class as a string:
 ```python
 ...
 for i in range(1000):
-	queue.put('gnomes.GnomesJob', {})
+    queue.put('gnomes.GnomesJob', {})
 ```
 
 __By way of a quick note__, it's important that your job class can be imported
 -- you can't create a job class in an interactive prompt, for example. You can
 _add_ jobs in an interactive prompt, but just can't define new job types.
 
-Running
-=======
+## Running
+
 All that remains is to have workers actually run these jobs. This distribution
 comes with a script to help with this:
 
@@ -231,8 +229,8 @@ large modules _before_ subprocesses are forked. Specify these with `--import`:
 qless-py-worker --import my.really.bigModule
 ```
 
-Filesystem
-----------
+## Filesystem
+
 Previous versions of `qless-py` included a feature to have each worker process
 run in its own sandbox directory. We've removed this feature because since
 greenlets can't run in their own directory, the 'regular' and greenlet workers
@@ -262,8 +260,8 @@ of the form:
 foo/qless-py-workers/sandbox-0/greenlet-{0,1,2,3,4}
 ```
 
-Gevent
-------
+## Gevent
+
 Some jobs are I/O-bound, and might want to, say, make use of a greenlet pool.
 If you have a class where you've, say, monkey-patched `socket`, you can ask
 qless to create a pool of greenlets to run you job inside each process. To run
@@ -273,8 +271,8 @@ qless to create a pool of greenlets to run you job inside each process. To run
 qless-py-worker --workers 5 --greenlets 50
 ```
 
-Signals
--------
+## Signals
+
 With a worker running, you can send signals to child processes to:
 
 - `USR1` - Get the current stack trace in that worker
@@ -284,8 +282,8 @@ So, for example, if one of the worker child processes is `PID 1234`, then you
 can invoke `kill -USR1 1234` to get the backtrace in the logs (and console
 output).
 
-Resuming Jobs
--------------
+## Resuming Jobs
+
 This is an __experimental__ feature, but you can start workers `--resume` flag
 to have the worker begin its processing with the jobs it left off with. For
 instance, during deployments, it's common to restart the worker processes, and
@@ -298,8 +296,8 @@ that through the `qless` interface, it's impossible to differentiate the two,
 and currently-running jobs may be confused with jobs that were simply dropped
 when the worker was stopped.
 
-Debugging / Developing
-======================
+## Debugging / Developing
+
 Whenever a job is processed, it checks to see if the file in which your job is
 defined has been updated since its last import. If it has, it automatically
 reimports it. We think of this as a feature.
@@ -309,27 +307,27 @@ first start up the web app locally (see
 [`qless`](http://github.com/seomoz/qless) for more), take a first pass, and
 enqueue a single job while the worker is running:
 
-	# Supposing that I have /my/awesome/project/awesomeproject.py
-	# In one terminal...
-	qless-py-worker --path /my/awesome/project --queue foo --workers 1 --interval 10 --verbose
+    # Supposing that I have /my/awesome/project/awesomeproject.py
+    # In one terminal...
+    qless-py-worker --path /my/awesome/project --queue foo --workers 1 --interval 10 --verbose
 
-	# In another terminal...
-	>>> import qless
-	>>> import awesomeproject
-	>>> qless.Client().queues['foo'].put(awesomeproject.Job, {'key': 'value'))
+    # In another terminal...
+    >>> import qless
+    >>> import awesomeproject
+    >>> qless.Client().queues['foo'].put(awesomeproject.Job, {'key': 'value'))
 
 From there, I watch the output on the worker, adjust my job class, save it,
 watch again, etc., but __without restarting the worker__ -- in general it
 shouldn't be necessary to restart the worker.
 
-Internals and Additional Features
-=================================
+## Internals and Additional Features
+
 While in many cases the above is sufficient, there are also many cases where
 you may need something more. Hopefully after this section many of your
 questions will be answered.
 
-Priority
---------
+### Priority
+
 Jobs can optionally have priority associated with them. Jobs of equal priority
 are popped in the order in which they were put in a queue. The higher the
 priority, the sooner it will be processed. If, for example, you get a new job
@@ -346,8 +344,8 @@ job = client.jobs['83da4d32a0a811e1933012313b062cf1']
 job.priority = 25
 ```
 
-Scheduled Jobs
---------------
+### Scheduled Jobs
+
 Jobs can also be scheduled for the future with a delay (in seconds). If for
 example, you just learned of an underpants heist opportunity, but you have to
 wait until later:
@@ -366,8 +364,8 @@ boost its priority:
 queue.put(qless.gnomes.GnomesJob, {}, delay=3600, priority=100)
 ```
 
-Recurring Jobs
---------------
+### Recurring Jobs
+
 Whether it's nightly maintainence, or weekly customer updates, you can have a
 job of a certain configuration set to recur. Recurring jobs still support
 priority, and tagging, and are attached to a queue. Let's say, for example, I
@@ -410,8 +408,8 @@ len(queue.pop(10))
 # => 5 jobs got popped
 ```
 
-Configuration Options
-=====================
+### Configuration Options
+
 You can get and set global (read: in the context of the same Redis instance)
 configuration to change the behavior for heartbeating, and so forth. There
 aren't a tremendous number of configuration options, but an important one is
@@ -426,8 +424,8 @@ client.config['jobs-history'] = 7 * 86400
 client.config['jobs-history-count'] = 500
 ```
 
-Tagging / Tracking
-------------------
+### Tagging / Tracking
+
 In qless, 'tracking' means flagging a job as important. Tracked jobs have a
 tab reserved for them in the web interface, and they also emit subscribable
 events as they make progress (more on that below). You can flag a job from the
@@ -459,8 +457,8 @@ job.tag('howdy', 'hello')
 job.untag('foo', 'bar')
 ```
 
-Job Dependencies
-----------------
+### Job Dependencies
+
 Jobs can be made dependent on the completion of another job. For example, if
 you need to buy eggs, and buy a pan before making an omelete, you could say:
 
@@ -473,29 +471,29 @@ client.queues['omelete'].put(myJob, {'toppings': ['onions', 'ham']}, depends=[eg
 That way, the job to make the omelete can't be performed until the pan and eggs
 purchases have been completed.
 
-Notifications
--------------
+### Notifications
+
 Tracked jobs emit events on specific pubsub channels as things happen to them.
 Whether it's getting popped off of a queue, completed by a worker, etc. The
 jist of it goes like this, though:
 
 ```python
 def callback(evt, jid):
-	print '%s => %s' % (jid, evt)
+    print '%s => %s' % (jid, evt)
 
 from functools import partial
 
 
 for evt in ['canceled', 'completed', 'failed', 'popped', 'put', 'stalled', 'track', 'untrack']:
-	client.events.on(evt, partial(callback, evt))
+    client.events.on(evt, partial(callback, evt))
 client.events.listen()
 ```
 
 If you're interested in, say, getting growl or campfire notifications, you
 should check out the `qless-growl` and `qless-campfire` ruby gems.
 
-Retries
--------
+### Retries
+
 Workers sometimes die. That's an unfortunate reality of life. We try to
 mitigate the effects of this by insisting that workers heartbeat their jobs to
 ensure that they do not get dropped. That said, qless will automatically
@@ -507,8 +505,8 @@ to retry a particular heist several times:
 queue.put(qless.gnomes.GnomesJob, {}, retries=10)
 ```
 
-Pop
----
+### Pop
+
 A client pops one or more jobs from a queue:
 
 ```python
@@ -518,8 +516,8 @@ job = queue.pop()
 jobs = queue.pop(20)
 ```
 
-Heartbeating
-------------
+### Heartbeating
+
 Each job object has a notion of when you must either check in with a heartbeat
 or turn it in as completed. You can get the absolute time until it expires, or
 how long you have left:
@@ -544,8 +542,8 @@ job.complete()
 job.complete('anotherQueue')
 ```
 
-Stats
------
+### Stats
+
 One of the selling points of qless is that it keeps stats for you about your
 underpants hijinks. It tracks the average wait time, number of jobs that have
 waited in a queue, failures, retries, and average running time. It also keeps
@@ -554,8 +552,8 @@ that took _x_ time to run.
 
 Frankly, these are best viewed using the web app.
 
-Lua
----
+### Lua
+
 Qless is a set of client language bindings, but the majority of the work is
 done in a collection of Lua scripts that comprise the
 [core](https://github.com/seomoz/qless-core) functionality. These scripts run
@@ -563,8 +561,8 @@ on the Redis 2.6+ server atomically and allow for portability with the same
 functionality guarantees. Consult the documentation for `qless-core` to learn
 more about its internals.
 
-Web App
--------
+### Web App
+
 `Qless` also comes with a web app for administrative tasks, like keeping tabs
 on the progress of jobs, tracking specific jobs, retrying failed jobs, etc.
 It's available in the [`qless`](https://github.com/seomoz/qless) library as a
@@ -572,12 +570,12 @@ mountable [`Sinatra`](http://www.sinatrarb.com/) app. The web app is language
 agnostic and was one of the major desires out of this project, so you should
 consider using it even if you're not planning on using the Ruby client.
 
-Changelog
-=========
+## Changelog
+
 Things that have changed over time.
 
-v0.10.0
--------
+### v0.10.0
+
 The major change was the switch to `unified` qless. This change is
 semi-incompatibile. In particular, it changes the job history format but the new
 version knows how to convert the old format forward. Upgrades to your workers
@@ -589,26 +587,26 @@ necessary to upgrade your `qless-web` install if you're using it.
 - Debugging signals
 - Resumable workers
 - Redis URL interface. When specifying a qless client, the default is still to
-	point to `localhost:6379`, but rather than specify `host` and `port`, you
-	should provide a single `host` argument of a Redis URL format. For example,
-	`redis://user:auth@host:port/db`. Many of these paremeters are optional, but
-	it seems to be the convention recently.
+    point to `localhost:6379`, but rather than specify `host` and `port`, you
+    should provide a single `host` argument of a Redis URL format. For example,
+    `redis://user:auth@host:port/db`. Many of these paremeters are optional, but
+    it seems to be the convention recently.
 
-Upgrading to qless-py 0.10.0
-============================
+#### Upgrading to qless-py 0.10.0
+
 Some notes, instructions and potential road blocks to the upgrade. This version
 has much better coverage, and a few added features, including stalled job
 preemption, pauseable queues, unified sandboxing and the ability to use the
 cleaner web interface.
 
-Road Blocks
-===========
+## Road Blocks
+
 Before we talk about how to install the updated client, here are a couple
 potential road blocks that will need to be addressed before you can make the
 switch.
 
-Sandboxes
----------
+### Sandboxes
+
 If you were using sandboxes (if using the non-greenlet client) and relying on
 using the current working directory as the sandbox, that interface has been
 done away with. The replacement is that each job comes with a `sandbox`
@@ -620,14 +618,14 @@ if you are using the qless client directly to work on jobs.__
 The directories are made up of subdirectories under the directory provided as
 `--workdir`, defaulting to the current directory.
 
-Client Rename
--------------
+### Client Rename
+
 If you are using the `qless` client directly, all instances of `qless.client`
 will have to change to `qless.Client`. It was an unfortunate mistake that it was
 ever named `client` to begin with, but hopefully this change won't be painful.
 
-Redis Server Spec
------------------
+### Redis Server Spec
+
 There was a feature request to be able to provide redis auth credentials, and
 rather than support any new attributes to the redis client that might come
 along, we'll now use a [redis url](http://redis-py.readthedocs.org/en/latest/#redis.StrictRedis.from_url).
@@ -645,8 +643,8 @@ This allows users to provide auth, select a database, etc. Remember to change
 this in __worker invocations__ and __config files__.
 
 
-Installation
-============
+## Installation
+
 With an existing copy of `qless-py` checked out
 
 ```bash
