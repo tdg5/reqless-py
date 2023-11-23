@@ -6,8 +6,6 @@ import json
 import time
 import uuid
 
-from six import string_types
-
 from qless.job import Job
 
 
@@ -70,7 +68,7 @@ class Queue:
 
     def class_string(self, klass):
         """Return a string representative of the class"""
-        if isinstance(klass, string_types):
+        if isinstance(klass, str):
             return klass
         return klass.__module__ + "." + klass.__name__
 

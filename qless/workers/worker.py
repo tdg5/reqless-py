@@ -11,10 +11,8 @@ import sys
 import threading
 import traceback
 from contextlib import contextmanager
+from itertools import zip_longest
 from typing import Generator, Optional
-
-from six import string_types
-from six.moves import zip_longest
 
 from qless import exceptions, logger
 from qless.job import Job

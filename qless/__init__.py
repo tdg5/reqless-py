@@ -7,7 +7,6 @@ import time
 
 import decorator
 import redis
-from six import PY3
 
 from qless.config import Config
 from qless.exceptions import QlessError
@@ -140,8 +139,7 @@ class Client:
     def __init__(self, url="redis://localhost:6379", hostname=None, **kwargs):
         # This is our unique identifier as a worker
         self.worker_name = hostname or socket.gethostname()
-        if PY3:
-            kwargs["decode_responses"] = True
+        kwargs["decode_responses"] = True
         # This is just the redis instance we're connected to conceivably
         # someone might want to work with multiple instances simultaneously.
         self.redis = redis.Redis.from_url(url, **kwargs)

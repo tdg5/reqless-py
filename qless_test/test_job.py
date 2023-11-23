@@ -1,7 +1,6 @@
 """Basic tests about the Job class"""
 
 import mock
-from six import PY3
 
 from qless.job import Job
 from qless_test.common import TestQless
@@ -231,10 +230,7 @@ class TestJob(TestQless):
         self.client.queues["nonstatic"].pop().process()
         job = self.client.jobs["jid"]
         self.assertEqual(job.state, "failed")
-        if PY3:
-            self.assertEqual(job.failure["group"], "nonstatic-TypeError")
-        else:
-            self.assertEqual(job.failure["group"], "nonstatic-method-type")
+        self.assertEqual(job.failure["group"], "nonstatic-TypeError")
 
     def test_reload(self):
         """Ensure that nothing blows up if we reload a class"""

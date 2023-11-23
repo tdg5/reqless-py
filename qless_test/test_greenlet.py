@@ -3,7 +3,6 @@
 import time
 
 import gevent
-from six import next
 
 from qless.workers.greenlet import GeventWorker
 from qless_test.common import TestQless

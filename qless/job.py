@@ -2,14 +2,13 @@
 
 """Both the regular Job and RecurringJob classes"""
 
+import importlib
 import json
 import os
 import time
 import traceback
 import types
 from typing import Dict
-
-from six.moves import reload_module
 
 from qless.exceptions import LostLockError, QlessError
 from qless.logger import logger
@@ -76,7 +75,7 @@ class BaseJob:
             try:
                 mtime = os.stat(mod.__file__).st_mtime
                 if BaseJob._loaded[klass] < mtime:
-                    mod = reload_module(mod)
+                    mod = importlib.reload(mod)
             except OSError:
                 logger.warn("Could not check modification time of %s", mod.__file__)
 

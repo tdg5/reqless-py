@@ -3,8 +3,6 @@
 import itertools
 import os
 
-from six import next
-
 import qless
 from qless.workers.worker import Worker
 from qless_test.common import TestQless

@@ -4,8 +4,6 @@ import multiprocessing
 import os
 import signal
 
-from six import string_types
-
 from qless import logger, util
 from qless.workers.serial import SerialWorker
 from qless.workers.worker import Worker
@@ -59,7 +57,7 @@ class ForkingWorker(Worker):
         # Apparently there's an issue with importing gevent in the parent
         # process and then using it int he child. This is meant to relieve that
         # problem by allowing `klass` to be specified as a string.
-        if isinstance(self.klass, string_types):
+        if isinstance(self.klass, str):
             self.klass = util.import_class(self.klass)
         return self.klass(self.queues, self.client, **copy)
 

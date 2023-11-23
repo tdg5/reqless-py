@@ -14,7 +14,6 @@ _dependencies = [
     "decorator",
     "hiredis",
     "redis",
-    "six",
 ]
 
 _dev_dependencies = [
@@ -27,7 +26,6 @@ _dev_dependencies = [
     "safety==2.3.5",
     "types-decorator==5.1.8.4",
     "types-mock==5.1.0.2",
-    "types-six==1.16.21.",
 ]
 
 _test_dependencies = [
