@@ -13,6 +13,7 @@ divy
 evt
 exc
 flushdb
+fn
 formatter
 func
 gethostname

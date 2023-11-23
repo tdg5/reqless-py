@@ -3,9 +3,12 @@
 import multiprocessing
 import os
 import signal
+from types import FrameType
+from typing import Optional, Type
 
 from qless import logger, util
 from qless.workers.serial import SerialWorker
+from qless.workers.util import create_sandbox, divide
 from qless.workers.worker import Worker
 
 
@@ -19,17 +22,18 @@ class ForkingWorker(Worker):
     """A worker that forks child processes"""
 
     def __init__(self, *args, **kwargs):
-        Worker.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Worker class to use
-        self.klass = self.kwargs.pop("klass", SerialWorker)
+        _klass = self.kwargs.pop("klass", SerialWorker)
+        self.klass: Type[Worker] = (
+            util.import_class(_klass) if isinstance(_klass, str) else _klass
+        )
         # How many children to launch
-        self.count = self.kwargs.pop("workers", 0) or NUM_CPUS
+        self.count: int = self.kwargs.pop("workers", 0) or NUM_CPUS
         # A dictionary of child pids to information about them
         self.sandboxes = {}
-        # Whether or not we're supposed to shutdown
-        self.shutdown = False
 
-    def stop(self, sig=signal.SIGINT):
+    def stop(self, sig: int = signal.SIGINT) -> None:
         """Stop all the workers, and then wait for them"""
         for cpid in self.sandboxes:
             logger.warn("Stopping %i..." % cpid)
@@ -50,23 +54,18 @@ class ForkingWorker(Worker):
             finally:
                 self.sandboxes.pop(cpid, None)
 
-    def spawn(self, **kwargs):
+    def spawn(self, **kwargs) -> Worker:
         """Return a new worker for a child process"""
         copy = dict(self.kwargs)
         copy.update(kwargs)
-        # Apparently there's an issue with importing gevent in the parent
-        # process and then using it int he child. This is meant to relieve that
-        # problem by allowing `klass` to be specified as a string.
-        if isinstance(self.klass, str):
-            self.klass = util.import_class(self.klass)
         return self.klass(self.queues, self.client, **copy)
 
-    def run(self):
+    def run(self) -> None:
         """Run this worker"""
         self.signals(("TERM", "INT", "QUIT"))
         # Divide up the jobs that we have to divy up between the workers. This
         # produces evenly-sized groups of jobs
-        resume = self.divide(self.resume, self.count)
+        resume = divide(self.resume, self.count)
         for index in range(self.count):
             # The sandbox for the child worker
             sandbox = os.path.join(
@@ -78,7 +77,7 @@ class ForkingWorker(Worker):
                 self.sandboxes[cpid] = sandbox
             else:  # pragma: no cover
                 # Move to the sandbox as the current working directory
-                with Worker.sandbox(sandbox):
+                with create_sandbox(sandbox):
                     os.chdir(sandbox)
                     try:
                         self.spawn(resume=resume[index], sandbox=sandbox).run()
@@ -100,7 +99,7 @@ class ForkingWorker(Worker):
                     logger.info("Spawned replacement worker %i" % cpid)
                     self.sandboxes[cpid] = sandbox
                 else:  # pragma: no cover
-                    with Worker.sandbox(sandbox):
+                    with create_sandbox(sandbox):
                         os.chdir(sandbox)
                         try:
                             self.spawn(sandbox=sandbox).run()
@@ -111,7 +110,9 @@ class ForkingWorker(Worker):
         finally:
             self.stop(signal.SIGKILL)
 
-    def handler(self, signum, frame):  # pragma: no cover
+    def handler(
+        self, signum: int, frame: Optional[FrameType]
+    ) -> None:  # pragma: no cover
         """Signal handler for this process"""
         if signum in (signal.SIGTERM, signal.SIGINT, signal.SIGQUIT):
             self.stop(signum)

@@ -1,9 +1,7 @@
 """Test worker"""
 
-import itertools
-import os
-
 import qless
+from qless.job import Job
 from qless.workers.worker import Worker
 from qless_test.common import TestQless
 
@@ -16,79 +14,16 @@ class TestWorker(TestQless):
         self.client.worker_name = "worker"
         self.worker = Worker(["foo"], self.client)
 
-    def test_proctitle(self):
-        """Make sure we can get / set the process title"""
-        try:
-            import setproctitle  # noqa: F401
-
-            before = Worker.title()
-            Worker.title("Foo")
-            self.assertNotEqual(before, Worker.title())
-        except ImportError:
-            self.skipTest("setproctitle not available")
-
     def test_kill(self):
         """The base worker class' kill method should raise an exception"""
         self.assertRaises(NotImplementedError, self.worker.kill, 1)
-
-    def test_clean(self):
-        """Should be able to clean a directory"""
-        if not os.path.exists("test/tmp"):
-            os.makedirs("test/tmp")
-        self.assertEqual(os.listdir("test/tmp"), [])
-        os.makedirs("test/tmp/foo/bar")
-        with open("test/tmp/file.out", "w+"):
-            pass
-        self.assertNotEqual(os.listdir("test/tmp"), [])
-        Worker.clean("test/tmp")
-        self.assertEqual(os.listdir("test/tmp"), [])
-
-    def test_sandbox(self):
-        """The sandbox utility should work"""
-        path = "test/tmp/foo"
-        self.assertFalse(os.path.exists(path))
-        try:
-            with Worker.sandbox(path):
-                self.assertTrue(os.path.exists(path))
-                for name in ["whiz", "widget", "bang"]:
-                    with open(os.path.join(path, name), "w+"):
-                        pass
-                # Now raise an exception
-                raise ValueError("foo")
-        except ValueError:
-            pass
-        # Make sure the directory has been cleaned
-        self.assertEqual(os.listdir(path), [])
-        os.rmdir(path)
-
-    def test_sandbox_exists(self):
-        """Sandbox creation should not throw an error if the path exists"""
-        path = "test/tmp"
-        self.assertEqual(os.listdir(path), [])
-        with Worker.sandbox(path):
-            pass
-        # If we get to this point, the test succeeds
-        self.assertTrue(True)
-
-    def test_dirty_sandbox(self):
-        """If a sandbox is dirty on arrival, clean it first"""
-        path = "test/tmp/foo"
-        with Worker.sandbox(path):
-            for name in ["whiz", "widget", "bang"]:
-                with open(os.path.join(path, name), "w+"):
-                    pass
-            # Now it's sullied. Clean it up
-            self.assertNotEqual(os.listdir(path), [])
-            with Worker.sandbox(path):
-                self.assertEqual(os.listdir(path), [])
-        os.rmdir(path)
 
     def test_resume(self):
         """We should be able to resume jobs"""
         queue = self.worker.client.queues["foo"]
         queue.put("foo", {})
         job = self.client.queues["foo"].peek()
-        self.assertTrue(isinstance(job, qless.Job))
+        self.assertTrue(isinstance(job, Job))
         # Now, we'll create a new worker and make sure it gets that job first
         worker = Worker(["foo"], self.client, resume=[job])
         job_from_worker = next(worker.jobs())
@@ -102,7 +37,7 @@ class TestWorker(TestQless):
         # Pop from another worker
         other = qless.Client(hostname="other")
         job = other.queues["foo"].pop()
-        self.assertTrue(isinstance(job, qless.Job))
+        self.assertTrue(isinstance(job, Job))
         # Now, we'll create a new worker and make sure it gets that job first
         worker = Worker(["foo"], self.client, resume=[self.client.jobs[job.jid]])
         self.assertEqual(next(worker.jobs()), None)
@@ -120,11 +55,3 @@ class TestWorker(TestQless):
         worker = Worker(["foo"], self.client, resume=True)
         jids = [job.jid for job in worker.resume]
         self.assertEqual(jids, [jid])
-
-    def test_divide(self):
-        """We should be able to divide resumable jobs evenly"""
-        items = self.worker.divide(range(100), 7)
-        # Make sure we have the same items as output as input
-        self.assertEqual(sorted(itertools.chain(*items)), list(range(100)))
-        lengths = [len(batch) for batch in items]
-        self.assertLessEqual(max(lengths) - min(lengths), 1)

@@ -77,8 +77,11 @@ class TestWorker(TestQless):
 
     def test_spawn_klass_string(self):
         """Should be able to import by class string"""
-        worker = PatchedForkingWorker(["foo"], self.client)
-        worker.klass = "qless.workers.serial.SerialWorker"
+        worker = PatchedForkingWorker(
+            client=self.client,
+            klass="qless.workers.serial.SerialWorker",
+            queues=["foo"],
+        )
         self.assertIsInstance(worker.spawn(), Worker)
 
     def test_spawn(self):

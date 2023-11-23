@@ -2,113 +2,58 @@
 
 """Our base worker"""
 
-import code
 import json
 import os
-import shutil
 import signal
 import sys
 import threading
 import traceback
+from code import InteractiveConsole
 from contextlib import contextmanager
-from itertools import zip_longest
-from typing import Generator, Optional
+from types import FrameType
+from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
-from qless import exceptions, logger
+from qless import Client, exceptions, logger
 from qless.job import Job
 from qless.listener import Listener
-
-
-# Setting the process title
-try:
-    from setproctitle import getproctitle, setproctitle
-except ImportError:  # pragma: no cover
-
-    def setproctitle(title: str) -> None:
-        pass
-
-    def getproctitle() -> str:
-        return ""
+from qless.queue import Queue
 
 
 class Worker:
     """Worker. For doing work"""
 
-    @classmethod
-    def title(cls, message=None):
-        """Set the title of the process"""
-        if message is None:
-            return getproctitle()
-        else:
-            setproctitle("qless-py-worker %s" % message)
-            logger.info(message)
-
-    @classmethod
-    def divide(cls, jobs, count):
-        """Divide up the provided jobs into count evenly-sized groups"""
-        jobs = list(zip(*zip_longest(*[iter(jobs)] * count)))
-        # If we had no jobs to resume, then we get an empty list
-        jobs = jobs or [()] * count
-        for index in range(count):
-            # Filter out the items in jobs that are None
-            jobs[index] = [j for j in jobs[index] if j is not None]
-        return jobs
-
-    @classmethod
-    def clean(cls, path):
-        """Clean up all the files in a provided path"""
-        for pth in os.listdir(path):
-            pth = os.path.abspath(os.path.join(path, pth))
-            if os.path.isdir(pth):
-                logger.debug("Removing directory %s" % pth)
-                shutil.rmtree(pth)
-            else:
-                logger.debug("Removing file %s" % pth)
-                os.remove(pth)
-
-    @classmethod
-    @contextmanager
-    def sandbox(cls, path):
-        """Ensures path exists before yielding, cleans up after"""
-        # Ensure the path exists and is clean
-        try:
-            os.makedirs(path)
-            logger.debug("Making %s" % path)
-        except OSError:
-            if not os.path.isdir(path):
-                raise
-        finally:
-            cls.clean(path)
-        # Then yield, but make sure to clean up the directory afterwards
-        try:
-            yield
-        finally:
-            cls.clean(path)
-
-    def __init__(self, queues, client, **kwargs):
-        self.client = client
+    def __init__(
+        self,
+        queues: Sequence[Union[str, Queue]],
+        client: Client,
+        interval: Optional[int] = None,
+        resume: Optional[Union[bool, List[Job]]] = None,
+        **kwargs,
+    ):
+        self.client: Client = client
         # This should accept either queue objects, or string queue names
-        self.queues = []
+        self.queues: List[Queue] = []
         for queue in queues:
-            if isinstance(queue, string_types):
+            if isinstance(queue, str):
                 self.queues.append(self.client.queues[queue])
-            else:
+            elif isinstance(queue, Queue):
                 self.queues.append(queue)
+            else:
+                raise ValueError(f"Queue cannot be of class {type(queue)}")
 
         # Save our kwargs, since a common pattern to instantiate subworkers
-        self.kwargs = kwargs
+        self.kwargs: Dict[str, Any] = {**kwargs, "interval": interval, "resume": resume}
+
         # Check for any jobs that we should resume. If 'resume' is the actual
         # value 'True', we should find all the resumable jobs we can. Otherwise,
         # we should interpret it as a list of jobs already
-        self.resume = kwargs.get("resume") or []
-        if self.resume is True:
-            self.resume = self.resumable()
+        self.resume: List[Job] = self.resumable() if resume is True else (resume or [])
         # How frequently we should poll for work
-        self.interval = kwargs.get("interval", 60)
+        self.interval: int = interval or 60
         # To mark whether or not we should shutdown after work is done
-        self.shutdown = False
+        self.shutdown: bool = False
 
-    def resumable(self):
+    def resumable(self) -> List[Job]:
         """Find all the jobs that we'd previously been working on"""
         # First, find the jids of all the jobs registered to this client.
         # Then, get the corresponding job objects
@@ -141,7 +86,7 @@ class Worker:
                 yield None
 
     @contextmanager
-    def listener(self):
+    def listener(self) -> Generator[None, None, None]:
         """Listen for pubsub messages relevant to this worker in a thread"""
         channels = ["ql:w:" + self.client.worker_name]
         listener = Listener(self.client.redis, channels)
@@ -153,7 +98,7 @@ class Worker:
             listener.unlisten()
             thread.join()
 
-    def listen(self, listener):
+    def listen(self, listener: Listener) -> None:
         """Listen for events that affect our ownership of a job"""
         for message in listener.listen():
             try:
@@ -163,21 +108,26 @@ class Worker:
             except Exception:
                 logger.exception("Pubsub error")
 
-    def kill(self, jid):
+    def kill(self, jid: str) -> None:
         """Stop processing the provided jid"""
         raise NotImplementedError('Derived classes must override "kill"')
 
-    def signals(self, signals=("QUIT", "USR1", "USR2")):
+    def run(self) -> None:
+        """Run this worker"""
+        raise NotImplementedError('Derived classes must override "run"')
+
+    def signals(self, signals: Tuple[str, ...] = ("QUIT", "USR1", "USR2")) -> None:
         """Register our signal handler"""
         for sig in signals:
             signal.signal(getattr(signal, "SIG" + sig), self.handler)
 
-    def stop(self):
+    def stop(self) -> None:
         """Mark this for shutdown"""
         self.shutdown = True
 
-    # Unfortunately, for most of this, it's not really practical to unit test
-    def handler(self, signum, frame):  # pragma: no cover
+    def handler(
+        self, signum: int, frame: Optional[FrameType]
+    ) -> None:  # pragma: no cover
         """Signal handler for this process"""
         if signum == signal.SIGQUIT:
             # QUIT - Finish processing, but don't do any more work after that
@@ -192,9 +142,10 @@ class Worker:
             # USR2 - Enter a debugger
             # Much thanks to http://stackoverflow.com/questions/132058
             data = {"_frame": frame}  # Allow access to frame object.
-            data.update(frame.f_globals)  # Unless shadowed by global
-            data.update(frame.f_locals)
-            # Build up a message with a traceback
-            message = "".join(traceback.format_stack(frame))
+            if frame:
+                data.update(frame.f_globals)  # Unless shadowed by global
+                data.update(frame.f_locals)
+                # Build up a message with a traceback
+                message = "".join(traceback.format_stack(frame))
             message = "Traceback:\n%s" % message
-            code.InteractiveConsole(data).interact(message)
+            InteractiveConsole(data).interact(message)

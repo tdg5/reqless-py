@@ -3,6 +3,7 @@
 import os
 import time
 
+from qless.workers.util import create_sandbox, set_title
 from qless.workers.worker import Worker
 
 
@@ -10,7 +11,7 @@ class SerialWorker(Worker):
     """A worker that just does serial work"""
 
     def __init__(self, *args, **kwargs):
-        Worker.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         # The jid that we're working on at the moment
         self.jid = None
         # This is the sandbox we use
@@ -18,7 +19,7 @@ class SerialWorker(Worker):
             "sandbox", os.path.join(os.getcwd(), "qless-py-workers")
         )
 
-    def kill(self, jid):
+    def kill(self, jid: str) -> None:
         """The best way to do this is to fall on our sword"""
         if jid == self.jid:
             exit(1)
@@ -33,12 +34,12 @@ class SerialWorker(Worker):
                 # If there was no job to be had, we should sleep a little bit
                 if not job:
                     self.jid = None
-                    self.title("Sleeping for %fs" % self.interval)
+                    set_title("Sleeping for %fs" % self.interval)
                     time.sleep(self.interval)
                 else:
                     self.jid = job.jid
-                    self.title("Working on %s (%s)" % (job.jid, job.klass_name))
-                    with self.sandbox(self._sandbox):
+                    set_title("Working on %s (%s)" % (job.jid, job.klass_name))
+                    with create_sandbox(self._sandbox):
                         job.sandbox = self._sandbox
                         job.process()
                 if self.shutdown:

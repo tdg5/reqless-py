@@ -28,7 +28,7 @@ class BaseJob:
         object.__setattr__(self, "klass_name", kwargs["klass"])
         object.__setattr__(self, "queue_name", kwargs["queue"])
         # Because of how Lua parses JSON, empty tags comes through as {}
-        object.__setattr__(self, "tags", kwargs["tags"] or [])
+        object.__setattr__(self, "tags", kwargs.get("tags") or [])
         object.__setattr__(self, "throttles", kwargs.get("throttles") or [])
         object.__setattr__(self, "data", json.loads(kwargs["data"]))
 
