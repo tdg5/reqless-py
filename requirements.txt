@@ -2,11 +2,13 @@ appdirs==1.4.4
 async-timeout==4.0.3
 black==21.5b2
 certifi==2023.11.17
+cffi==1.16.0
 cfgv==3.4.0
 charset-normalizer==3.3.2
 click==8.0.4
 colorama==0.4.6
 coverage==7.3.0
+cryptography==41.0.5
 decorator==5.1.1
 distlib==0.3.7
 dparse==0.6.3
@@ -28,6 +30,7 @@ pathspec==0.11.2
 pbr==1.8.1
 platformdirs==4.0.0
 pre-commit==2.20.0
+pycparser==2.21
 pyflakes==3.1.0
 pyparsing==3.1.1
 python-termstyle==0.1.10
@@ -46,6 +49,8 @@ toml==0.10.2
 tomli==2.0.1
 types-decorator==5.1.8.4
 types-mock==5.1.0.2
+types-pyOpenSSL==23.3.0.0
+types-redis==4.6.0.11
 typing_extensions==4.8.0
 urllib3==2.1.0
 virtualenv==20.24.7

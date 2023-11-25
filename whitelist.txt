@@ -15,6 +15,7 @@ exc
 flushdb
 fn
 formatter
+fullmatch
 func
 gethostname
 getitem
@@ -71,6 +72,7 @@ subworkers
 tmp
 truthy
 ttl
+tz
 undepend
 unfail
 unittest

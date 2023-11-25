@@ -27,6 +27,15 @@ class TestQless(unittest.TestCase):
         # The qless client we're using
         self.client = qless.Client()
 
+    def ensure_queues_exist(self, queue_names: List[str]) -> None:
+        for queue_name in queue_names:
+            queue = self.client.queues[queue_name]
+            if len(queue) == 0:
+                jid = queue.put("Foo", {})
+                job = self.client.jobs[jid]
+                if job:
+                    job.cancel()
+
     def tearDown(self):
         # Ensure that we leave no keys behind, and that we've unfrozen time
         self.redis.flushdb()
