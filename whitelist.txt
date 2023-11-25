@@ -46,6 +46,8 @@ qless
 redef
 requeue
 reregister
+resolver
+resolvers
 respawn
 resumable
 rmdir
