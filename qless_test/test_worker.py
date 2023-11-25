@@ -2,6 +2,7 @@
 
 import qless
 from qless.job import Job
+from qless.queue_resolvers.transforming_queue_resolver import TransformingQueueResolver
 from qless.workers.worker import Worker
 from qless_test.common import TestQless
 
@@ -57,3 +58,17 @@ class TestWorker(TestQless):
         worker = Worker(["foo"], self.client, resume=True)
         jids = [job.jid for job in worker.resume]
         self.assertEqual(jids, [jid])
+
+    def test_queue_resolver_when_list_of_queues_given(self):
+        """When given a list of queues, it wraps them in a queue resolver"""
+        queue_names = ["foo"]
+        worker = Worker(queue_names, self.client)
+        self.assertEqual(queue_names, worker.queue_resolver.resolve())
+
+    def test_queue_resolver_when_queue_resolver_given(self):
+        """When given a queue resolver, it takes it without modification"""
+        queue_names = ["foo"]
+        queue_resolver = TransformingQueueResolver(queue_identifiers=queue_names)
+        worker = Worker(client=self.client, queues=queue_resolver)
+        self.assertEqual(queue_resolver, worker.queue_resolver)
+        self.assertEqual(queue_names, worker.queue_resolver.resolve())

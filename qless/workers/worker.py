@@ -9,12 +9,13 @@ import traceback
 from code import InteractiveConsole
 from contextlib import contextmanager
 from types import FrameType
-from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from qless import Client, exceptions, logger
 from qless.job import Job
 from qless.listener import Listener
 from qless.queue import Queue
+from qless.queue_resolvers import AbstractQueueResolver, TransformingQueueResolver
 
 
 class Worker:
@@ -22,25 +23,33 @@ class Worker:
 
     def __init__(
         self,
-        queues: Sequence[Union[str, Queue]],
+        queues: Union[Iterable[Union[str, Queue]], AbstractQueueResolver],
         client: Client,
         interval: Optional[int] = None,
         resume: Optional[Union[bool, List[Job]]] = None,
         **kwargs,
     ):
         self.client: Client = client
-        # This should accept either queue objects, or string queue names
-        self.queues: List[Queue] = []
-        for queue in queues:
-            if isinstance(queue, str):
-                self.queues.append(self.client.queues[queue])
-            elif isinstance(queue, Queue):
-                self.queues.append(queue)
-            else:
-                raise ValueError(f"Queue cannot be of class {type(queue)}")
+
+        queue_resolver: AbstractQueueResolver
+        if isinstance(queues, AbstractQueueResolver):
+            queue_resolver = queues
+        else:
+            queue_identifiers = [
+                queue if isinstance(queue, str) else queue.name for queue in queues
+            ]
+            queue_resolver = TransformingQueueResolver(
+                queue_identifiers=queue_identifiers
+            )
+        self.queue_resolver: AbstractQueueResolver = queue_resolver
 
         # Save our kwargs, since a common pattern to instantiate subworkers
-        self.kwargs: Dict[str, Any] = {**kwargs, "interval": interval, "resume": resume}
+        self.kwargs: Dict[str, Any] = {
+            **kwargs,
+            "interval": interval,
+            "queue_resolver": queue_resolver,
+            "resume": resume,
+        }
 
         # Check for any jobs that we should resume. If 'resume' is the actual
         # value 'True', we should find all the resumable jobs we can. Otherwise,
@@ -51,6 +60,11 @@ class Worker:
         # To mark whether or not we should shutdown after work is done
         self.shutdown: bool = False
 
+    @property
+    def queues(self) -> Iterable[Queue]:
+        for queue_name in self.queue_resolver.resolve():
+            yield self.client.queues[queue_name]
+
     def resumable(self) -> List[Job]:
         """Find all the jobs that we'd previously been working on"""
         # First, find the jids of all the jobs registered to this client.
@@ -60,7 +74,7 @@ class Worker:
 
         # We'll filter out all the jobs that aren't in any of the queues
         # we're working on.
-        queue_names = {queue.name for queue in self.queues}
+        queue_names = set(self.queue_resolver.resolve())
         return [job for job in jobs if job.queue_name in queue_names]
 
     def jobs(self) -> Generator[Optional[Job], None, None]:
