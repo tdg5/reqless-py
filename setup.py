@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 from typing import Dict, List, Tuple
 
 from setuptools import setup

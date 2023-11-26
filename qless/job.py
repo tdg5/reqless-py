@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """Both the regular Job and RecurringJob classes"""
 
 import importlib

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """Our base worker"""
 
 import json

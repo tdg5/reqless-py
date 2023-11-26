@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """Our Queue and supporting classes"""
 
 import json
