@@ -98,6 +98,7 @@ class TestWorker(TestQless):
             job = self.client.jobs[jid]
             assert job is not None
         job.timeout()
+        self.thread.join()
         self.assertEqual(self.client.redis.brpop(["foo"], 1), ("foo", jid))
 
     def test_kill(self):
