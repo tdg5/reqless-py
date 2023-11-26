@@ -12,14 +12,19 @@ class TestClient(TestQless):
     def test_track(self):
         """Gives us access to track and untrack jobs"""
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.client.track("jid")
+        self.assertTrue(self.client.track("jid"))
+        self.assertFalse(self.client.track("jid"))
         self.assertEqual(self.client.jobs.tracked()["jobs"][0].jid, "jid")
-        self.client.untrack("jid")
+        self.assertTrue(self.client.untrack("jid"))
+        self.assertFalse(self.client.untrack("jid"))
         self.assertEqual(self.client.jobs.tracked(), {"jobs": [], "expired": {}})
 
     def test_attribute_error(self):
         """Throws AttributeError for non-attributes"""
-        self.assertRaises(AttributeError, lambda: self.client.foo)
+        self.assertRaises(
+            AttributeError,
+            lambda: self.client.foo,  # type: ignore[attr-defined]
+        )
 
     def test_tags(self):
         """Provides access to top tags"""
@@ -30,15 +35,21 @@ class TestClient(TestQless):
 
     def test_unfail(self):
         """Provides access to unfail"""
-        jids = map(str, range(10))
+        job_count = 10
+        jids = map(str, range(job_count))
         for jid in jids:
             self.client.queues["foo"].put("Foo", {}, jid=jid)
             self.client.queues["foo"].pop().fail("foo", "bar")
         for jid in jids:
-            self.assertEqual(self.client.jobs[jid].state, "failed")
-        self.client.unfail("foo", "foo")
+            job = self.client.jobs[jid]
+            assert job is not None
+            self.assertEqual(job.state, "failed")
+        unfail_count = self.client.unfail("foo", "foo")
+        self.assertEqual(job_count, unfail_count)
         for jid in jids:
-            self.assertEqual(self.client.jobs[jid].state, "waiting")
+            job = self.client.jobs[jid]
+            assert job is not None
+            self.assertEqual(job.state, "waiting")
 
 
 class TestJobs(TestQless):
@@ -121,7 +132,10 @@ class TestQueues(TestQless):
 
     def test_attribute_error(self):
         """Raises AttributeErrors for non-attributes"""
-        self.assertRaises(AttributeError, lambda: self.client.queues.foo)
+        self.assertRaises(
+            AttributeError,
+            lambda: self.client.queues.foo,  # type: ignore[attr-defined]
+        )
 
 
 class TestThrottles(TestQless):
@@ -191,7 +205,10 @@ class TestWorkers(TestQless):
 
     def test_attribute_error(self):
         """Raises AttributeErrors for non-attributes"""
-        self.assertRaises(AttributeError, lambda: self.client.workers.foo)
+        self.assertRaises(
+            AttributeError,
+            lambda: self.client.workers.foo,  # type: ignore[attr-defined]
+        )
 
 
 # This is used for TestRetry
@@ -215,9 +232,13 @@ class TestRetry(TestQless):
         self.client.queues["foo"].put(Foo, {}, tags=["valueerror"], jid="jid")
         self.client.queues["foo"].pop().process()
         # Not remove the tag so it should fail
-        self.client.jobs["jid"].untag("valueerror")
+        job = self.client.jobs["jid"]
+        assert job is not None
+        job.untag("valueerror")
         self.client.queues["foo"].pop().process()
-        self.assertEqual(self.client.jobs["jid"].state, "failed")
+        job = self.client.jobs["jid"]
+        assert job is not None
+        self.assertEqual(job.state, "failed")
 
     def test_docstring(self):
         """Retry decorator should preserve docstring"""

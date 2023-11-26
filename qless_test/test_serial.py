@@ -65,7 +65,11 @@ class TestWorker(TestQless):
         """Can complete jobs in a basic way"""
         jids = [self.queue.put(SerialJob, {}) for _ in range(5)]
         NoListenWorker(["foo"], self.client, interval=0.2).run()
-        states = [self.client.jobs[jid].state for jid in jids]
+        states = []
+        for jid in jids:
+            job = self.client.jobs[jid]
+            assert job is not None
+            states.append(job.state)
         self.assertEqual(states, ["complete"] * 5)
 
     def test_jobs(self):
@@ -86,11 +90,15 @@ class TestWorker(TestQless):
         jid = [self.queue.put(SerialJob, {"sleep": 0.1}) for _ in range(5)][0]
         self.thread = Thread(target=Worker(["foo"], self.client, interval=0.2).run)
         self.thread.start()
+        job = self.client.jobs[jid]
+        assert job is not None
         # Now, we'll timeout one of the jobs and ensure that kill is invoked
-        while self.client.jobs[jid].state != "running":
+        while job.state != "running":
             time.sleep(0.01)
-        self.client.jobs[jid].timeout()
-        self.assertEqual(self.client.redis.brpop("foo", 1), ("foo", jid))
+            job = self.client.jobs[jid]
+            assert job is not None
+        job.timeout()
+        self.assertEqual(self.client.redis.brpop(["foo"], 1), ("foo", jid))
 
     def test_kill(self):
         """Should be able to fall on its sword if need be"""

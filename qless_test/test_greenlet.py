@@ -57,9 +57,17 @@ class TestWorker(TestQless):
         """Can complete jobs in a basic way"""
         jids = [self.queue.put(GeventJob, {}) for _ in range(5)]
         self.worker.run()
-        states = [self.client.jobs[jid].state for jid in jids]
+        states = []
+        for jid in jids:
+            job = self.client.jobs[jid]
+            assert job is not None
+            states.append(job.state)
         self.assertEqual(states, ["complete"] * 5)
-        sandboxes = [self.client.jobs[jid].data["sandbox"] for jid in jids]
+        sandboxes = []
+        for jid in jids:
+            job = self.client.jobs[jid]
+            assert job is not None
+            sandboxes.append(job.data["sandbox"])
         for sandbox in sandboxes:
             self.assertIn("qless-py-workers/greenlet-0", sandbox)
 

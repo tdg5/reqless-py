@@ -39,7 +39,9 @@ class TestWorker(TestQless):
         job = other.queues["foo"].pop()
         self.assertTrue(isinstance(job, Job))
         # Now, we'll create a new worker and make sure it gets that job first
-        worker = Worker(["foo"], self.client, resume=[self.client.jobs[job.jid]])
+        job = self.client.jobs[job.jid]
+        assert job is not None
+        worker = Worker(["foo"], self.client, resume=[job])
         self.assertEqual(next(worker.jobs()), None)
 
     def test_resumable(self):

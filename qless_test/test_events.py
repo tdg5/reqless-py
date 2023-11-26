@@ -9,7 +9,9 @@ class TestEvents(TestQless):
     def setUp(self):
         TestQless.setUp(self)
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.client.jobs["jid"].track()
+        job = self.client.jobs["jid"]
+        assert job is not None
+        job.track()
 
     def test_basic(self):
         """Ensure we can get a basic event"""

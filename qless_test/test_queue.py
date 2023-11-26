@@ -92,6 +92,7 @@ class TestQueue(TestQless):
         queue = self.client.queues["foo"]
         queue.put("Foo", {}, jid="jid", throttles=["throttle"])
         job = self.client.jobs["jid"]
+        assert job is not None
         queue_throttle = queue.throttle.name
         self.assertEqual(job.throttles, ["throttle", queue_throttle])
 
@@ -104,6 +105,7 @@ class TestQueue(TestQless):
 
         queue.requeue("Foo", {}, jid="jid", throttles=["other-throttle"])
         job = self.client.jobs["jid"]
+        assert job is not None
         queue_throttle = queue.throttle.name
         self.assertEqual(job.throttles, ["other-throttle", queue_throttle])
 
@@ -113,5 +115,6 @@ class TestQueue(TestQless):
         queue.recur("Foo", {}, 60, jid="jid", throttles=["throttle"])
 
         job = self.client.jobs["jid"]
+        assert job is not None
         queue_throttle = queue.throttle.name
         self.assertEqual(job.throttles, ["throttle", queue_throttle])

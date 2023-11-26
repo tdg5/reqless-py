@@ -5,6 +5,7 @@ import signal
 import threading
 import time
 
+from qless.job import Job
 from qless.workers.forking import ForkingWorker
 from qless.workers.worker import Worker
 from qless_test.common import TestQless
@@ -73,7 +74,9 @@ class TestWorker(TestQless):
         self.thread.join(1)
         self.assertFalse(self.thread.is_alive())
         expected = os.path.join(os.getcwd(), "qless-py-workers/sandbox-0")
-        self.assertEqual(self.client.jobs[jid]["cwd"], expected)
+        job = self.client.jobs[jid]
+        assert isinstance(job, Job)
+        self.assertEqual(job["cwd"], expected)
 
     def test_spawn_klass_string(self):
         """Should be able to import by class string"""
