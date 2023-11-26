@@ -41,7 +41,9 @@ class TestConfig(TestQless):
 
     def test_attribute_error(self):
         """Only has the 'all' attribute"""
-        self.assertRaises(AttributeError, lambda: self.client.config.foo)
+        self.assertRaises(
+            AttributeError, lambda: self.client.config.foo  # type: ignore[attr-defined]
+        )
 
     def test_len(self):
         """We can see how many items are in the config"""

@@ -1,23 +1,37 @@
 """All our configuration operations"""
 
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    ItemsView,
+    Iterable,
+    Iterator,
+    KeysView,
+    ValuesView,
+)
+
+
+if TYPE_CHECKING:
+    from qless import Client
+
 import json
 
 
 class Config:
     """A class that allows us to change and manipulate qless config"""
 
-    def __init__(self, client):
-        self._client = client
+    def __init__(self, client: "Client"):
+        self._client: "Client" = client
 
-    def __getattr__(self, attr):
-        if attr == "all":
-            return json.loads(self._client("config.get"))
-        raise AttributeError("qless.Config has no attribute %s" % attr)
+    @property
+    def all(self) -> Dict[str, Any]:
+        return json.loads(self._client("config.get"))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.all)
 
-    def __getitem__(self, option):
+    def __getitem__(self, option: str) -> Any:
         result = self._client("config.get", option)
         if not result:
             return None
@@ -26,49 +40,49 @@ class Config:
         except TypeError:
             return result
 
-    def __setitem__(self, option, value):
-        return self._client("config.set", option, value)
+    def __setitem__(self, option: str, value: Any) -> None:
+        self._client("config.set", option, value)
 
-    def __delitem__(self, option):
-        return self._client("config.unset", option)
+    def __delitem__(self, option: str) -> None:
+        self._client("config.unset", option)
 
-    def __contains__(self, option):
-        return dict.__contains__(self.all, option)
+    def __contains__(self, option: str) -> bool:
+        return option in self.all
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.all)
 
-    def clear(self):
+    def clear(self) -> None:
         """Remove all keys"""
-        for key in self.all.keys():
+        for key in self.keys():
             self._client("config.unset", key)
 
-    def get(self, option, default=None):
+    def get(self, option: str, default: Any = None) -> Any:
         """Get a particular option, or the default if it's missing"""
         val = self[option]
         return (val is None and default) or val
 
-    def items(self):
+    def items(self) -> ItemsView[str, Any]:
         """Just like `dict.items`"""
         return self.all.items()
 
-    def keys(self):
+    def keys(self) -> KeysView[str]:
         """Just like `dict.keys`"""
         return self.all.keys()
 
-    def pop(self, option, default=None):
+    def pop(self, option: str, default: Any = None) -> Any:
         """Just like `dict.pop`"""
         val = self[option]
         del self[option]
         return (val is None and default) or val
 
-    def update(self, other=(), **kwargs):
+    def update(self, other: Iterable = (), **kwargs) -> None:
         """Just like `dict.update`"""
         _kwargs = dict(kwargs)
         _kwargs.update(other)
         for key, value in _kwargs.items():
             self[key] = value
 
-    def values(self):
+    def values(self) -> ValuesView:
         """Just like `dict.values`"""
         return self.all.values()
