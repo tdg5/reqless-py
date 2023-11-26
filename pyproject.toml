@@ -1,19 +1,19 @@
 [build-system]
-requires = ['setuptools>=42']
-build-backend = 'setuptools.build_meta'
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\")"]
 
 [tool.black]
 line-length = 88
-target-version = ['py39']
-include = ['qless', 'test']
-exclude = ['README.md']
+target-version = ["py39"]
+include = ["qless", "qmore", "qless_test"]
+exclude = ["README.md"]
 
 [tool.isort]
 include_trailing_comma = true
-known_first_party = ["qless", "qless_test"]
+known_first_party = ["qless", "qmore", "qless_test"]
 line_length = 88
 lines_after_imports = 2
 multi_line_output = 3

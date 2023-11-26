@@ -24,7 +24,9 @@ gevent
 globals
 greenlet
 greenlets
+hgetall
 histo
+hset
 jid
 jids
 klass
@@ -43,6 +45,7 @@ proctitle
 pth
 pubsub
 qless
+qmore
 redef
 requeue
 reregister

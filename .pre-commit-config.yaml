@@ -11,13 +11,13 @@ repos:
         name: black
         language: system
         entry: black
-        args: [ "qless" , "qless_test" ]
+        args: [ "qless", "qmore", "qless_test" ]
         types: [ python ]
       - id: flake8
         name: flake8
         language: python
         entry: flake8
-        args: [ "qless" , "qless_test" ]
+        args: [ "qless", "qmore", "qless_test" ]
         types: [ python ]
         additional_dependencies:
           - darglint
@@ -32,18 +32,18 @@ repos:
         name: Mypy check
         entry: mypy
         language: system
-        args: [ "qless" , "qless_test" ]
+        args: [ "qless", "qmore", "qless_test" ]
         pass_filenames: false
       - id: isort
         name: isort
         entry: isort
-        args: [ "qless" , "qless_test" ]
+        args: [ "qless", "qmore", "qless_test" ]
         language: system
       - id: removestar
         name: removestar
         language: system
         entry: removestar
-        args: [ "-i", "qless" , "qless_test" ]
+        args: [ "-i", "qless", "qmore", "qless_test" ]
         types: [python]
       - id: safety-production-dependencies-check
         name: Safety production dependencies check
