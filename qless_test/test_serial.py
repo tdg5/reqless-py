@@ -1,6 +1,8 @@
 """Test the serial worker"""
 
 import time
+from os import path
+from tempfile import NamedTemporaryFile
 from threading import Thread
 
 from qless import logger
@@ -14,7 +16,10 @@ class SerialJob:
     @staticmethod
     def foo(job):
         """Dummy job"""
-        time.sleep(job.data.get("sleep", 0))
+        blocker_file = job.data.get("blocker_file")
+        if blocker_file:
+            while path.exists(blocker_file):
+                time.sleep(0.1)
         try:
             job.complete()
         except Exception:
@@ -87,7 +92,8 @@ class TestWorker(TestQless):
 
     def test_lost_locks(self):
         """The worker should be able to stop processing if need be"""
-        jid = [self.queue.put(SerialJob, {"sleep": 0.1}) for _ in range(5)][0]
+        temp_file = NamedTemporaryFile()
+        jid = self.queue.put(SerialJob, {"blocker_file": temp_file.name})
         self.thread = Thread(target=Worker(["foo"], self.client, interval=0.2).run)
         self.thread.start()
         job = self.client.jobs[jid]
@@ -98,7 +104,7 @@ class TestWorker(TestQless):
             job = self.client.jobs[jid]
             assert job is not None
         job.timeout()
-        self.thread.join()
+        temp_file.close()
         self.assertEqual(self.client.redis.brpop(["foo"], 1), ("foo", jid))
 
     def test_kill(self):
