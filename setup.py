@@ -54,7 +54,7 @@ def _test_requires() -> List:
 
 setup(
     name="qless-with-throttles",
-    version="0.11.4",
+    version="0.12.0a1",
     description="Redis-based Queue Management",
     long_description=_long_description(),
     url="http://github.com/tdg5/qless-py",
