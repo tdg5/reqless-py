@@ -1,10 +1,6 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from setuptools import setup
-
-
-def _long_description() -> Tuple[str, str]:
-    return open("README.md", "r", encoding="utf-8").read()
 
 
 _dependencies = [
@@ -56,7 +52,7 @@ setup(
     name="qless-with-throttles",
     version="0.12.0a2",
     description="Redis-based Queue Management",
-    long_description=_long_description(),
+    long_description="Fork of seomoz/qless-py with support for throttles.",
     url="http://github.com/tdg5/qless-py",
     author="Danny Guinther",
     author_email="dannyguinther@gmail.com",
