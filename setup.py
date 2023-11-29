@@ -1,6 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from setuptools import setup
+
+
+def _long_description() -> Tuple[str, str]:
+    return open("README.md", "r", encoding="utf-8").read(), "text/markdown"
 
 
 _dependencies = [
@@ -48,36 +52,39 @@ def _test_requires() -> List:
     return _test_dependencies
 
 
+long_description, long_description_content_type = _long_description()
+
 setup(
-    name="qless-with-throttles",
-    version="0.12.0a3",
-    description="Redis-based Queue Management",
-    long_description="Fork of seomoz/qless-py with support for throttles.",
-    url="http://github.com/tdg5/qless-py",
     author="Danny Guinther",
     author_email="dannyguinther@gmail.com",
-    license="MIT License",
+    classifiers=[
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+    ],
+    description="Redis-based Queue Management",
     keywords="redis, qless, job",
+    license="MIT License",
+    long_description=long_description,
+    long_description_content_type=long_description_content_type,
+    name="qless-with-throttles",
     packages=["qless", "qless.queue_resolvers", "qless.workers", "qmore"],
+    url="http://github.com/tdg5/qless-py",
+    version="0.12.0a3",
+    package_data={"qless": ["lua/*.lua"]},
     package_dir={
         "qless": "qless",
         "qless.queue_resolvers": "qless/queue_resolvers",
         "qless.workers": "qless/workers",
         "qmore": "qmore",
     },
-    package_data={"qless": ["lua/*.lua"]},
-    include_package_data=True,
-    scripts=["bin/qless-py-worker"],
     extras_require=_extra_requires(),
+    include_package_data=True,
     install_requires=_install_requires(),
+    scripts=["bin/qless-py-worker"],
     tests_requires=_test_requires(),
-    classifiers=[
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Intended Audience :: Developers",
-        "Operating System :: OS Independent",
-    ],
 )
