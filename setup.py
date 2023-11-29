@@ -74,7 +74,7 @@ setup(
     name="qless-with-throttles",
     packages=["qless", "qless.queue_resolvers", "qless.workers", "qmore"],
     url="http://github.com/tdg5/qless-py",
-    version="0.12.0a4",
+    version="0.12.0a5",
     package_data={"qless": ["lua/*.lua"]},
     package_dir={
         "qless": "qless",
