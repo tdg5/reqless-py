@@ -1,4 +1,4 @@
-# qless [![Build Status](https://travis-ci.org/seomoz/qless-py.svg?branch=master)](https://travis-ci.org/seomoz/qless-py)
+# qless
 
 This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) with
 support for throttles. Qless is a powerful `Redis`-based job queueing system
