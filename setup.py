@@ -50,7 +50,7 @@ def _test_requires() -> List:
 
 setup(
     name="qless-with-throttles",
-    version="0.12.0a2",
+    version="0.12.0a3",
     description="Redis-based Queue Management",
     long_description="Fork of seomoz/qless-py with support for throttles.",
     url="http://github.com/tdg5/qless-py",
