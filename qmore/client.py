@@ -61,7 +61,9 @@ class QmoreClient:
                     pattern.strip()
                     for pattern in str(priority_pattern_data["pattern"]).split(",")
                 ],
-                should_distribute_fairly=bool(priority_pattern_data["fairly"]),
+                should_distribute_fairly=bool(
+                    priority_pattern_data.get("fairly", False)
+                ),
             )
             queue_priority_patterns.append(queue_priority_pattern)
         return queue_priority_patterns
