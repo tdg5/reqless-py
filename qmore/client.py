@@ -30,10 +30,13 @@ class QmoreClient:
 
     def get_queue_identifier_patterns(self) -> Dict[str, List[str]]:
         serialized_patterns = self.redis.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
-        return {
+        patterns = {
             identifier: json.loads(json_patterns)
             for identifier, json_patterns in serialized_patterns.items()
         }
+        if "default" not in patterns:
+            patterns["default"] = "*"
+        return patterns
 
     def set_queue_identifier_patterns(
         self,
