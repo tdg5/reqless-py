@@ -1,12 +1,14 @@
 """Basic tests about the Job class"""
 
+from typing import List
+
 from qless_test.common import TestQless
 
 
 class TestQueue(TestQless):
     """Test the Job class"""
 
-    def test_jobs(self):
+    def test_jobs(self) -> None:
         """The queue.Jobs class provides access to job counts"""
         queue = self.client.queues["foo"]
         queue.put("Foo", {})
@@ -16,7 +18,7 @@ class TestQueue(TestQless):
         self.assertEqual(queue.jobs.scheduled(), [])
         self.assertEqual(queue.jobs.recurring(), [])
 
-    def test_counts(self):
+    def test_counts(self) -> None:
         """Provides access to job counts"""
         self.client.queues["foo"].put("Foo", {})
         self.assertEqual(
@@ -34,7 +36,7 @@ class TestQueue(TestQless):
             },
         )
 
-    def test_pause(self):
+    def test_pause(self) -> None:
         """Pause/Unpause Queue"""
         queue = self.client.queues["foo"]
 
@@ -44,50 +46,59 @@ class TestQueue(TestQless):
         queue.unpause()
         self.assertFalse(queue.counts["paused"])
 
-    def test_heartbeat(self):
+    def test_heartbeat(self) -> None:
         """Provided access to heartbeat configuration"""
         original = self.client.queues["foo"].heartbeat
         self.client.queues["foo"].heartbeat = 10
         self.assertNotEqual(original, self.client.queues["foo"].heartbeat)
 
-    def test_attribute_error(self):
+    def test_attribute_error(self) -> None:
         """Raises an attribute error if there is no attribute"""
-        self.assertRaises(AttributeError, lambda: self.client.queues["foo"].foo)
+        self.assertRaises(
+            AttributeError,
+            lambda: self.client.queues["foo"].foo,  # type: ignore[attr-defined]
+        )
 
-    def test_multipop(self):
+    def test_multipop(self) -> None:
         """Exposes multi-pop"""
         self.client.queues["foo"].put("Foo", {})
         self.client.queues["foo"].put("Foo", {})
-        self.assertEqual(len(self.client.queues["foo"].pop(10)), 2)
+        jobs = self.client.queues["foo"].pop(10)
+        assert isinstance(jobs, List)
+        self.assertEqual(len(jobs), 2)
 
-    def test_peek(self):
+    def test_peek(self) -> None:
         """Exposes queue peeking"""
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.assertEqual(self.client.queues["foo"].peek().jid, "jid")
+        job = self.client.queues["foo"].peek()
+        assert job is not None and not isinstance(job, List)
+        self.assertEqual(job.jid, "jid")
 
-    def test_multipeek(self):
+    def test_multipeek(self) -> None:
         """Exposes multi-peek"""
         self.client.queues["foo"].put("Foo", {})
         self.client.queues["foo"].put("Foo", {})
-        self.assertEqual(len(self.client.queues["foo"].peek(10)), 2)
+        jobs = self.client.queues["foo"].peek(10)
+        assert isinstance(jobs, List)
+        self.assertEqual(len(jobs), 2)
 
-    def test_stats(self):
+    def test_stats(self) -> None:
         """Exposes stats"""
         self.client.queues["foo"].stats()
 
-    def test_len(self):
+    def test_len(self) -> None:
         """Exposes the length of a queue"""
         self.client.queues["foo"].put("Foo", {})
         self.assertEqual(len(self.client.queues["foo"]), 1)
 
-    def test_throttle(self):
+    def test_throttle(self) -> None:
         """Exposes the queue's throttle"""
         queue_name = "foo"
         queue = self.client.queues[queue_name]
         throttle = queue.throttle
         self.assertEqual(throttle.name, f"ql:q:{queue_name}")
 
-    def test_put_with_throttles(self):
+    def test_put_with_throttles(self) -> None:
         """Test put with throttles given"""
         queue = self.client.queues["foo"]
         queue.put("Foo", {}, jid="jid", throttles=["throttle"])
@@ -96,11 +107,12 @@ class TestQueue(TestQless):
         queue_throttle = queue.throttle.name
         self.assertEqual(job.throttles, ["throttle", queue_throttle])
 
-    def test_requeue_with_throttles(self):
+    def test_requeue_with_throttles(self) -> None:
         """Test requeue with throttles given"""
         queue = self.client.queues["foo"]
         queue.put("Foo", {}, jid="jid", throttles=["throttle"])
         job_to_fail = queue.pop()
+        assert job_to_fail is not None and not isinstance(job_to_fail, List)
         job_to_fail.fail("foo", "bar")
 
         queue.requeue("Foo", {}, jid="jid", throttles=["other-throttle"])
@@ -109,7 +121,7 @@ class TestQueue(TestQless):
         queue_throttle = queue.throttle.name
         self.assertEqual(job.throttles, ["other-throttle", queue_throttle])
 
-    def test_recur_with_throttles(self):
+    def test_recur_with_throttles(self) -> None:
         """Test recur with throttles given"""
         queue = self.client.queues["foo"]
         queue.recur("Foo", {}, 60, jid="jid", throttles=["throttle"])

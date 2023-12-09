@@ -11,7 +11,7 @@ from qmore.client import QmoreClient
 
 
 class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
-    def setUp(self):
+    def setUp(self) -> None:
         TestQless.setUp(self)
         self.qmore_client = QmoreClient(redis=self.client.redis)
 
@@ -30,7 +30,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
         self.set_dynamic_queues(dynamic_queue_mapping)
         return subject.transform(queue_identifiers=patterns)
 
-    def test_resolve_queue_names_exact_match(self):
+    def test_resolve_queue_names_exact_match(self) -> None:
         """It includes queue names by exact match"""
         patterns = ["exact_queue_name"]
         known_queue_names = ["exact_queue_name", "exact_queue_name_extended"]
@@ -43,7 +43,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_exact_match_negated(self):
+    def test_resolve_queue_names_exact_match_negated(self) -> None:
         """It excludes queue names by negated exact match"""
         patterns = ["*", "!exact_queue_name_extended"]
         known_queue_names = ["exact_queue_name", "exact_queue_name_extended"]
@@ -56,7 +56,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_wildcard_match(self):
+    def test_resolve_queue_names_wildcard_match(self) -> None:
         """It includes queue names by wildcard"""
         known_queue_names = [
             "exact_queue_name",
@@ -80,7 +80,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_wildcard_match_negated(self):
+    def test_resolve_queue_names_wildcard_match_negated(self) -> None:
         """It excludes queue names by negated wildcard"""
         known_queue_names = [
             "exact_queue_name",
@@ -104,7 +104,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_with_exact_match(self):
+    def test_resolve_queue_names_dynamic_with_exact_match(self) -> None:
         """It includes queue names from dynamic queues by identifier"""
         patterns = ["@exact", "other_queue_name"]
         known_queue_names = [
@@ -122,7 +122,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_with_exact_match_negated(self):
+    def test_resolve_queue_names_dynamic_with_exact_match_negated(self) -> None:
         """It excludes queue names from dynamic queues by negated identifier"""
         patterns = ["exact*", "@exact"]
         known_queue_names = [
@@ -140,7 +140,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_with_wildcard_match(self):
+    def test_resolve_queue_names_dynamic_with_wildcard_match(self) -> None:
         """It includes queue names from dynamic queues by wildcard"""
         patterns = ["@exact"]
         known_queue_names = [
@@ -158,7 +158,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_with_wildcard_match_negated(self):
+    def test_resolve_queue_names_dynamic_with_wildcard_match_negated(self) -> None:
         """It excludes queue names from dynamic queues by negated wildcard"""
         patterns = ["*", "@exact"]
         known_queue_names = [
@@ -176,7 +176,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_negated_with_exact_match(self):
+    def test_resolve_queue_names_dynamic_negated_with_exact_match(self) -> None:
         """It excludes queue names from negated dynamic queues by exact match"""
         patterns = ["*", "!@exact"]
         known_queue_names = [
@@ -194,7 +194,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_negated_with_exact_match_negated(self):
+    def test_resolve_queue_names_dynamic_negated_with_exact_match_negated(self) -> None:
         """It includes queue names from negated dynamic queues by exact match"""
         patterns = ["!@exact"]
         known_queue_names = [
@@ -212,7 +212,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_negated_with_wildcard_match(self):
+    def test_resolve_queue_names_dynamic_negated_with_wildcard_match(self) -> None:
         """It excludes queue names from negated dynamic queues by wildcard"""
         patterns = ["*", "!@exact"]
         known_queue_names = [
@@ -230,7 +230,9 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_dynamic_negated_with_wildcard_match_negated(self):
+    def test_resolve_queue_names_dynamic_negated_with_wildcard_match_negated(
+        self,
+    ) -> None:
         """It includes queue names from negated dynamic queues by wildcard"""
         patterns = ["!@exact"]
         known_queue_names = [
@@ -248,7 +250,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_a_little_bit_of_everything(self):
+    def test_resolve_queue_names_a_little_bit_of_everything(self) -> None:
         """It includes queue names when using a mix of strategies"""
         patterns = [
             "*",
@@ -278,7 +280,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_resolve_queue_names_allows_no_duplicates(self):
+    def test_resolve_queue_names_allows_no_duplicates(self) -> None:
         """It does not return the same queue name multiple times"""
         patterns = [
             "exact_queue_name",
@@ -301,13 +303,13 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             ),
         )
 
-    def test_get_dynamic_queue_mapping_handles_no_defined_mapping(self):
+    def test_get_dynamic_queue_mapping_handles_no_defined_mapping(self) -> None:
         """It tolerates when no dynamic queue mapping is defined"""
         subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
         mapping = subject._get_dynamic_queue_mapping()
         self.assertEqual({"default": "*"}, mapping)
 
-    def test_get_dynamic_queue_mapping_returns_expected_mapping(self):
+    def test_get_dynamic_queue_mapping_returns_expected_mapping(self) -> None:
         """It fetches and returns the expected dynamic queue mapping"""
         default_mapping = ["*"]
         other_mapping = ["one", "two*", "th*ree", "four"]
@@ -317,7 +319,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
         self.assertEqual(default_mapping, mapping["default"])
         self.assertEqual(other_mapping, mapping["other"])
 
-    def test_get_dynamic_queue_mapping_caches_mapping_for_some_duration(self):
+    def test_get_dynamic_queue_mapping_caches_mapping_for_some_duration(self) -> None:
         """It caches the dynamic queue mapping for the configured duration"""
         refresh_frequency = 500
         subject = QmoreDynamicMappingQueueIdentifiersTransformer(
@@ -341,7 +343,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
             mapping,
         )
 
-    def test_with_transforming_queue_resolver(self):
+    def test_with_transforming_queue_resolver(self) -> None:
         """It works with TransformingQueueResolver"""
         default_mapping = ["*"]
         other_mapping = ["one", "two*", "th*ree", "four"]
@@ -367,7 +369,9 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
         queue_names = queue_resolver.resolve()
         self.assertEqual(expected_queue_names, queue_names)
 
-    def test_static_queue_names_are_enumerated_even_if_they_do_not_yet_exist(self):
+    def test_static_queue_names_are_enumerated_even_if_they_do_not_yet_exist(
+        self,
+    ) -> None:
         """It includes static queue names when the queues don't exist"""
         patterns = [f"unique-queue-name-{uuid4()}"]
         self.assertEqual(

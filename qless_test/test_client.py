@@ -1,15 +1,24 @@
 """Basic tests about the client"""
 
 
+from typing import List
+
 from qless import retry
+from qless.abstract import AbstractClient, AbstractJob
 from qless.workers.worker import Worker
 from qless_test.common import TestQless
+
+
+def pop_one(client: AbstractClient, queue_name: str) -> AbstractJob:
+    job = client.queues[queue_name].pop()
+    assert job is not None and not isinstance(job, List)
+    return job
 
 
 class TestClient(TestQless):
     """Test the client"""
 
-    def test_track(self):
+    def test_track(self) -> None:
         """Gives us access to track and untrack jobs"""
         self.client.queues["foo"].put("Foo", {}, jid="jid")
         self.assertTrue(self.client.track("jid"))
@@ -19,97 +28,97 @@ class TestClient(TestQless):
         self.assertFalse(self.client.untrack("jid"))
         self.assertEqual(self.client.jobs.tracked(), {"jobs": [], "expired": {}})
 
-    def test_attribute_error(self):
+    def test_attribute_error(self) -> None:
         """Throws AttributeError for non-attributes"""
         self.assertRaises(
             AttributeError,
             lambda: self.client.foo,  # type: ignore[attr-defined]
         )
 
-    def test_tags(self):
+    def test_tags(self) -> None:
         """Provides access to top tags"""
         self.assertEqual(self.client.tags(), {})
         for _ in range(10):
             self.client.queues["foo"].put("Foo", {}, tags=["foo"])
         self.assertEqual(self.client.tags(), ["foo"])
 
-    def test_unfail(self):
+    def test_unfail(self) -> None:
         """Provides access to unfail"""
         job_count = 10
         jids = map(str, range(job_count))
         for jid in jids:
             self.client.queues["foo"].put("Foo", {}, jid=jid)
-            self.client.queues["foo"].pop().fail("foo", "bar")
+            pop_one(self.client, "foo").fail("foo", "bar")
         for jid in jids:
             job = self.client.jobs[jid]
-            assert job is not None
+            assert job is not None and isinstance(job, AbstractJob)
             self.assertEqual(job.state, "failed")
         unfail_count = self.client.unfail("foo", "foo")
         self.assertEqual(job_count, unfail_count)
         for jid in jids:
             job = self.client.jobs[jid]
-            assert job is not None
+            assert job is not None and isinstance(job, AbstractJob)
             self.assertEqual(job.state, "waiting")
 
 
 class TestJobs(TestQless):
     """Test the Jobs class"""
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Can give us access to jobs"""
         self.assertEqual(self.client.jobs["jid"], None)
         self.client.queues["foo"].put("Foo", {}, jid="jid")
         self.assertNotEqual(self.client.jobs["jid"], None)
 
-    def test_recurring(self):
+    def test_recurring(self) -> None:
         """Can give us access to recurring jobs"""
         self.assertEqual(self.client.jobs["jid"], None)
         self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
         self.assertNotEqual(self.client.jobs["jid"], None)
 
-    def test_complete(self):
+    def test_complete(self) -> None:
         """Can give us access to complete jobs"""
         self.assertEqual(self.client.jobs.complete(), [])
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.client.queues["foo"].pop().complete()
+        pop_one(self.client, "foo").complete()
         self.assertEqual(self.client.jobs.complete(), ["jid"])
 
-    def test_tracked(self):
+    def test_tracked(self) -> None:
         """Gives us access to tracked jobs"""
         self.assertEqual(self.client.jobs.tracked(), {"jobs": [], "expired": {}})
         self.client.queues["foo"].put("Foo", {}, jid="jid")
         self.client.track("jid")
         self.assertEqual(self.client.jobs.tracked()["jobs"][0].jid, "jid")
 
-    def test_tagged(self):
+    def test_tagged(self) -> None:
         """Gives us access to tagged jobs"""
         self.assertEqual(self.client.jobs.tagged("foo"), {"total": 0, "jobs": {}})
         self.client.queues["foo"].put("Foo", {}, jid="jid", tags=["foo"])
         self.assertEqual(self.client.jobs.tagged("foo")["jobs"][0], "jid")
 
-    def test_failed(self):
+    def test_failed(self) -> None:
         """Gives us access to failed jobs"""
         self.assertEqual(self.client.jobs.failed("foo"), {"total": 0, "jobs": []})
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.client.queues["foo"].pop().fail("foo", "bar")
+        pop_one(self.client, "foo").fail("foo", "bar")
         self.assertEqual(self.client.jobs.failed("foo")["jobs"][0].jid, "jid")
 
-    def test_failures(self):
+    def test_failures(self) -> None:
         """Gives us access to failure types"""
         self.assertEqual(self.client.jobs.failed(), {})
         self.client.queues["foo"].put("Foo", {}, jid="jid")
-        self.client.queues["foo"].pop().fail("foo", "bar")
+        pop_one(self.client, "foo").fail("foo", "bar")
         self.assertEqual(self.client.jobs.failed(), {"foo": 1})
 
 
 class TestQueues(TestQless):
     """Test the Queues class"""
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Gives us access to queues"""
         self.assertNotEqual(self.client.queues["foo"], None)
 
-    def test_counts(self):
+    def test_counts(self) -> None:
         """Gives us access to counts"""
         self.assertEqual(self.client.queues.counts, {})
         self.client.queues["foo"].put("Foo", {})
@@ -130,7 +139,7 @@ class TestQueues(TestQless):
             ],
         )
 
-    def test_attribute_error(self):
+    def test_attribute_error(self) -> None:
         """Raises AttributeErrors for non-attributes"""
         self.assertRaises(
             AttributeError,
@@ -141,11 +150,11 @@ class TestQueues(TestQless):
 class TestThrottles(TestQless):
     """Test the Throttles class"""
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Give us access to throttles"""
         self.assertNotEqual(self.client.throttles["foo"], None)
 
-    def test_throttle_operations(self):
+    def test_throttle_operations(self) -> None:
         throttle_name = "foo"
         throttle = self.client.throttles[throttle_name]
 
@@ -177,12 +186,12 @@ class TestThrottles(TestQless):
 class TestWorkers(TestQless):
     """Test the Workers class"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         TestQless.setUp(self)
         self.client.worker_name = "worker"
         self.worker = Worker(["foo"], self.client)
 
-    def test_individual(self):
+    def test_individual(self) -> None:
         """Gives us access to individual workers"""
         self.client.queues["foo"].put("Foo", {}, jid="jid")
         self.assertEqual(self.client.workers["worker"], {"jobs": [], "stalled": []})
@@ -193,7 +202,7 @@ class TestWorkers(TestQless):
             self.client.workers["worker"], {"jobs": ["jid"], "stalled": []}
         )
 
-    def test_counts(self):
+    def test_counts(self) -> None:
         """Gives us access to worker counts"""
         self.client.queues["foo"].put("Foo", {}, jid="jid")
         self.assertEqual(self.client.workers.counts, {})
@@ -203,7 +212,7 @@ class TestWorkers(TestQless):
             self.client.workers.counts, [{"jobs": 1, "name": "worker", "stalled": 0}]
         )
 
-    def test_attribute_error(self):
+    def test_attribute_error(self) -> None:
         """Raises AttributeErrors for non-attributes"""
         self.assertRaises(
             AttributeError,
@@ -215,7 +224,7 @@ class TestWorkers(TestQless):
 class Foo:
     @staticmethod
     @retry(ValueError)
-    def process(job):
+    def process(job: AbstractJob) -> None:
         """This is supposed to raise an Exception"""
         if "valueerror" in job.tags:
             raise ValueError("Foo")
@@ -226,20 +235,20 @@ class Foo:
 class TestRetry(TestQless):
     """Test the retry decorator"""
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Ensure the retry decorator works"""
         # The first time, it should just be retries automatically
         self.client.queues["foo"].put(Foo, {}, tags=["valueerror"], jid="jid")
-        self.client.queues["foo"].pop().process()
+        pop_one(self.client, "foo").process()
         # Not remove the tag so it should fail
         job = self.client.jobs["jid"]
-        assert job is not None
+        assert job is not None and isinstance(job, AbstractJob)
         job.untag("valueerror")
-        self.client.queues["foo"].pop().process()
+        pop_one(self.client, "foo").process()
         job = self.client.jobs["jid"]
-        assert job is not None
+        assert job is not None and isinstance(job, AbstractJob)
         self.assertEqual(job.state, "failed")
 
-    def test_docstring(self):
+    def test_docstring(self) -> None:
         """Retry decorator should preserve docstring"""
         self.assertEqual(Foo.process.__doc__, "This is supposed to raise an Exception")

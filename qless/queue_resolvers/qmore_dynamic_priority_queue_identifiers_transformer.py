@@ -4,9 +4,7 @@ from random import SystemRandom
 from typing import List, Optional
 
 from qless import Client
-from qless.queue_resolvers.abstract_queue_identifiers_transformer import (
-    AbstractQueueIdentifiersTransformer,
-)
+from qless.abstract import AbstractQueueIdentifiersTransformer
 from qmore.client import QmoreClient, QueuePriorityPattern
 
 

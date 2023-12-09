@@ -10,7 +10,7 @@ from qmore.client import QmoreClient, QueuePriorityPattern
 
 
 class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
-    def setUp(self):
+    def setUp(self) -> None:
         TestQless.setUp(self)
         self.qmore_client = QmoreClient(redis=self.client.redis)
         # We use many queues to reduce the chances that we shuffle a list into
@@ -23,14 +23,16 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         ]
         self.ensure_queues_exist(self.queue_identifiers)
 
-    def test_transform_places_default_queues_last_when_no_patterns_defined(self):
+    def test_transform_places_default_queues_last_when_no_patterns_defined(
+        self,
+    ) -> None:
         """It should prioritize default queues last when no patterns defined"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns([])
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_places_default_queues_last_when_no_default_pattern(self):
+    def test_transform_places_default_queues_last_when_no_default_pattern(self) -> None:
         """It should prioritize default queues last when no default pattern"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -44,7 +46,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_default_unfairly(self):
+    def test_transform_default_unfairly(self) -> None:
         """It should handle default queues fairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -57,7 +59,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_default_fairly(self):
+    def test_transform_default_fairly(self) -> None:
         """It should handle default queues fairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -73,7 +75,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_inclusive_simple_patterns_unfairly(self):
+    def test_transform_inclusive_simple_patterns_unfairly(self) -> None:
         """It should handle simple patterns unfairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -100,7 +102,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_inclusive_wildcards_unfairly(self):
+    def test_transform_inclusive_wildcards_unfairly(self) -> None:
         """It should prioritize inclusive wildcard patterns unfairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -119,7 +121,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_inclusive_wildcards_fairly(self):
+    def test_transform_inclusive_wildcards_fairly(self) -> None:
         """It should prioritize inclusive wildcard patterns fairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -145,7 +147,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_inclusive_double_ended_wildcards_unfairly(self):
+    def test_transform_inclusive_double_ended_wildcards_unfairly(self) -> None:
         """It should prioritize inclusive double ended wildcard patterns unfairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -167,7 +169,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_exclusive_simple_patterns_unfairly(self):
+    def test_transform_exclusive_simple_patterns_unfairly(self) -> None:
         """It should handle simple patterns unfairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -187,7 +189,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_is_not_impacted_by_standalone_exclusive_patterns(self):
+    def test_transform_is_not_impacted_by_standalone_exclusive_patterns(self) -> None:
         """It should not be impacted by standalone exclusive patterns"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -201,7 +203,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_should_handle_no_queues_in_default_bucket(self):
+    def test_transform_should_handle_no_queues_in_default_bucket(self) -> None:
         """It should be unaffected by there being no queues in the default bucket"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -215,7 +217,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_exclusive_wildcard_unfairly(self):
+    def test_transform_exclusive_wildcard_unfairly(self) -> None:
         """It should handle exclusive wildcard patterns unfairly"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -234,7 +236,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues.sort()
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_evaluates_patterns_in_order(self):
+    def test_transform_evaluates_patterns_in_order(self) -> None:
         """It should allow later patterns to cancel out earlier patterns"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -250,7 +252,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_transform_does_not_repeat_queues(self):
+    def test_transform_does_not_repeat_queues(self) -> None:
         """It should not repeat a given queue in multiple priority buckets"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(
@@ -265,7 +267,9 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         transformed_queues = subject.transform(queue_identifiers=self.queue_identifiers)
         self.assertEqual(self.queue_identifiers, transformed_queues)
 
-    def test_get_dynamic_queue_priorities_caches_priorities_for_some_duration(self):
+    def test_get_dynamic_queue_priorities_caches_priorities_for_some_duration(
+        self,
+    ) -> None:
         """get dynamic queue priorities caches the priorities for some duration"""
         refresh_frequency = 500
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(
@@ -293,7 +297,7 @@ class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestQless):
         self.assertEqual(["default"], priorities[0].patterns)
         self.assertFalse(priorities[0].should_distribute_fairly)
 
-    def test_with_transforming_queue_resolver(self):
+    def test_with_transforming_queue_resolver(self) -> None:
         """It works with TransformingQueueResolver"""
         subject = QmoreDynamicPriorityQueueIdentifiersTransformer(client=self.client)
         self.qmore_client.set_queue_priority_patterns(

@@ -4,12 +4,12 @@ from contextlib import contextmanager
 from itertools import zip_longest
 from typing import Callable, Generator, Iterable, List, Optional
 
-from qless.job import Job
+from qless.abstract import AbstractJob
 from qless.logger import logger
 from qless.proctitle import getproctitle, setproctitle
 
 
-def divide(jobs: Iterable[Job], count: int) -> List[List[Job]]:
+def divide(jobs: Iterable[AbstractJob], count: int) -> List[List[AbstractJob]]:
     """Divide up the provided jobs into count evenly-sized groups"""
     job_groups = list(zip(*zip_longest(*[iter(jobs)] * count)))
     # If we had no jobs to resume, then we get an empty list
@@ -55,11 +55,11 @@ def create_sandbox(
         _clean_fn(path)
 
 
-def get_title():
+def get_title() -> str:
     """Get the title of the process"""
     return getproctitle()
 
 
-def set_title(message: str):
+def set_title(message: str) -> None:
     """Set the title of the process"""
     setproctitle("qless-py-worker %s" % message)

@@ -6,57 +6,131 @@ import os
 import time
 import traceback
 import types
-from typing import Dict
+from typing import Any, Dict, List, Optional, Type, Union
 
+from qless.abstract import (
+    AbstractBaseJob,
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractRecurringJob,
+)
 from qless.exceptions import LostLockError, QlessError
 from qless.logger import logger
 
 
-class BaseJob:
+class BaseJob(AbstractBaseJob):
     """This is a dictionary of all the classes that we've seen, and
     the last load time for each of them. We'll use this either for
     the debug mode or the general mechanism"""
 
     _loaded: Dict[str, float] = {}
 
-    def __init__(self, client, **kwargs):
-        self.client = client
-        for att in ["jid", "priority"]:
-            object.__setattr__(self, att, kwargs[att])
-        object.__setattr__(self, "klass_name", kwargs["klass"])
-        object.__setattr__(self, "queue_name", kwargs["queue"])
+    def __init__(self, client: AbstractClient, **kwargs: Any):
+        self.client: AbstractClient = client
+        self._data: Dict = json.loads(kwargs["data"])
+        self._jid: str = kwargs["jid"]
+        self._klass: Optional[Type] = None
+        self._klass_name: str = kwargs["klass"]
+        self._priority: int = kwargs["priority"]
+        self._queue: Optional[AbstractQueue] = None
+        self._queue_name: str = kwargs["queue"]
+        self._sandbox: Optional[str] = None
         # Because of how Lua parses JSON, empty tags comes through as {}
-        object.__setattr__(self, "tags", kwargs.get("tags") or [])
-        object.__setattr__(self, "throttles", kwargs.get("throttles") or [])
-        object.__setattr__(self, "data", json.loads(kwargs["data"]))
+        self._tags: List[str] = kwargs.get("tags") or []
+        self._throttles: List[str] = kwargs.get("throttles") or []
 
-    def __setattr__(self, key, value):
-        if key == "priority":
-            self.client("priority", self.jid, value)
+    @property
+    def data(self) -> Dict:
+        return self._data
 
-        return object.__setattr__(self, key, value)
+    @data.setter
+    def data(self, value: Dict) -> None:
+        self._data = value
 
-    def __getattr__(self, key):
-        if key == "queue":
-            # An actual queue instance
-            object.__setattr__(self, "queue", self.client.queues[self.queue_name])
-            return self.queue
-        elif key == "klass":
-            # Get a reference to the provided klass
-            object.__setattr__(self, "klass", self._import(self.klass_name))
-            return self.klass
-        raise AttributeError(
-            "%s has no attribute %s"
-            % (self.__class__.__module__ + "." + self.__class__.__name__, key)
-        )
+    @property
+    def jid(self) -> str:
+        return self._jid
+
+    @jid.setter
+    def jid(self, value: str) -> None:
+        self._jid = value
+
+    @property
+    def klass(self) -> Type:
+        if self._klass is None:
+            self._klass = self._import(self.klass_name)
+
+        return self._klass
+
+    @klass.setter
+    def klass(self, value: Type) -> None:
+        self._klass = value
+        name = value.__module__ + "." + value.__name__
+        self._klass_name = name
+
+    @property
+    def klass_name(self) -> str:
+        return self._klass_name
+
+    @klass_name.setter
+    def klass_name(self, value: str) -> None:
+        self._klass_name = value
+
+    @property
+    def priority(self) -> int:
+        return self._priority
+
+    @priority.setter
+    def priority(self, value: int) -> None:
+        self.client("priority", self.jid, value)
+        self._priority = value
+
+    @property
+    def queue(self) -> AbstractQueue:
+        if self._queue is None:
+            self._queue = self.client.queues[self.queue_name]
+        return self._queue
+
+    @property
+    def queue_name(self) -> str:
+        return self._queue_name
+
+    @queue_name.setter
+    def queue_name(self, value: str) -> None:
+        self._queue_name = value
+
+    @property
+    def sandbox(self) -> Optional[str]:
+        return self._sandbox
+
+    @sandbox.setter
+    def sandbox(self, value: Optional[str]) -> None:
+        self._sandbox = value
+
+    @property
+    def tags(self) -> List[str]:
+        return self._tags
+
+    @tags.setter
+    def tags(self, value: List[str]) -> None:
+        self._tags = value
+
+    @property
+    def throttles(self) -> List[str]:
+        return self._throttles
+
+    @throttles.setter
+    def throttles(self, value: List[str]) -> None:
+        self._throttles = value
 
     @staticmethod
-    def reload(klass):
+    def reload(klass: str) -> None:
         """Force a reload of this klass on next import"""
         BaseJob._loaded[klass] = 0
 
     @staticmethod
-    def _import(klass):
+    def _import(klass: str) -> Type:
         """1) Get a reference to the module
         2) Check the file that module's imported from
         3) If that file's been updated, force a reload of that module
@@ -77,66 +151,111 @@ class BaseJob:
             except OSError:
                 logger.warn("Could not check modification time of %s", mod.__file__)
 
-        return getattr(mod, klass.rpartition(".")[2])
+        cls: Type = getattr(mod, klass.rpartition(".")[2])
+        return cls
 
-    def cancel(self):
+    def cancel(self) -> List[str]:
         """Cancel a job. It will be deleted from the system, the thinking
         being that if you don't want to do any work on it, it shouldn't be in
         the queuing system."""
-        return self.client("cancel", self.jid)
+        response: List[str] = self.client("cancel", self.jid)
+        return response
 
-    def tag(self, *tags):
+    def tag(self, *tags: str) -> List[str]:
         """Tag a job with additional tags"""
-        return self.client("tag", "add", self.jid, *tags)
+        response: List[str] = self.client("tag", "add", self.jid, *tags)
+        return response
 
-    def untag(self, *tags):
+    def untag(self, *tags: str) -> List[str]:
         """Remove tags from a job"""
-        return self.client("tag", "remove", self.jid, *tags)
+        response: List[str] = self.client("tag", "remove", self.jid, *tags)
+        return response
 
 
-class Job(BaseJob):
+class Job(BaseJob, AbstractJob):
     """The Job class"""
 
-    def __init__(self, client, **kwargs):
+    def __init__(self, client: AbstractClient, **kwargs: Any):
         BaseJob.__init__(self, client, **kwargs)
-        self.client = client
-        for att in [
-            "state",
-            "tracked",
-            "failure",
-            "history",
-            "dependents",
-            "dependencies",
-        ]:
-            object.__setattr__(self, att, kwargs[att])
-
-        # The reason we're using object.__setattr__ directly is because
-        # we have __setattr__ defined for this class, and we're actually
-        # just interested in setting these members directly
-        object.__setattr__(self, "expires_at", kwargs["expires"])
-        object.__setattr__(self, "original_retries", kwargs["retries"])
-        object.__setattr__(self, "retries_left", kwargs["remaining"])
-        object.__setattr__(self, "worker_name", kwargs["worker"])
+        self.client: AbstractClient = client
+        self._state: str = kwargs["state"]
+        self._failure: Optional[Dict] = kwargs["failure"]
         # Because of how Lua parses JSON, empty lists come through as {}
-        object.__setattr__(self, "dependents", kwargs["dependents"] or [])
-        object.__setattr__(self, "dependencies", kwargs["dependencies"] or [])
+        self._dependents: List[str] = kwargs["dependents"] or []
+        self._dependencies: List[str] = kwargs["dependencies"] or []
+        self._tracked: bool = kwargs["tracked"]
+        self._worker_name: str = kwargs["worker"]
+        self._retries_left: int = kwargs["remaining"]
+        self._expires_at: float = kwargs["expires"]
+        self._original_retires: int = kwargs["retries"]
+        self._history: List[Dict] = kwargs["history"] or []
 
-    def __getattr__(self, key):
-        if key == "ttl":
-            # How long until this expires, in seconds
-            return self.expires_at - time.time()
-        return BaseJob.__getattr__(self, key)
+    @property
+    def dependencies(self) -> List[str]:
+        return self._dependencies
 
-    def __getitem__(self, key):
+    @dependencies.setter
+    def dependencies(self, value: List[str]) -> None:
+        self._dependencies = value
+
+    @property
+    def dependents(self) -> List[str]:
+        return self._dependents
+
+    @property
+    def expires_at(self) -> float:
+        return self._expires_at
+
+    @expires_at.setter
+    def expires_at(self, value: float) -> None:
+        self._expires_at = value
+
+    @property
+    def failure(self) -> Optional[Dict]:
+        return self._failure
+
+    @failure.setter
+    def failure(self, value: Optional[Dict]) -> None:
+        self._failure = value
+
+    @property
+    def history(self) -> List[Dict]:
+        return self._history
+
+    @property
+    def original_retries(self) -> int:
+        return self._original_retires
+
+    @property
+    def retries_left(self) -> int:
+        return self._retries_left
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def ttl(self) -> float:
+        return self.expires_at - time.time()
+
+    @property
+    def tracked(self) -> bool:
+        return self._tracked
+
+    @property
+    def worker_name(self) -> str:
+        return self._worker_name
+
+    def __getitem__(self, key: str) -> Any:
         return self.data.get(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         self.data[key] = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s %s>" % (self.klass_name, self.jid)
 
-    def process(self):
+    def process(self) -> None:
         """Load the module containing your class, and run the appropriate
         method. For example, if this job was popped from the queue
         ``testing``, then this would invoke the ``testing`` staticmethod of
@@ -148,10 +267,11 @@ class Job(BaseJob):
         except Exception as exc:
             # We failed to import the module containing this class
             logger.exception("Failed to import %s", self.klass_name)
-            return self.fail(
+            self.fail(
                 self.queue_name + "-" + exc.__class__.__name__,
                 "Failed to import %s" % self.klass_name,
             )
+            return
 
         if method:
             if isinstance(method, types.FunctionType):
@@ -195,13 +315,18 @@ class Job(BaseJob):
                 + '" or "process"',
             )
 
-    def move(self, queue, delay=0, depends=None):
+    def move(
+        self,
+        queue: str,
+        delay: Optional[int] = 0,
+        depends: Optional[List[str]] = None,
+    ) -> str:
         """Move this job out of its existing state and into another queue. If
         a worker has been given this job, then that worker's attempts to
         heartbeat that job will fail. Like ``Queue.put``, this accepts a
         delay, and dependencies"""
         logger.info("Moving %s to %s from %s", self.jid, queue, self.queue_name)
-        return self.client(
+        response: str = self.client(
             "put",
             self.worker_name,
             queue,
@@ -214,8 +339,14 @@ class Job(BaseJob):
             "throttles",
             json.dumps(self.throttles or []),
         )
+        return response
 
-    def complete(self, nextq=None, delay=None, depends=None):
+    def complete(
+        self,
+        nextq: Optional[str] = None,
+        delay: Optional[int] = None,
+        depends: Optional[List[str]] = None,
+    ) -> bool:
         """Turn this job in as complete, optionally advancing it to another
         queue. Like ``Queue.put`` and ``move``, it accepts a delay, and
         dependencies"""
@@ -250,7 +381,7 @@ class Job(BaseJob):
                 or False
             )
 
-    def heartbeat(self):
+    def heartbeat(self) -> float:
         """Renew the heartbeat, if possible, and optionally update the job's
         user data."""
         logger.debug("Heartbeating %s (ttl = %s)", self.jid, self.ttl)
@@ -269,7 +400,7 @@ class Job(BaseJob):
         logger.debug("Heartbeated %s (ttl = %s)", self.jid, self.ttl)
         return self.expires_at
 
-    def fail(self, group, message):
+    def fail(self, group: str, message: str) -> Union[bool, str]:
         """Mark the particular job as failed, with the provided type, and a
         more specific message. By `type`, we mean some phrase that might be
         one of several categorical modes of failure. The `message` is
@@ -288,41 +419,53 @@ class Job(BaseJob):
         completed. __Returns__ the id of the failed job if successful, or
         `False` on failure."""
         logger.warn("Failing %s (%s): %s", self.jid, group, message)
-        return (
-            self.client(
-                "fail",
-                self.jid,
-                self.client.worker_name,
-                group,
-                message,
-                json.dumps(self.data),
-            )
-            or False
+        response: bool = self.client(
+            "fail",
+            self.jid,
+            self.client.worker_name,
+            group,
+            message,
+            json.dumps(self.data),
         )
+        return response or False
 
-    def track(self):
+    def track(self) -> bool:
         """Begin tracking this job"""
-        return self.client("track", "track", self.jid)
+        response: str = self.client("track", "track", self.jid)
+        return response == "1"
 
-    def untrack(self):
+    def untrack(self) -> bool:
         """Stop tracking this job"""
-        return self.client("track", "untrack", self.jid)
+        response: str = self.client("track", "untrack", self.jid)
+        return response == "1"
 
-    def retry(self, delay=0, group=None, message=None):
+    def retry(
+        self,
+        delay: int = 0,
+        group: Optional[str] = None,
+        message: Optional[str] = None,
+    ) -> int:
         """Retry this job in a little bit, in the same queue. This is meant
         for the times when you detect a transient failure yourself"""
-        args = ["retry", self.jid, self.queue_name, self.worker_name, delay]
+        args: List[str] = [
+            "retry",
+            self.jid,
+            self.queue_name,
+            self.worker_name,
+            str(delay),
+        ]
         if group is not None and message is not None:
             args.append(group)
             args.append(message)
-        return self.client(*args)
+        response: int = self.client(*args)
+        return response
 
-    def depend(self, *args):
+    def depend(self, *args: str) -> bool:
         """If and only if a job already has other dependencies, this will add
         more jids to the list of this job's dependencies."""
         return self.client("depends", self.jid, "on", *args) or False
 
-    def undepend(self, *args, **kwargs):
+    def undepend(self, *args: str, **kwargs: bool) -> bool:
         """Remove specific (or all) job dependencies from this job:
 
         job.remove(jid1, jid2)
@@ -332,65 +475,93 @@ class Job(BaseJob):
         else:
             return self.client("depends", self.jid, "off", *args) or False
 
-    def timeout(self):
+    def timeout(self) -> None:
         """Time out this job"""
         self.client("timeout", self.jid)
 
 
-class RecurringJob(BaseJob):
+class RecurringJob(BaseJob, AbstractRecurringJob):
     """Recurring Job object"""
 
-    def __init__(self, client, **kwargs):
-        BaseJob.__init__(self, client, **kwargs)
-        for att in ["jid", "priority", "tags", "retries", "interval", "count"]:
-            object.__setattr__(self, att, kwargs[att])
-        object.__setattr__(self, "client", client)
-        object.__setattr__(self, "klass_name", kwargs["klass"])
-        object.__setattr__(self, "queue_name", kwargs["queue"])
-        object.__setattr__(self, "tags", self.tags or [])
-        object.__setattr__(self, "throttles", self.throttles or [])
-        object.__setattr__(self, "data", json.loads(kwargs["data"]))
+    def __init__(self, client: AbstractClient, **kwargs: Any):
+        super().__init__(client, **kwargs)
+        self._retries: int = kwargs["retries"]
+        self._interval: int = kwargs["interval"]
+        self._count: int = kwargs["count"]
 
-    def __setattr__(self, key, value):
-        if key in ("priority", "retries", "interval"):
-            self.client("recur.update", self.jid, key, value)
-            object.__setattr__(self, key, value)
-            return
+    @property
+    def count(self) -> int:
+        return self._count
 
-        if key == "data":
-            self.client("recur.update", self.jid, key, json.dumps(value))
-            object.__setattr__(self, "data", value)
-            return
+    @count.setter
+    def count(self, value: int) -> None:
+        self.client("recur.update", self.jid, "count", value)
 
-        if key == "klass":
-            name = value.__module__ + "." + value.__name__
-            self.client("recur.update", self.jid, "klass", name)
-            object.__setattr__(self, "klass_name", name)
-            object.__setattr__(self, "klass", value)
-            return
+    @property
+    def data(self) -> Dict:
+        return self._data
 
-        return object.__setattr__(self, key, value)
+    @data.setter
+    def data(self, value: Dict) -> None:
+        self._data = value
+        self.client("recur.update", self.jid, "data", json.dumps(value))
 
-    def __getattr__(self, key):
-        if key == "next":
-            # The time (seconds since epoch) until the next time it's run
-            return self.client.redis.zscore(
-                "ql:q:" + self.queue_name + "-recur", self.jid
-            )
-        return BaseJob.__getattr__(self, key)
+    @property
+    def interval(self) -> int:
+        return self._interval
 
-    def move(self, queue):
+    @interval.setter
+    def interval(self, value: int) -> None:
+        self._interval = value
+        self.client("recur.update", self.jid, "interval", value)
+
+    @property
+    def priority(self) -> int:
+        return self._priority
+
+    @priority.setter
+    def priority(self, value: int) -> None:
+        self.client("recur.update", self.jid, "priority", value)
+
+    @property
+    def retries(self) -> int:
+        return self._retries
+
+    @retries.setter
+    def retries(self, value: int) -> None:
+        self.client("recur.update", self.jid, "retries", value)
+
+    @property
+    def klass(self) -> Type:
+        return super().klass
+
+    @klass.setter
+    def klass(self, value: Type) -> None:
+        name = value.__module__ + "." + value.__name__
+        self.client("recur.update", self.jid, "klass", name)
+        self._klass = value
+        self._klass_name = name
+
+    @property
+    def next(self) -> Optional[float]:
+        return self.client.redis.zscore("ql:q:" + self.queue_name + "-recur", self.jid)
+
+    def move(self, queue: str) -> bool:
         """Make this recurring job attached to another queue"""
-        return self.client("recur.update", self.jid, "queue", queue)
+        response: bool = self.client("recur.update", self.jid, "queue", queue)
+        return response
 
-    def cancel(self):
+    def cancel(self) -> List[str]:
         """Cancel all future recurring jobs"""
         self.client("unrecur", self.jid)
+        return [self.jid]
 
-    def tag(self, *tags):
+    def tag(self, *tags: str) -> List[str]:
         """Add tags to this recurring job"""
-        return self.client("recur.tag", self.jid, *tags)
+        response: List[str] = self.client("recur.tag", self.jid, *tags)
+        return response
 
-    def untag(self, *tags):
+    def untag(self, *tags: str) -> List[str]:
         """Remove tags from this job"""
-        return self.client("recur.untag", self.jid, *tags)
+        response: List[str] = self.client("recur.untag", self.jid, *tags)
+        return response

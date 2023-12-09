@@ -1,14 +1,19 @@
 """A Gevent-based worker"""
 
 import os
-from typing import Dict, List
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import gevent
 from gevent import Greenlet
 from gevent.pool import Pool
 
 from qless import logger
-from qless.job import Job
+from qless.abstract import (
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractQueueResolver,
+)
 from qless.workers.util import create_sandbox
 from qless.workers.worker import Worker
 
@@ -16,8 +21,21 @@ from qless.workers.worker import Worker
 class GeventWorker(Worker):
     """A Gevent-based worker"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        queues: Union[Iterable[Union[str, AbstractQueue]], AbstractQueueResolver],
+        client: AbstractClient,
+        interval: Optional[float] = None,
+        resume: Optional[Union[bool, List[AbstractJob]]] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            queues,
+            client,
+            interval,
+            resume,
+            **kwargs,
+        )
         # Should we shut down after this?
         self.shutdown = False
         # A mapping of jids to the greenlets handling them
@@ -32,7 +50,7 @@ class GeventWorker(Worker):
             os.path.join(sandbox_path, "greenlet-%i" % i) for i in range(count)
         ]
 
-    def process(self, job: Job) -> None:
+    def process(self, job: AbstractJob) -> None:
         """Process a job"""
         sandbox = self.sandboxes.pop(0)
         try:

@@ -4,9 +4,15 @@ import multiprocessing
 import os
 import signal
 from types import FrameType
-from typing import Optional, Type
+from typing import Any, Dict, Iterable, List, Optional, Type, Union
 
 from qless import logger, util
+from qless.abstract import (
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractQueueResolver,
+)
 from qless.workers.serial import SerialWorker
 from qless.workers.util import create_sandbox, divide
 from qless.workers.worker import Worker
@@ -21,8 +27,21 @@ except NotImplementedError:
 class ForkingWorker(Worker):
     """A worker that forks child processes"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        queues: Union[Iterable[Union[str, AbstractQueue]], AbstractQueueResolver],
+        client: AbstractClient,
+        interval: Optional[float] = None,
+        resume: Optional[Union[bool, List[AbstractJob]]] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            queues,
+            client,
+            interval,
+            resume,
+            **kwargs,
+        )
         # Worker class to use
         _klass = self.kwargs.pop("klass", SerialWorker)
         self.klass: Type[Worker] = (
@@ -31,7 +50,7 @@ class ForkingWorker(Worker):
         # How many children to launch
         self.count: int = self.kwargs.pop("workers", 0) or NUM_CPUS
         # A dictionary of child pids to information about them
-        self.sandboxes = {}
+        self.sandboxes: Dict[int, str] = {}
 
     def stop(self, sig: int = signal.SIGINT) -> None:
         """Stop all the workers, and then wait for them"""
@@ -54,7 +73,7 @@ class ForkingWorker(Worker):
             finally:
                 self.sandboxes.pop(cpid, None)
 
-    def spawn(self, **kwargs) -> Worker:
+    def spawn(self, **kwargs: Any) -> Worker:
         """Return a new worker for a child process"""
         copy = dict(self.kwargs)
         copy.update(kwargs)

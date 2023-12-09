@@ -2,7 +2,14 @@
 
 import os
 import time
+from typing import Any, Iterable, List, Optional, Union
 
+from qless.abstract import (
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractQueueResolver,
+)
 from qless.workers.util import create_sandbox, set_title
 from qless.workers.worker import Worker
 
@@ -10,12 +17,25 @@ from qless.workers.worker import Worker
 class SerialWorker(Worker):
     """A worker that just does serial work"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        queues: Union[Iterable[Union[str, AbstractQueue]], AbstractQueueResolver],
+        client: AbstractClient,
+        interval: Optional[float] = None,
+        resume: Optional[Union[bool, List[AbstractJob]]] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            queues,
+            client,
+            interval,
+            resume,
+            **kwargs,
+        )
         # The jid that we're working on at the moment
-        self.jid = None
+        self.jid: Optional[str] = None
         # This is the sandbox we use
-        self._sandbox = kwargs.pop(
+        self._sandbox: str = kwargs.pop(
             "sandbox", os.path.join(os.getcwd(), "qless-py-workers")
         )
 
@@ -24,7 +44,7 @@ class SerialWorker(Worker):
         if jid == self.jid:
             exit(1)
 
-    def run(self):
+    def run(self) -> None:
         """Run jobs, popping one after another"""
         # Register our signal handlers
         self.signals()

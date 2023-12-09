@@ -11,11 +11,15 @@ from contextlib import contextmanager
 from types import FrameType
 from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from qless import Client, exceptions, logger
-from qless.job import Job
+from qless import exceptions, logger
+from qless.abstract import (
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractQueueResolver,
+)
 from qless.listener import Listener
-from qless.queue import Queue
-from qless.queue_resolvers import AbstractQueueResolver, TransformingQueueResolver
+from qless.queue_resolvers import TransformingQueueResolver
 
 
 class Worker:
@@ -23,13 +27,13 @@ class Worker:
 
     def __init__(
         self,
-        queues: Union[Iterable[Union[str, Queue]], AbstractQueueResolver],
-        client: Client,
-        interval: Optional[int] = None,
-        resume: Optional[Union[bool, List[Job]]] = None,
-        **kwargs,
+        queues: Union[Iterable[Union[str, AbstractQueue]], AbstractQueueResolver],
+        client: AbstractClient,
+        interval: Optional[float] = None,
+        resume: Optional[Union[bool, List[AbstractJob]]] = None,
+        **kwargs: Any,
     ):
-        self.client: Client = client
+        self.client: AbstractClient = client
 
         queue_resolver: AbstractQueueResolver
         if isinstance(queues, AbstractQueueResolver):
@@ -54,18 +58,20 @@ class Worker:
         # Check for any jobs that we should resume. If 'resume' is the actual
         # value 'True', we should find all the resumable jobs we can. Otherwise,
         # we should interpret it as a list of jobs already
-        self.resume: List[Job] = self.resumable() if resume is True else (resume or [])
+        self.resume: List[AbstractJob] = (
+            self.resumable() if resume is True else (resume or [])
+        )
         # How frequently we should poll for work
-        self.interval: int = interval or 60
+        self.interval: float = interval or 60.0
         # To mark whether or not we should shutdown after work is done
         self.shutdown: bool = False
 
     @property
-    def queues(self) -> Iterable[Queue]:
+    def queues(self) -> Iterable[AbstractQueue]:
         for queue_name in self.queue_resolver.resolve():
             yield self.client.queues[queue_name]
 
-    def resumable(self) -> List[Job]:
+    def resumable(self) -> List[AbstractJob]:
         """Find all the jobs that we'd previously been working on"""
         # First, find the jids of all the jobs registered to this client.
         # Then, get the corresponding job objects
@@ -77,7 +83,9 @@ class Worker:
         queue_names = set(self.queue_resolver.resolve())
         return [job for job in jobs if job.queue_name in queue_names]
 
-    def jobs(self) -> Generator[Optional[Job], None, None]:
+    def jobs(
+        self,
+    ) -> Generator[Optional[AbstractJob], None, None]:
         """Generator for all the jobs"""
         # If we should resume work, then we should hand those out first,
         # assuming we can still heartbeat them
@@ -90,10 +98,11 @@ class Worker:
         while True:
             seen = False
             for queue in self.queues:
-                job = queue.pop()
-                if job:
+                popped_job = queue.pop()
+                if popped_job:
+                    assert not isinstance(popped_job, List)
                     seen = True
-                    yield job
+                    yield popped_job
             if not seen:
                 yield None
 

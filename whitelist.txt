@@ -82,6 +82,7 @@ unresumable
 untag
 untrack
 untracked
+untyped
 usr1
 usr2
 util

@@ -9,11 +9,11 @@ from qless_test.common import TestQless
 class TestWorkerUtil(TestQless):
     """Test the worker utils"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         TestQless.setUp(self)
         self.client.worker_name = "worker"
 
-    def test_proctitle(self):
+    def test_proctitle(self) -> None:
         """Make sure we can get / set the process title"""
         try:
             import setproctitle  # noqa: F401
@@ -24,7 +24,7 @@ class TestWorkerUtil(TestQless):
         except ImportError:
             self.skipTest("setproctitle not available")
 
-    def test_clean(self):
+    def test_clean(self) -> None:
         """Should be able to clean a directory"""
         if not os.path.exists("qless_test/tmp"):
             os.makedirs("qless_test/tmp")
@@ -36,7 +36,7 @@ class TestWorkerUtil(TestQless):
         clean("qless_test/tmp")
         self.assertEqual(os.listdir("qless_test/tmp"), [])
 
-    def test_sandbox(self):
+    def test_sandbox(self) -> None:
         """The sandbox utility should work"""
         path = "qless_test/tmp/foo"
         self.assertFalse(os.path.exists(path))
@@ -54,7 +54,7 @@ class TestWorkerUtil(TestQless):
         self.assertEqual(os.listdir(path), [])
         os.rmdir(path)
 
-    def test_sandbox_exists(self):
+    def test_sandbox_exists(self) -> None:
         """Sandbox creation should not throw an error if the path exists"""
         path = "qless_test/tmp"
         self.assertEqual(os.listdir(path), [])
@@ -63,7 +63,7 @@ class TestWorkerUtil(TestQless):
         # If we get to this point, the test succeeds
         self.assertTrue(True)
 
-    def test_dirty_sandbox(self):
+    def test_dirty_sandbox(self) -> None:
         """If a sandbox is dirty on arrival, clean it first"""
         path = "qless_test/tmp/foo"
         with create_sandbox(path):
@@ -76,7 +76,7 @@ class TestWorkerUtil(TestQless):
                 self.assertEqual(os.listdir(path), [])
         os.rmdir(path)
 
-    def test_divide(self):
+    def test_divide(self) -> None:
         """We should be able to divide resumable jobs evenly"""
         jobs = [
             Job(

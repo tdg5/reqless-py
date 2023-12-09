@@ -2,7 +2,7 @@
 
 import logging
 import unittest
-from typing import List, cast
+from typing import List
 
 import redis
 
@@ -15,14 +15,14 @@ class TestQless(unittest.TestCase):
     redis: redis.Redis
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         qless.logger.setLevel(logging.CRITICAL)
         cls.redis = redis.Redis()
         # Clear the script cache, and nuke everything
         cls.redis.execute_command("script", "flush")
 
-    def setUp(self):
-        all_keys = cast(List, self.redis.keys("*"))
+    def setUp(self) -> None:
+        all_keys: List = self.redis.keys("*")
         assert len(all_keys) == 0
         # The qless client we're using
         self.client = qless.Client()
@@ -36,6 +36,6 @@ class TestQless(unittest.TestCase):
                 if job:
                     job.cancel()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         # Ensure that we leave no keys behind, and that we've unfrozen time
         self.redis.flushdb()

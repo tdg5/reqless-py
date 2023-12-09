@@ -1,7 +1,8 @@
 import logging
+from logging import Logger
 
 
-def _make_logger():
+def _make_logger() -> Logger:
     logger = logging.getLogger("qless")
     formatter = logging.Formatter(
         "%(asctime)s | PID %(process)d | [%(levelname)s] %(message)s"

@@ -3,91 +3,117 @@
 import json
 import time
 import uuid
+from typing import Any, Dict, List, Optional, Type, Union
 
+from qless.abstract import (
+    AbstractClient,
+    AbstractJob,
+    AbstractQueue,
+    AbstractQueueJobs,
+    AbstractThrottle,
+)
 from qless.job import Job
 
 
-class Jobs:
+class Jobs(AbstractQueueJobs):
     """A proxy object for queue-specific job information"""
 
-    def __init__(self, name, client):
-        self.name = name
-        self.client = client
+    def __init__(self, name: str, client: AbstractClient):
+        self._name: str = name
+        self.client: AbstractClient = client
 
-    def running(self, offset=0, count=25):
-        """Return all the currently-running jobs"""
-        return self.client("jobs", "running", self.name, offset, count)
+    @property
+    def name(self) -> str:
+        return self._name
 
-    def stalled(self, offset=0, count=25):
-        """Return all the currently-stalled jobs"""
-        return self.client("jobs", "stalled", self.name, offset, count)
-
-    def scheduled(self, offset=0, count=25):
-        """Return all the currently-scheduled jobs"""
-        return self.client("jobs", "scheduled", self.name, offset, count)
-
-    def depends(self, offset=0, count=25):
+    def depends(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently dependent jobs"""
-        return self.client("jobs", "depends", self.name, offset, count)
+        response: List[str] = self.client("jobs", "depends", self.name, offset, count)
+        return response
 
-    def recurring(self, offset=0, count=25):
+    def recurring(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the recurring jobs"""
-        return self.client("jobs", "recurring", self.name, offset, count)
+        response: List[str] = self.client("jobs", "recurring", self.name, offset, count)
+        return response
+
+    def running(self, offset: int = 0, count: int = 25) -> List[str]:
+        """Return all the currently-running jobs"""
+        response: List[str] = self.client("jobs", "running", self.name, offset, count)
+        return response
+
+    def scheduled(self, offset: int = 0, count: int = 25) -> List[str]:
+        """Return all the currently-scheduled jobs"""
+        response: List[str] = self.client("jobs", "scheduled", self.name, offset, count)
+        return response
+
+    def stalled(self, offset: int = 0, count: int = 25) -> List[str]:
+        """Return all the currently-stalled jobs"""
+        response: List[str] = self.client("jobs", "stalled", self.name, offset, count)
+        return response
 
 
-class Queue:
+class Queue(AbstractQueue):
     """The Queue class"""
 
-    def __init__(self, name, client, worker_name):
-        self.name = name
-        self.client = client
-        self.worker_name = worker_name
+    def __init__(self, name: str, client: AbstractClient, worker_name: str):
+        self._name: str = name
+        self.client: AbstractClient = client
+        self.worker_name: str = worker_name
+        self._jobs: Optional[AbstractQueueJobs] = None
 
-    def __getattr__(self, key):
-        if key == "jobs":
-            self.jobs = Jobs(self.name, self.client)
-            return self.jobs
-        if key == "counts":
-            return json.loads(self.client("queues", self.name))
-        if key == "heartbeat":
-            config = self.client.config.all
-            return int(
-                config.get(self.name + "-heartbeat", config.get("heartbeat", 60))
-            )
-        if key == "throttle":
-            return self.client.throttles[f"ql:q:{self.name}"]
-        raise AttributeError("qless.Queue has no attribute %s" % key)
+    @property
+    def counts(self) -> Dict[str, Any]:
+        response: Dict[str, Any] = json.loads(self.client("queues", self.name))
+        return response
 
-    def __setattr__(self, key, value):
-        if key == "heartbeat":
-            self.client.config[self.name + "-heartbeat"] = value
-        else:
-            object.__setattr__(self, key, value)
+    @property
+    def heartbeat(self) -> int:
+        config = self.client.config.all
+        return int(config.get(self.name + "-heartbeat", config.get("heartbeat", 60)))
 
-    def class_string(self, klass):
+    @heartbeat.setter
+    def heartbeat(self, value: int) -> None:
+        self.client.config[self.name + "-heartbeat"] = value
+
+    @property
+    def jobs(self) -> AbstractQueueJobs:
+        if self._jobs is None:
+            self._jobs = Jobs(self.name, self.client)
+
+        return self._jobs
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def throttle(self) -> AbstractThrottle:
+        return self.client.throttles[f"ql:q:{self.name}"]
+
+    def class_string(self, klass: Union[str, Type]) -> str:
         """Return a string representative of the class"""
         if isinstance(klass, str):
             return klass
         return klass.__module__ + "." + klass.__name__
 
-    def pause(self):
-        return self.client("pause", self.name)
+    def pause(self) -> None:
+        self.client("pause", self.name)
 
-    def unpause(self):
-        return self.client("unpause", self.name)
+    def unpause(self) -> None:
+        self.client("unpause", self.name)
 
     def put(
         self,
-        klass,
-        data,
-        priority=None,
-        tags=None,
-        delay=None,
-        retries=None,
-        jid=None,
-        depends=None,
-        throttles=None,
-    ):
+        klass: Union[str, Type],
+        data: Dict,
+        priority: Optional[int] = None,
+        tags: Optional[List[str]] = None,
+        delay: Optional[int] = None,
+        retries: Optional[int] = None,
+        jid: Optional[str] = None,
+        depends: Optional[List[str]] = None,
+        throttles: Optional[List[str]] = None,
+    ) -> str:
         """Either create a new job in the provided queue with the provided
         attributes, or move that job into that queue. If the job is being
         serviced by a worker, subsequent attempts by that worker to either
@@ -98,7 +124,7 @@ class Queue:
         should be a JSON array of the tags associated with the instance and
         the `valid after` argument should be in how many seconds the instance
         should be considered actionable."""
-        return self.client(
+        response: str = self.client(
             "put",
             self.worker_name,
             self.name,
@@ -117,23 +143,24 @@ class Queue:
             "throttles",
             json.dumps(throttles or []),
         )
+        return response
 
     """Same function as above but check if the job already exists in the DB beforehand.
     You can re-queue for instance failed ones."""
 
     def requeue(
         self,
-        klass,
-        data,
-        priority=None,
-        tags=None,
-        delay=None,
-        retries=None,
-        jid=None,
-        depends=None,
-        throttles=None,
-    ):
-        return self.client(
+        klass: Union[str, Type],
+        data: Dict,
+        priority: Optional[int] = None,
+        tags: Optional[List[str]] = None,
+        delay: Optional[int] = None,
+        retries: Optional[int] = None,
+        jid: Optional[str] = None,
+        depends: Optional[List[str]] = None,
+        throttles: Optional[List[str]] = None,
+    ) -> str:
+        response: str = self.client(
             "requeue",
             self.worker_name,
             self.name,
@@ -152,21 +179,22 @@ class Queue:
             "throttles",
             json.dumps(throttles or []),
         )
+        return response
 
     def recur(
         self,
-        klass,
-        data,
-        interval,
-        offset=0,
-        priority=None,
-        tags=None,
-        retries=None,
-        jid=None,
-        throttles=None,
-    ):
+        klass: Union[str, Type[AbstractJob]],
+        data: Dict,
+        interval: Optional[int] = None,
+        offset: Optional[int] = 0,
+        priority: Optional[int] = None,
+        tags: Optional[List[str]] = None,
+        retries: Optional[int] = None,
+        jid: Optional[str] = None,
+        throttles: Optional[List[str]] = None,
+    ) -> str:
         """Place a recurring job in this queue"""
-        return self.client(
+        response: str = self.client(
             "recur",
             self.name,
             jid or uuid.uuid4().hex,
@@ -184,12 +212,15 @@ class Queue:
             "throttles",
             json.dumps(throttles or []),
         )
+        return response
 
-    def pop(self, count=None):
+    def pop(
+        self, count: Optional[int] = None
+    ) -> Union[AbstractJob, List[AbstractJob], None]:
         """Passing in the queue from which to pull items, the current time,
         when the locks for these returned items should expire, and the number
         of items to be popped off."""
-        results = [
+        results: List[AbstractJob] = [
             Job(self.client, **job)
             for job in json.loads(
                 self.client("pop", self.name, self.worker_name, count or 1)
@@ -199,10 +230,12 @@ class Queue:
             return (len(results) and results[0]) or None
         return results
 
-    def peek(self, count=None):
+    def peek(
+        self, count: Optional[int] = None
+    ) -> Union[AbstractJob, List[AbstractJob], None]:
         """Similar to the pop command, except that it merely peeks at the next
         items"""
-        results = [
+        results: List[AbstractJob] = [
             Job(self.client, **rec)
             for rec in json.loads(self.client("peek", self.name, count or 1))
         ]
@@ -210,7 +243,7 @@ class Queue:
             return (len(results) and results[0]) or None
         return results
 
-    def stats(self, date=None):
+    def stats(self, date: Optional[str] = None) -> Dict:
         """Return the current statistics for a given queue on a given date.
         The results are returned are a JSON blob::
 
@@ -228,7 +261,11 @@ class Queue:
         resolution for the first day, the hour resolution for the first 3
         days, and then at the day resolution from there on out. The
         `histogram` key is a list of those values."""
-        return json.loads(self.client("stats", self.name, date or repr(time.time())))
+        response: Dict = json.loads(
+            self.client("stats", self.name, date or repr(time.time()))
+        )
+        return response
 
-    def __len__(self):
-        return self.client("length", self.name)
+    def __len__(self) -> int:
+        response: int = self.client("length", self.name)
+        return response

@@ -1,32 +1,22 @@
 """All our configuration operations"""
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    ItemsView,
-    Iterable,
-    Iterator,
-    KeysView,
-    ValuesView,
-)
-
-
-if TYPE_CHECKING:
-    from qless import Client
-
 import json
+from typing import Any, Dict, ItemsView, Iterable, Iterator, KeysView, ValuesView
+
+from qless.abstract.abstract_client import AbstractClient
+from qless.abstract.abstract_config import AbstractConfig
 
 
-class Config:
+class Config(AbstractConfig):
     """A class that allows us to change and manipulate qless config"""
 
-    def __init__(self, client: "Client"):
-        self._client: "Client" = client
+    def __init__(self, client: AbstractClient):
+        self._client: AbstractClient = client
 
     @property
     def all(self) -> Dict[str, Any]:
-        return json.loads(self._client("config.get"))
+        response: Dict[str, Any] = json.loads(self._client("config.get"))
+        return response
 
     def __len__(self) -> int:
         return len(self.all)
@@ -76,7 +66,7 @@ class Config:
         del self[option]
         return (val is None and default) or val
 
-    def update(self, other: Iterable = (), **kwargs) -> None:
+    def update(self, other: Iterable = (), **kwargs: Any) -> None:
         """Just like `dict.update`"""
         _kwargs = dict(kwargs)
         _kwargs.update(other)

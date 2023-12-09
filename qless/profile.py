@@ -1,16 +1,20 @@
 """Some utilities for profiling"""
 
 from collections import defaultdict
-from typing import Any, Dict
+from types import TracebackType
+from typing import Any, Dict, Optional, Type
 
 import redis
+from redis import Redis
+
+from qless.abstract import AbstractClient
 
 
 class Profiler:
     """Profiling a series of requests. Initialized with a Qless client"""
 
     @staticmethod
-    def clone(client):
+    def clone(client: AbstractClient) -> Redis:
         """Clone the redis client to be slowlog-compatible"""
         kwargs = client.redis.connection_pool.connection_kwargs
         kwargs["parser_class"] = redis.connection.DefaultParser
@@ -18,7 +22,7 @@ class Profiler:
         return redis.Redis(connection_pool=pool)
 
     @staticmethod
-    def pretty(timings, label):
+    def pretty(timings: Dict, label: str) -> None:
         """Print timing stats"""
         results = [(sum(values), len(values), key) for key, values in timings.items()]
         print(label)
@@ -34,20 +38,20 @@ class Profiler:
                 % (key, float(total) / length, length, total)
             )
 
-    def __init__(self, client):
-        self._client = self.clone(client)
-        self._configs = None
-        self._timings = defaultdict(list)
-        self._commands = {}
+    def __init__(self, client: AbstractClient):
+        self._client: Redis = self.clone(client)
+        self._configs: Optional[Dict] = None
+        self._timings: Dict = defaultdict(list)
+        self._commands: Dict = {}
 
-    def start(self):
+    def start(self) -> None:
         """Get ready for a profiling run"""
         self._configs = self._client.config_get("slow-*")
         self._client.config_set("slowlog-max-len", 100000)
         self._client.config_set("slowlog-log-slower-than", 0)
         self._client.execute_command("slowlog", "reset")
 
-    def stop(self):
+    def stop(self) -> None:
         """Set everything back to normal and collect our data"""
         if self._configs:
             for key, value in self._configs.items():
@@ -78,7 +82,7 @@ class Profiler:
             for key, values in current["accumulated"].items():
                 self._commands[current["name"]][key].extend(values)
 
-    def display(self):
+    def display(self) -> None:
         """Print the results of this profiling"""
         self.pretty(self._timings, "Raw Redis Commands")
         print()
@@ -86,10 +90,15 @@ class Profiler:
             self.pretty(value, 'Qless "%s" Command' % key)
             print()
 
-    def __enter__(self):
+    def __enter__(self) -> "Profiler":
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_trace):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        exc_trace: Optional[TracebackType],
+    ) -> None:
         self.stop()
         self.display()

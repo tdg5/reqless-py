@@ -3,9 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 from qless import Client
-from qless.queue_resolvers.abstract_queue_identifiers_transformer import (
-    AbstractQueueIdentifiersTransformer,
-)
+from qless.abstract import AbstractQueueIdentifiersTransformer
 from qmore.client import QmoreClient
 
 

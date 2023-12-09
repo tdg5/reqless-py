@@ -11,12 +11,12 @@ from qmore.client import (
 
 
 class TestQmoreClient(TestQless):
-    def setUp(self):
+    def setUp(self) -> None:
         TestQless.setUp(self)
         self.redis = self.client.redis
         self.subject = QmoreClient(redis=self.client.redis)
 
-    def test_get_queue_identifier_patterns(self):
+    def test_get_queue_identifier_patterns(self) -> None:
         """It fetches the expected queue identifier patterns"""
         mapping = {"one": ["one", "two*", "!three"], "four": ["four", "five"]}
         json_mapping: Mapping[Union[bytes, str], Union[bytes, float, int, str]] = {
@@ -26,7 +26,7 @@ class TestQmoreClient(TestQless):
         fetched_mapping = self.subject.get_queue_identifier_patterns()
         self.assertEqual({"default": "*", **mapping}, fetched_mapping)
 
-    def test_set_queue_identifier_patterns(self):
+    def test_set_queue_identifier_patterns(self) -> None:
         """It sets the expected queue identifier patterns"""
         mapping = {"not_three": ["one", "two*", "!three"], "five": ["four", "five"]}
         self.subject.set_queue_identifier_patterns(mapping)
@@ -37,7 +37,7 @@ class TestQmoreClient(TestQless):
         }
         self.assertEqual(mapping, patterns)
 
-    def test_set_queue_identifier_patterns_with_no_patterns(self):
+    def test_set_queue_identifier_patterns_with_no_patterns(self) -> None:
         """It clears any existing patterns and does not try to hset without a mapping"""
         # Make sure there's something there to clear out
         mapping = {"not_three": ["one", "two*", "!three"], "five": ["four", "five"]}
@@ -54,7 +54,7 @@ class TestQmoreClient(TestQless):
         }
         self.assertEqual(empty_mapping, patterns)
 
-    def test_get_queue_priority_patterns(self):
+    def test_get_queue_priority_patterns(self) -> None:
         """It fetches the expected queue identifier patterns"""
         given_queue_priorities = [
             QueuePriorityPattern(patterns=["*"], should_distribute_fairly=True),
@@ -82,7 +82,7 @@ class TestQmoreClient(TestQless):
                 queue_priority.should_distribute_fairly,
             )
 
-    def test_set_queue_priority_patterns(self):
+    def test_set_queue_priority_patterns(self) -> None:
         """It sets the expected queue identifier patterns"""
         given_queue_priorities = [
             QueuePriorityPattern(patterns=["*"], should_distribute_fairly=True),

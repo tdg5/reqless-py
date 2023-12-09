@@ -1,26 +1,30 @@
 import json
-from typing import TYPE_CHECKING, List, Optional
+from typing import Any, Dict, List, Optional
+
+from qless.abstract import AbstractClient, AbstractThrottle
 
 
-if TYPE_CHECKING:
-    from qless import Client
-
-
-class Throttle:
-    def __init__(self, client: "Client", name: str):
-        self.client: "Client" = client
-        self.name: str = name
+class Throttle(AbstractThrottle):
+    def __init__(self, client: AbstractClient, name: str):
+        self.client: AbstractClient = client
+        self._name: str = name
 
     def delete(self) -> None:
         self.client("throttle.delete", self.name)
 
+    @property
+    def name(self) -> str:
+        return self._name
+
     def locks(self) -> List[str]:
-        return self.client("throttle.locks", self.name)
+        response: List[str] = self.client("throttle.locks", self.name)
+        return response
 
     def maximum(self) -> int:
         json_state = self.client("throttle.get", self.name)
-        state = json.loads(json_state) if json_state else {}
-        return state.get("maximum", 0)
+        state: Dict[str, Any] = json.loads(json_state) if json_state else {}
+        maximum: int = state.get("maximum", 0)
+        return maximum
 
     def set_maximum(
         self,
@@ -31,7 +35,9 @@ class Throttle:
         self.client("throttle.set", self.name, _maximum, expiration or 0)
 
     def pending(self) -> List[str]:
-        return self.client("throttle.pending", self.name)
+        response: List[str] = self.client("throttle.pending", self.name)
+        return response
 
     def ttl(self) -> int:
-        return self.client("throttle.ttl", self.name)
+        response: int = self.client("throttle.ttl", self.name)
+        return response
