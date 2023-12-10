@@ -1,0 +1,72 @@
+name: Test, build, and publish the package
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-build-and-publish:
+    name: Test, build, and publish the package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y redis-server
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Check style
+        run: |
+          source venv/bin/activate
+          make style
+
+      - name: Run tests and build package
+        run: |
+          source venv/bin/activate
+          make nose
+          python -m build
+
+      - name: Checkout tdg5/github-action-pack
+        uses: actions/checkout@v4
+        with:
+          path: .github/actions/tdg5/github-action-pack
+          ref: v0.0.4
+          repository: tdg5/github-action-pack
+
+      - name: Increment version
+        uses: ./.github/actions/tdg5/github-action-pack/packages/increment-version-file-action/src
+        with:
+          authorEmail: dannyguinther@gmail.com
+          authorName: Danny Guinther
+          commitMessage: "[skip actions] Increment version for next development cycle"
+          versionFilePath: VERSION
+          versionFormat: python
+
+      - name: Publish package to pypi
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_USERNAME: __token__
+        run: |
+          source venv/bin/activate
+          python -m twine upload dist/*
+
+      # Add the tag after publishing the package so it is more likely that we
+      # end up with a package without a tag than a tag without a package.
+      - name: Create and push tag for published version
+        run: |
+          VERSION="$(git show HEAD~1:VERSION)"
+          TAG_NAME="v${VERSION}"
+          git tag "$TAG_NAME" HEAD~1
+          git push origin "$TAG_NAME"

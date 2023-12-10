@@ -1,0 +1,43 @@
+name: Style, test, build, and publish the package
+
+on:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  style-test-and-build:
+    name: Test, build, and publish the package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y redis-server
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Check style
+        run: |
+          source venv/bin/activate
+          make style
+          git diff --quiet
+          if [ ! $? -eq 0 ]; then
+            echo "make style caused file changes, failing!"
+            exit 1
+          fi
+
+      - name: Run tests and build package
+        run: |
+          source venv/bin/activate
+          make nose
+          python -m build
