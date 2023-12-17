@@ -1,6 +1,12 @@
+from os import path
 from typing import Dict, List, Tuple
 
 from setuptools import setup
+
+
+VERSION_PATH = path.join(path.abspath(path.dirname(__file__)), "VERSION")
+with open(VERSION_PATH, encoding="utf-8", mode="r") as f:
+    VERSION = f.read().strip()
 
 
 def _long_description() -> Tuple[str, str]:
@@ -79,8 +85,6 @@ setup(
         "qless.workers",
         "qmore",
     ],
-    url="http://github.com/tdg5/qless-py",
-    version="0.12.0a6",
     package_data={"qless": ["lua/*.lua"]},
     package_dir={
         "qless": "qless",
@@ -94,4 +98,6 @@ setup(
     install_requires=_install_requires(),
     scripts=["bin/qless-py-worker"],
     tests_requires=_test_requires(),
+    url="http://github.com/tdg5/qless-py",
+    version=VERSION,
 )

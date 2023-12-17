@@ -9,6 +9,7 @@ cpus
 delitem
 deregister
 dest
+dirname
 divy
 evt
 exc
