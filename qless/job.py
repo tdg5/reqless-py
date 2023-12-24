@@ -176,7 +176,7 @@ class Job(BaseJob, AbstractJob):
     """The Job class"""
 
     def __init__(self, client: AbstractClient, **kwargs: Any):
-        BaseJob.__init__(self, client, **kwargs)
+        super().__init__(client, **kwargs)
         self.client: AbstractClient = client
         self._state: str = kwargs["state"]
         self._failure: Optional[Dict] = kwargs["failure"]

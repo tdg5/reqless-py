@@ -95,7 +95,7 @@ client = qless.client(host=args.host, port=args.port)
 
 class ForgetfulWorker(threading.Thread):
     def __init__(self, *a, **kw):
-        threading.Thread.__init__(self, *a, **kw)
+        super().__init__(*a, **kw)
         # This is to fake out thread-level workers
         tmp = qless.client(host=args.host, port=args.port)
         tmp.worker += "-" + self.getName()
