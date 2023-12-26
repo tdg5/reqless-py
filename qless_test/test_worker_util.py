@@ -88,7 +88,7 @@ class TestWorkerUtil(TestQless):
                 failure={},
                 history=[],
                 jid=index,
-                klass="klass",
+                klass="qless_test.common.NoopJob",
                 priority=0,
                 remaining=1,
                 retries=1,

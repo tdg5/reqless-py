@@ -7,6 +7,13 @@ from typing import List
 import redis
 
 import qless
+from qless.abstract import AbstractJob
+
+
+class NoopJob:
+    @staticmethod
+    def process(job: AbstractJob) -> None:
+        job.complete()
 
 
 class TestQless(unittest.TestCase):
@@ -31,7 +38,7 @@ class TestQless(unittest.TestCase):
         for queue_name in queue_names:
             queue = self.client.queues[queue_name]
             if len(queue) == 0:
-                jid = queue.put("Foo", {})
+                jid = queue.put(NoopJob, {})
                 job = self.client.jobs[jid]
                 if job:
                     job.cancel()

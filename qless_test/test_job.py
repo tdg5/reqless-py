@@ -32,7 +32,7 @@ class TestJob(TestQless):
     def test_attributes(self) -> None:
         """Has all the basic attributes we'd expect"""
         self.client.queues["foo"].put(
-            "Foo",
+            "qless_test.test_job.Foo",
             {"whiz": "bang"},
             jid="jid",
             tags=["foo"],
@@ -64,7 +64,7 @@ class TestJob(TestQless):
                 "dependents": [],
                 "expires_at": 0,
                 "jid": "jid",
-                "klass_name": "Foo",
+                "klass_name": "qless_test.test_job.Foo",
                 "original_retries": 3,
                 "priority": 0,
                 "queue_name": "foo",
@@ -77,7 +77,9 @@ class TestJob(TestQless):
 
     def test_set_priority(self) -> None:
         """We can set a job's priority"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid", priority=0)
+        self.client.queues["foo"].put(
+            "qless_test.test_job.Foo", {}, jid="jid", priority=0
+        )
         job = self.get_job("jid")
         self.assertEqual(job.priority, 0)
         job.priority = 10
@@ -86,7 +88,7 @@ class TestJob(TestQless):
 
     def test_queue(self) -> None:
         """Exposes a queue object"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.client.jobs["jid"]
         job = self.get_job("jid")
         self.assertEqual(job.queue.name, "foo")
@@ -117,14 +119,14 @@ class TestJob(TestQless):
 
     def test_cancel(self) -> None:
         """Exposes the cancel method"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.get_job("jid")
         job.cancel()
         self.assertEqual(self.client.jobs["jid"], None)
 
     def test_tag_untag(self) -> None:
         """Exposes a way to tag and untag a job"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.get_job("jid")
         job.tag("foo")
         job = self.get_job("jid")
@@ -148,7 +150,9 @@ class TestJob(TestQless):
 
     def test_move(self) -> None:
         """Able to move jobs through the move method"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid", throttles=["throttle"])
+        self.client.queues["foo"].put(
+            "qless_test.test_job.Foo", {}, jid="jid", throttles=["throttle"]
+        )
         job = self.get_job("jid")
         job.move("bar")
         job = self.get_job("jid")
@@ -159,7 +163,7 @@ class TestJob(TestQless):
 
     def test_complete(self) -> None:
         """Able to complete a job"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.client.queues["foo"].pop()
         assert job is not None and not isinstance(job, List)
         job.complete()
@@ -168,7 +172,7 @@ class TestJob(TestQless):
 
     def test_advance(self) -> None:
         """Able to advance a job to another queue"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.client.queues["foo"].pop()
         assert job is not None and not isinstance(job, List)
         job.complete("bar")
@@ -178,7 +182,7 @@ class TestJob(TestQless):
     def test_heartbeat(self) -> None:
         """Provides access to heartbeat"""
         self.client.config["heartbeat"] = 10
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.client.queues["foo"].pop()
         assert job is not None and not isinstance(job, List)
         before = job.ttl
@@ -190,13 +194,13 @@ class TestJob(TestQless):
         """Failed heartbeats raise an error"""
         from qless.exceptions import LostLockError
 
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.get_job("jid")
         self.assertRaises(LostLockError, job.heartbeat)
 
     def test_track_untrack(self) -> None:
         """Exposes a track, untrack method"""
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.get_job("jid")
         self.assertFalse(job.tracked)
         job.track()
@@ -208,9 +212,11 @@ class TestJob(TestQless):
 
     def test_depend_undepend(self) -> None:
         """Exposes a depend, undepend methods"""
-        self.client.queues["foo"].put("Foo", {}, jid="a")
-        self.client.queues["foo"].put("Foo", {}, jid="b")
-        self.client.queues["foo"].put("Foo", {}, jid="c", depends=["a"])
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="a")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="b")
+        self.client.queues["foo"].put(
+            "qless_test.test_job.Foo", {}, jid="c", depends=["a"]
+        )
         job = self.get_job("c")
         self.assertEqual(job.dependencies, ["a"])
         job.depend("b")
@@ -230,13 +236,15 @@ class TestJob(TestQless):
         """Retry raises an error if retry fails"""
         from qless.exceptions import QlessError
 
-        self.client.queues["foo"].put("Foo", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.test_job.Foo", {}, jid="jid")
         job = self.get_job("jid")
         self.assertRaises(QlessError, job.retry)
 
     def test_retry_group_and_message(self) -> None:
         """Can supply a group and message when retrying."""
-        self.client.queues["foo"].put("Foo", {}, jid="jid", retries=0)
+        self.client.queues["foo"].put(
+            "qless_test.test_job.Foo", {}, jid="jid", retries=0
+        )
         job = self.client.queues["foo"].pop()
         assert job is not None and not isinstance(job, List)
         job.retry(group="group", message="message")
@@ -295,7 +303,12 @@ class TestRecurring(TestQless):
     def test_attributes(self) -> None:
         """We can access all the recurring attributes"""
         self.client.queues["foo"].recur(
-            "Foo", {"whiz": "bang"}, 60, jid="jid", tags=["foo"], retries=3
+            "qless_test.test_job.Foo",
+            {"whiz": "bang"},
+            60,
+            jid="jid",
+            tags=["foo"],
+            retries=3,
         )
         job = self.get_job("jid")
         atts = [
@@ -317,7 +330,7 @@ class TestRecurring(TestQless):
                 "data": {"whiz": "bang"},
                 "interval": 60,
                 "jid": "jid",
-                "klass_name": "Foo",
+                "klass_name": "qless_test.test_job.Foo",
                 "priority": 0,
                 "queue_name": "foo",
                 "retries": 3,
@@ -327,7 +340,9 @@ class TestRecurring(TestQless):
 
     def test_set_priority(self) -> None:
         """We can set priority on recurring jobs"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid", priority=0)
+        self.client.queues["foo"].recur(
+            "qless_test.test_job.Foo", {}, 60, jid="jid", priority=0
+        )
         job = self.get_job("jid")
         job.priority = 10
         job = self.get_job("jid")
@@ -335,7 +350,9 @@ class TestRecurring(TestQless):
 
     def test_set_retries(self) -> None:
         """We can set retries"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid", retries=2)
+        self.client.queues["foo"].recur(
+            "qless_test.test_job.Foo", {}, 60, jid="jid", retries=2
+        )
         job = self.get_job("jid")
         job.retries = 2
         job = self.get_job("jid")
@@ -343,7 +360,7 @@ class TestRecurring(TestQless):
 
     def test_set_interval(self) -> None:
         """We can set the interval"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         job.interval = 10
         job = self.get_job("jid")
@@ -351,7 +368,7 @@ class TestRecurring(TestQless):
 
     def test_set_data(self) -> None:
         """We can set the job data"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         job.data = {"foo": "bar"}
         job = self.get_job("jid")
@@ -359,7 +376,7 @@ class TestRecurring(TestQless):
 
     def test_set_klass(self) -> None:
         """We can set the klass"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         job.klass = Foo
         job = self.get_job("jid")
@@ -367,7 +384,7 @@ class TestRecurring(TestQless):
 
     def test_get_next(self) -> None:
         """Exposes the next time a job will run"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         nxt = job.next
         assert nxt is not None
@@ -379,7 +396,7 @@ class TestRecurring(TestQless):
 
     def test_attribute_error(self) -> None:
         """Raises attribute errors for non-attributes"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         self.assertRaises(
             AttributeError,
@@ -389,7 +406,7 @@ class TestRecurring(TestQless):
     def test_move(self) -> None:
         """Exposes a way to move a job"""
         self.client.queues["foo"].recur(
-            "Foo", {}, 60, jid="jid", throttles=["throttle"]
+            "qless_test.test_job.Foo", {}, 60, jid="jid", throttles=["throttle"]
         )
         job = self.get_job("jid")
         job.move("bar")
@@ -402,14 +419,14 @@ class TestRecurring(TestQless):
 
     def test_cancel(self) -> None:
         """Exposes a way to cancel jobs"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         job.cancel()
         self.assertEqual(self.client.jobs["jid"], None)
 
     def test_tag_untag(self) -> None:
         """Exposes a way to tag jobs"""
-        self.client.queues["foo"].recur("Foo", {}, 60, jid="jid")
+        self.client.queues["foo"].recur("qless_test.test_job.Foo", {}, 60, jid="jid")
         job = self.get_job("jid")
         job.tag("foo")
         job = self.get_job("jid")
