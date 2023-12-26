@@ -2,8 +2,6 @@
 
 from typing import List
 
-import mock
-
 from qless.abstract import AbstractJob
 from qless.job import Job, RecurringJob
 from qless_test.common import TestQless
@@ -286,22 +284,6 @@ class TestJob(TestQless):
         self.assertEqual(job.state, "failed")
         assert job.failure is not None
         self.assertEqual(job.failure["group"], "nonstatic-TypeError")
-
-    def test_reload(self) -> None:
-        """Ensure that nothing blows up if we reload a class"""
-        self.client.queues["foo"].put(Foo, {}, jid="jid")
-        job = self.get_job("jid")
-        self.assertEqual(job.klass, Foo)
-        Job.reload(job.klass_name)
-        job = self.get_job("jid")
-        self.assertEqual(job.klass, Foo)
-
-    def test_no_mtime(self) -> None:
-        """Don't blow up we cannot check the modification time of a module."""
-        exc = OSError("Could not stat file")
-        with mock.patch("qless.job.os.stat", side_effect=exc):
-            Job._import("qless_test.test_job.Foo")
-            Job._import("qless_test.test_job.Foo")
 
 
 class TestRecurring(TestQless):

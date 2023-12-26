@@ -1,8 +1,6 @@
 """Both the regular Job and RecurringJob classes"""
 
-import importlib
 import json
-import os
 import time
 import traceback
 import types
@@ -16,16 +14,11 @@ from qless.abstract import (
     AbstractRecurringJob,
 )
 from qless.exceptions import LostLockError, QlessError
+from qless.importer import Importer
 from qless.logger import logger
 
 
 class BaseJob(AbstractBaseJob):
-    """This is a dictionary of all the classes that we've seen, and
-    the last load time for each of them. We'll use this either for
-    the debug mode or the general mechanism"""
-
-    _loaded: Dict[str, float] = {}
-
     def __init__(self, client: AbstractClient, **kwargs: Any):
         self.client: AbstractClient = client
         self._data: Dict = json.loads(kwargs["data"])
@@ -59,7 +52,7 @@ class BaseJob(AbstractBaseJob):
     @property
     def klass(self) -> Type:
         if self._klass is None:
-            self._klass = self._import(self.klass_name)
+            self._klass = Importer.import_class(class_name=self.klass_name)
 
         return self._klass
 
@@ -123,36 +116,6 @@ class BaseJob(AbstractBaseJob):
     @throttles.setter
     def throttles(self, value: List[str]) -> None:
         self._throttles = value
-
-    @staticmethod
-    def reload(klass: str) -> None:
-        """Force a reload of this klass on next import"""
-        BaseJob._loaded[klass] = 0
-
-    @staticmethod
-    def _import(klass: str) -> Type:
-        """1) Get a reference to the module
-        2) Check the file that module's imported from
-        3) If that file's been updated, force a reload of that module
-             return it"""
-        mod = __import__(klass.rpartition(".")[0])
-        for segment in klass.split(".")[1:-1]:
-            mod = getattr(mod, segment)
-
-        # Alright, now check the file associated with it. Note that classes
-        # defined in __main__ don't have a __file__ attribute
-        if klass not in BaseJob._loaded:
-            BaseJob._loaded[klass] = time.time()
-        if hasattr(mod, "__file__") and mod.__file__:
-            try:
-                mtime = os.stat(mod.__file__).st_mtime
-                if BaseJob._loaded[klass] < mtime:
-                    mod = importlib.reload(mod)
-            except OSError:
-                logger.warn("Could not check modification time of %s", mod.__file__)
-
-        cls: Type = getattr(mod, klass.rpartition(".")[2])
-        return cls
 
     def cancel(self) -> List[str]:
         """Cancel a job. It will be deleted from the system, the thinking
