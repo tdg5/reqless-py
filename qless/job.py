@@ -236,34 +236,7 @@ class Job(BaseJob, AbstractJob):
             )
             return
 
-        if method:
-            if isinstance(method, types.FunctionType):
-                try:
-                    logger.info("Processing %s in %s", self.jid, self.queue_name)
-                    method(self)
-                    logger.info("Completed %s in %s", self.jid, self.queue_name)
-                except Exception as exc:
-                    # Make error type based on exception type
-                    logger.exception(
-                        "Failed %s in %s: %s", self.jid, self.queue_name, repr(method)
-                    )
-                    self.fail(
-                        self.queue_name + "-" + exc.__class__.__name__,
-                        traceback.format_exc(),
-                    )
-            else:
-                # Or fail with a message to that effect
-                logger.error(
-                    "Failed %s in %s : %s is not static",
-                    self.jid,
-                    self.queue_name,
-                    repr(method),
-                )
-                self.fail(
-                    self.queue_name + "-method-type", repr(method) + " is not static"
-                )
-        else:
-            # Or fail with a message to that effect
+        if not method:
             logger.error(
                 'Failed %s : %s is missing a method "%s" or "process"',
                 self.jid,
@@ -276,6 +249,31 @@ class Job(BaseJob, AbstractJob):
                 + ' is missing a method "'
                 + self.queue_name
                 + '" or "process"',
+            )
+            return
+
+        if not isinstance(method, types.FunctionType):
+            logger.error(
+                "Failed %s in %s : %s is not static",
+                self.jid,
+                self.queue_name,
+                repr(method),
+            )
+            self.fail(self.queue_name + "-method-type", repr(method) + " is not static")
+            return
+
+        try:
+            logger.info("Processing %s in %s", self.jid, self.queue_name)
+            method(self)
+            logger.info("Completed %s in %s", self.jid, self.queue_name)
+        except Exception as exc:
+            # Make error type based on exception type
+            logger.exception(
+                "Failed %s in %s: %s", self.jid, self.queue_name, repr(method)
+            )
+            self.fail(
+                self.queue_name + "-" + exc.__class__.__name__,
+                traceback.format_exc(),
             )
 
     def move(
