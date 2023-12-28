@@ -52,7 +52,7 @@ class AbstractQueue(ABC):
     def put(
         self,
         klass: Union[str, Type],
-        data: Dict,
+        data: str,
         priority: Optional[int] = None,
         tags: Optional[List[str]] = None,
         delay: Optional[int] = None,
@@ -67,7 +67,7 @@ class AbstractQueue(ABC):
     def requeue(
         self,
         klass: Union[str, Type],
-        data: Dict,
+        data: str,
         priority: Optional[int] = None,
         tags: Optional[List[str]] = None,
         delay: Optional[int] = None,
@@ -82,7 +82,7 @@ class AbstractQueue(ABC):
     def recur(
         self,
         klass: Union[str, Type],
-        data: Dict,
+        data: str,
         interval: Optional[int] = None,
         offset: Optional[int] = 0,
         priority: Optional[int] = None,

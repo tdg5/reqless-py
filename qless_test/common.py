@@ -38,7 +38,7 @@ class TestQless(unittest.TestCase):
         for queue_name in queue_names:
             queue = self.client.queues[queue_name]
             if len(queue) == 0:
-                jid = queue.put(NoopJob, {})
+                jid = queue.put(NoopJob, "{}")
                 job = self.client.jobs[jid]
                 if job:
                     job.cancel()

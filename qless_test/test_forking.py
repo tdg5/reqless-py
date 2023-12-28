@@ -1,5 +1,6 @@
 """Test the forking worker"""
 
+import json
 import os
 import signal
 import time
@@ -27,7 +28,9 @@ class CWD:
     @staticmethod
     def foo(job: AbstractJob) -> None:
         """Puts your current working directory in the job data"""
-        job.data["cwd"] = os.getcwd()
+        data_dict = json.loads(job.data)
+        data_dict["cwd"] = os.getcwd()
+        job.data = json.dumps(data_dict)
         job.complete()
         os.kill(os.getpid(), signal.SIGKILL)
 
@@ -61,7 +64,7 @@ class TestWorker(TestQless):
         self.thread.start()
         time.sleep(0.1)
         self.worker.shutdown = True
-        self.queue.put(Foo, {})
+        self.queue.put(Foo, "{}")
         self.thread.join(1)
         self.assertFalse(self.thread.is_alive())
 
@@ -71,13 +74,13 @@ class TestWorker(TestQless):
         self.thread.start()
         time.sleep(0.1)
         self.worker.shutdown = True
-        jid = self.queue.put(CWD, {})
+        jid = self.queue.put(CWD, "{}")
         self.thread.join(1)
         self.assertFalse(self.thread.is_alive())
         expected = os.path.join(os.getcwd(), "qless-py-workers/sandbox-0")
         job = self.client.jobs[jid]
         assert isinstance(job, AbstractJob)
-        self.assertEqual(job.data["cwd"], expected)
+        self.assertEqual(json.loads(job.data)["cwd"], expected)
 
     def test_spawn_klass_string(self) -> None:
         """Should be able to import by class string"""

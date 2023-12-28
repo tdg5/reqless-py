@@ -1,5 +1,6 @@
 """Test the serial worker"""
 
+import json
 import time
 from threading import Thread
 from typing import Generator, Optional
@@ -18,7 +19,9 @@ class GeventJob:
     @staticmethod
     def foo(job: AbstractJob) -> None:
         """Dummy job"""
-        job.data["sandbox"] = job.sandbox
+        data_dict = json.loads(job.data)
+        data_dict["sandbox"] = job.sandbox
+        job.data = json.dumps(data_dict)
         job.complete()
 
 
@@ -59,7 +62,7 @@ class TestWorker(TestQless):
 
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""
-        jids = [self.queue.put(GeventJob, {}) for _ in range(5)]
+        jids = [self.queue.put(GeventJob, "{}") for _ in range(5)]
         self.worker.run()
         states = []
         for jid in jids:
@@ -71,14 +74,14 @@ class TestWorker(TestQless):
         for jid in jids:
             job = self.client.jobs[jid]
             assert job is not None
-            sandboxes.append(job.data["sandbox"])
+            sandboxes.append(json.loads(job.data)["sandbox"])
         for sandbox in sandboxes:
             self.assertIn("qless-py-workers/greenlet-0", sandbox)
 
     def test_sleeps(self) -> None:
         """Make sure the client sleeps if there aren't jobs to be had"""
         for _ in range(4):
-            self.queue.put(GeventJob, {})
+            self.queue.put(GeventJob, "{}")
         before = time.time()
         self.worker.run()
         self.assertGreater(time.time() - before, 0.2)

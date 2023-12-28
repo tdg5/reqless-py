@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Type, Union
+from typing import List, Optional, Type, Union
 
 
 class AbstractBaseJob(ABC):
@@ -9,7 +9,12 @@ class AbstractBaseJob(ABC):
 
     @property
     @abstractmethod
-    def data(self) -> Dict:  # pragma: no cover
+    def data(self) -> str:  # pragma: no cover
+        ...
+
+    @data.setter
+    @abstractmethod
+    def data(self, value: str) -> None:  # pragma: no cover
         ...
 
     @property

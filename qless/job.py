@@ -21,7 +21,7 @@ from qless.logger import logger
 class BaseJob(AbstractBaseJob):
     def __init__(self, client: AbstractClient, **kwargs: Any):
         self.client: AbstractClient = client
-        self._data: Dict = json.loads(kwargs["data"])
+        self._data: str = kwargs["data"]
         self._jid: str = kwargs["jid"]
         self._klass: Optional[Type] = None
         self._klass_name: str = kwargs["klass"]
@@ -34,11 +34,11 @@ class BaseJob(AbstractBaseJob):
         self._throttles: List[str] = kwargs.get("throttles") or []
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> str:
         return self._data
 
     @data.setter
-    def data(self, value: Dict) -> None:
+    def data(self, value: str) -> None:
         self._data = value
 
     @property
@@ -209,12 +209,6 @@ class Job(BaseJob, AbstractJob):
     def worker_name(self) -> str:
         return self._worker_name
 
-    def __getitem__(self, key: str) -> Any:
-        return self.data.get(key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.data[key] = value
-
     def __repr__(self) -> str:
         return "<%s %s>" % (self.klass_name, self.jid)
 
@@ -293,7 +287,7 @@ class Job(BaseJob, AbstractJob):
             queue,
             self.jid,
             self.klass_name,
-            json.dumps(self.data),
+            self.data,
             delay,
             "depends",
             json.dumps(depends or []),
@@ -319,7 +313,7 @@ class Job(BaseJob, AbstractJob):
                     self.jid,
                     self.client.worker_name,
                     self.queue_name,
-                    json.dumps(self.data),
+                    self.data,
                     "next",
                     nextq,
                     "delay",
@@ -337,7 +331,7 @@ class Job(BaseJob, AbstractJob):
                     self.jid,
                     self.client.worker_name,
                     self.queue_name,
-                    json.dumps(self.data),
+                    self.data,
                 )
                 or False
             )
@@ -352,7 +346,7 @@ class Job(BaseJob, AbstractJob):
                     "heartbeat",
                     self.jid,
                     self.client.worker_name,
-                    json.dumps(self.data),
+                    self.data,
                 )
                 or 0
             )
@@ -386,7 +380,7 @@ class Job(BaseJob, AbstractJob):
             self.client.worker_name,
             group,
             message,
-            json.dumps(self.data),
+            self.data,
         )
         return response or False
 
@@ -459,13 +453,13 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
         self.client("recur.update", self.jid, "count", value)
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> str:
         return self._data
 
     @data.setter
-    def data(self, value: Dict) -> None:
+    def data(self, value: str) -> None:
         self._data = value
-        self.client("recur.update", self.jid, "data", json.dumps(value))
+        self.client("recur.update", self.jid, "data", self.data)
 
     @property
     def interval(self) -> int:

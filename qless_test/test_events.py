@@ -11,7 +11,7 @@ class TestEvents(TestQless):
 
     def setUp(self) -> None:
         TestQless.setUp(self)
-        self.client.queues["foo"].put("qless_test.common.NoopJob", {}, jid="jid")
+        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
         job = self.client.jobs["jid"]
         assert job is not None and isinstance(job, AbstractJob)
         job.track()

@@ -94,20 +94,20 @@ three steps: 1) collect underpants, 2) ? 3) profit!
 ```python
 # In gnomes.py
 class GnomesJob:
-    # This would be invoked when a GnomesJob is popped off the 'underpants' queue
+    # This would be invoked when a GnomesJob is popped off the "underpants" queue
     @staticmethod
     def underpants(job):
         # 1) Collect Underpants
         ...
-        # Complete and advance to the next step, 'unknown'
-        job.complete('unknown')
+        # Complete and advance to the next step, "unknown"
+        job.complete("unknown")
 
     @staticmethod
     def unknown(job):
         # 2) ?
         ...
-        # Complete and advance to the next step, 'profit'
-        job.complete('profit')
+        # Complete and advance to the next step, "profit"
+        job.complete("profit")
 
     @staticmethod
     def profit(job):
@@ -118,7 +118,7 @@ class GnomesJob:
 ```
 
 This makes it easy to describe how a `GnomesJob` might move through a pipeline,
-first in the 'underpants' step, then 'unknown', and lastly 'profit.'
+first in the "underpants" step, then "unknown", and lastly "profit."
 Alternatively, you can define a single method `process` that knows how to
 complete the job, no matter what queue it was popped from. The above is just
 meant as a convenience for pipelines:
@@ -129,34 +129,38 @@ class GnomesJob:
     # This method would be invoked at every stage
     @staticmethod
     def process(job):
-        if job['queue'] == 'underpants':
+        if job.queue == "underpants":
             ...
-            job.complete('underpants')
-        elif job['queue'] == 'unknown':
+            job.complete("underpants")
+        elif job.queue == "unknown":
             ...
-            job.complete('profit')
-        elif job['queue'] == 'profit':
+            job.complete("profit")
+        elif job.queue == "profit":
             ...
             job.complete()
         else:
-            job.fail('unknown-stage', 'What what?')
+            job.fail("unknown-stage", "What what?")
 ```
 
 Jobs have user data associated with them that can be modified as it goes
-through a pipeline. In general, you should make this data a dictionary, in
-which case it's accessible through `__getitem__` and `__setitem__`. Otherwise,
-it's accessible through `job.data`. For example, you might update the data...
+through a pipeline. In general, user data is accessible through `job.data`. It
+is generally handled as a JSON string so that each job class may parse and
+handle the user data in whatever way is appropriate for that job class.  For
+example, you might update the data like so...
 
 ```python
 @staticmethod
 def underpants(job):
     # Record how many underpants we collected
-    job['collected'] = ...
+    data = json.loads(job.data)
+    data["collected"] = ...
+    job.data = json.dumps(job.data)
 
 @staticmethod
 def unknown(job):
     # Make some decision based on how many we've collected.
-    if job['collected'] ...:
+    data = json.loads(job.data)
+    if data["collected"] ...:
         ...
 ```
 
@@ -168,17 +172,17 @@ import qless
 # Connecting to localhost on 6379
 client = qless.Client()
 # Connecting to a remote machine
-client = qless.Client('redis://foo.bar.com:1234')
+client = qless.Client("redis://foo.bar.com:1234")
 ```
 
 Now, reference a queue, and start putting your gnomes to work:
 
 ```python
-queue = client.queues['underpants']
+queue = client.queues["underpants"]
 
 import gnomes
 for i in range(1000):
-    queue.put(gnomes.GnomesJob, {})
+    queue.put(gnomes.GnomesJob, "{"})
 ```
 
 Alternatively, if the job class is not importable from where you're adding
@@ -187,7 +191,7 @@ jobs, you can use the full path of the job class as a string:
 ```python
 ...
 for i in range(1000):
-    queue.put('gnomes.GnomesJob', {})
+    queue.put("gnomes.GnomesJob", {})
 ```
 
 __By way of a quick note__, it's important that your job class can be imported
@@ -314,7 +318,7 @@ enqueue a single job while the worker is running:
     # In another terminal...
     >>> import qless
     >>> import awesomeproject
-    >>> qless.Client().queues['foo'].put(awesomeproject.Job, {'key': 'value'))
+    >>> qless.Client().queues["foo"].put(awesomeproject.Job, '{"key": "value"}')
 
 From there, I watch the output on the worker, adjust my job class, save it,
 watch again, etc., but __without restarting the worker__ -- in general it
@@ -334,13 +338,13 @@ priority, the sooner it will be processed. If, for example, you get a new job
 to collect some really valuable underpants:
 
 ```python
-queue.put(qless.gnomes.GnomesJob, {'address': '123 Brief St.'}, priority = 10)
+queue.put(qless.gnomes.GnomesJob, '{"address": "123 Brief St."}', priority = 10)
 ```
 
 You can also adjust a job's priority while it's waiting:
 
 ```python
-job = client.jobs['83da4d32a0a811e1933012313b062cf1']
+job = client.jobs["83da4d32a0a811e1933012313b062cf1"]
 job.priority = 25
 ```
 
@@ -366,30 +370,30 @@ queue.put(qless.gnomes.GnomesJob, {}, delay=3600, priority=100)
 
 ### Recurring Jobs
 
-Whether it's nightly maintainence, or weekly customer updates, you can have a
+Whether it's nightly maintenance, or weekly customer updates, you can have a
 job of a certain configuration set to recur. Recurring jobs still support
 priority, and tagging, and are attached to a queue. Let's say, for example, I
 need some global maintenance to run, and I don't care what machine runs it, so
 long as someone does:
 
 ```python
-client.queues['maintenance'].recur(myJob, {'tasks': ['sweep', 'mop', 'scrub']}, interval=60 * 60 * 24)
+client.queues["maintenance"].recur(myJob, '{"tasks": ["sweep", "mop", "scrub"]}', interval=60 * 60 * 24)
 ```
 
 That will spawn a job right now, but it's possible you'd like to have it recur,
 but maybe the first job should wait a little bit:
 
 ```python
-client.queues['maintenance'].recur(..., interval=86400, offset=3600)
+client.queues["maintenance"].recur(..., interval=86400, offset=3600)
 ```
 
 You can always update the tags, priority and even the interval of a recurring job:
 
 ```python
-job = client.jobs['83da4d32a0a811e1933012313b062cf1']
+job = client.jobs["83da4d32a0a811e1933012313b062cf1"]
 job.priority = 20
-job.tag('foo', 'bar')
-job.untag('hello')
+job.tag("foo", "bar")
+job.untag("hello")
 job.interval = 7200
 ```
 
@@ -402,7 +406,7 @@ workers are trying to pop jobs.
 
 ```python
 # Recur every minute
-queue.recur(..., {'lots': 'of jobs'}, 60)
+queue.recur(..., '{"lots": "of jobs"}', 60)
 # Wait 5 minutes
 len(queue.pop(10))
 # => 5 jobs got popped
@@ -420,19 +424,19 @@ but depending on volume, your needs may change. To only keep the last 500 jobs
 for up to 7 days:
 
 ```python
-client.config['jobs-history'] = 7 * 86400
-client.config['jobs-history-count'] = 500
+client.config["jobs-history"] = 7 * 86400
+client.config["jobs-history-count"] = 500
 ```
 
 ### Tagging / Tracking
 
-In qless, 'tracking' means flagging a job as important. Tracked jobs have a
+In qless, "tracking" means flagging a job as important. Tracked jobs have a
 tab reserved for them in the web interface, and they also emit subscribable
 events as they make progress (more on that below). You can flag a job from the
 web interface, or the corresponding code:
 
 ```python
-client.jobs['b1882e009a3d11e192d0b174d751779d'].track()
+client.jobs["b1882e009a3d11e192d0b174d751779d"].track()
 ```
 
 Jobs can be tagged with strings which are indexed for quick searches. For
@@ -440,35 +444,35 @@ example, jobs might be associated with customer accounts, or some other key
 that makes sense for your project.
 
 ```python
-queue.put(qless.gnomes.GnomesJob, {'tags': 'aplenty'}, tags=['12345', 'foo', 'bar'])
+queue.put(qless.gnomes.GnomesJob, '{"tags": "aplenty"}', tags=["12345", "foo", "bar"])
 ```
 
 This makes them searchable in the web interface, or from code:
 
 ```python
-jids = client.jobs.tagged('foo')
+jids = client.jobs.tagged("foo")
 ```
 
 You can add or remove tags at will, too:
 
 ```python
-job = client.jobs['b1882e009a3d11e192d0b174d751779d']
-job.tag('howdy', 'hello')
-job.untag('foo', 'bar')
+job = client.jobs["b1882e009a3d11e192d0b174d751779d"]
+job.tag("howdy", "hello")
+job.untag("foo", "bar")
 ```
 
 ### Job Dependencies
 
 Jobs can be made dependent on the completion of another job. For example, if
-you need to buy eggs, and buy a pan before making an omelete, you could say:
+you need to buy eggs, and buy a pan before making an omelet, you could say:
 
 ```python
-eggs_jid = client.queues['buy_eggs'].put(myJob, {'count': 12})
-pan_jid  = client.queues['buy_pan' ].put(myJob, {'coating': 'non-stick'})
-client.queues['omelete'].put(myJob, {'toppings': ['onions', 'ham']}, depends=[eggs_jid, pan_jid])
+eggs_jid = client.queues["buy_eggs"].put(myJob, '{"count": 12}')
+pan_jid  = client.queues["buy_pan" ].put(myJob, '{"coating": "non-stick"}')
+client.queues["omelete"].put(myJob, '{"toppings": ["onions", "ham"]}', depends=[eggs_jid, pan_jid])
 ```
 
-That way, the job to make the omelete can't be performed until the pan and eggs
+That way, the job to make the omelet can't be performed until the pan and eggs
 purchases have been completed.
 
 ### Notifications
@@ -479,12 +483,12 @@ jist of it goes like this, though:
 
 ```python
 def callback(evt, jid):
-    print '%s => %s' % (jid, evt)
+    print('%s => %s' % (jid, evt))
 
 from functools import partial
 
 
-for evt in ['canceled', 'completed', 'failed', 'popped', 'put', 'stalled', 'track', 'untrack']:
+for evt in ["canceled", "completed", "failed", "popped", "put", "stalled", "track", "untrack"]:
     client.events.on(evt, partial(callback, evt))
 client.events.listen()
 ```
@@ -497,12 +501,12 @@ should check out the `qless-growl` and `qless-campfire` ruby gems.
 Workers sometimes die. That's an unfortunate reality of life. We try to
 mitigate the effects of this by insisting that workers heartbeat their jobs to
 ensure that they do not get dropped. That said, qless will automatically
-requeue jobs that do get 'stalled' up to the provided number of retries
+requeue jobs that do get "stalled" up to the provided number of retries
 (default is 5). Since underpants profit can sometimes go awry, maybe you want
 to retry a particular heist several times:
 
 ```python
-queue.put(qless.gnomes.GnomesJob, {}, retries=10)
+queue.put(qless.gnomes.GnomesJob, "{}", retries=10)
 ```
 
 ### Pop
@@ -539,7 +543,7 @@ job.heartbeat()
 # I'm done!
 job.complete()
 # I'm done with this step, but need to go into another queue
-job.complete('anotherQueue')
+job.complete("anotherQueue")
 ```
 
 ### Stats
@@ -634,9 +638,9 @@ For example:
 
 ```python
 # Instead of this
-client = qless.Client(host='foo', port=6380)
+client = qless.Client(host="foo", port=6380)
 # Now it's this
-client = qless.Client(url='redis://foo:6380')
+client = qless.Client(url="redis://foo:6380")
 ```
 
 This allows users to provide auth, select a database, etc. Remember to change

@@ -1,5 +1,6 @@
 """Test the serial worker"""
 
+import json
 import time
 from os import path
 from tempfile import NamedTemporaryFile
@@ -19,7 +20,8 @@ class SerialJob:
     @staticmethod
     def foo(job: AbstractJob) -> None:
         """Dummy job"""
-        blocker_file = job.data.get("blocker_file")
+        data_dict = json.loads(job.data)
+        blocker_file = data_dict.get("blocker_file")
         if blocker_file:
             while path.exists(blocker_file):
                 time.sleep(0.1)
@@ -71,7 +73,7 @@ class TestWorker(TestQless):
 
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""
-        jids = [self.queue.put(SerialJob, {}) for _ in range(5)]
+        jids = [self.queue.put(SerialJob, "{}") for _ in range(5)]
         NoListenWorker(["foo"], self.client, interval=0.2).run()
         states = []
         for jid in jids:
@@ -88,7 +90,7 @@ class TestWorker(TestQless):
     def test_sleeps(self) -> None:
         """Make sure the client sleeps if there aren't jobs to be had"""
         for _ in range(4):
-            self.queue.put(SerialJob, {})
+            self.queue.put(SerialJob, "{}")
         before = time.time()
         NoListenWorker(["foo"], self.client, interval=0.2).run()
         self.assertGreater(time.time() - before, 0.2)
@@ -96,7 +98,7 @@ class TestWorker(TestQless):
     def test_lost_locks(self) -> None:
         """The worker should be able to stop processing if need be"""
         temp_file = NamedTemporaryFile()
-        jid = self.queue.put(SerialJob, {"blocker_file": temp_file.name})
+        jid = self.queue.put(SerialJob, json.dumps({"blocker_file": temp_file.name}))
         self.thread = Thread(target=Worker(["foo"], self.client, interval=0.2).run)
         self.thread.start()
         job = self.client.jobs[jid]
