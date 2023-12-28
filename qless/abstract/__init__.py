@@ -5,6 +5,8 @@ from qless.abstract.abstract_job import (
     AbstractJob,
     AbstractRecurringJob,
 )
+from qless.abstract.abstract_job_data import AbstractJobData
+from qless.abstract.abstract_job_processor import AbstractJobProcessor
 from qless.abstract.abstract_jobs import AbstractJobs
 from qless.abstract.abstract_queue import AbstractQueue
 from qless.abstract.abstract_queue_identifiers_transformer import (
@@ -23,6 +25,8 @@ __all__ = [
     "AbstractClient",
     "AbstractConfig",
     "AbstractJob",
+    "AbstractJobData",
+    "AbstractJobProcessor",
     "AbstractJobs",
     "AbstractQueueIdentifiersTransformer",
     "AbstractQueue",
