@@ -27,7 +27,7 @@ class AbstractJobProcessor(Generic[JD], ABC):
                 return data_class
         raise RuntimeError(f"Unable to determine data class for {cls}")
 
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def process(cls, job: AbstractJob) -> None:  # pragma: no cover
+    def process(job: AbstractJob) -> None:  # pragma: no cover
         ...
