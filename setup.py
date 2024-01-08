@@ -18,6 +18,7 @@ _dependencies = [
     "decorator",
     "hiredis",
     "redis",
+    "typing_extensions>=4.8.0",
 ]
 
 _dev_dependencies = [
