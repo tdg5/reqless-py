@@ -8,8 +8,8 @@ markers = ["integration_test: marks tests as integration tests (deselect with '-
 [tool.black]
 line-length = 88
 target-version = ["py39"]
-include = ["qless", "qmore", "qless_test"]
-exclude = ["README.md"]
+include = "(qless(_test)?|qmore)/.*\\.py$"
+exclude = "qless/qless-core/.*"
 
 [tool.isort]
 include_trailing_comma = true
