@@ -48,8 +48,8 @@ jobs:
       - name: Increment version
         uses: ./.github/actions/tdg5/github-action-pack/packages/increment-version-file-action/src
         with:
-          authorEmail: dannyguinther+spamburgalar@gmail.com
-          authorName: Spamburgalar
+          authorEmail: dannyguinther+spamburglar@gmail.com
+          authorName: Spamburglar
           commitMessage: "[skip actions] Increment version for next development cycle"
           versionFilePath: VERSION
           versionFormat: python
