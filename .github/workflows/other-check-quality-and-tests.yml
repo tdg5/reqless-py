@@ -26,6 +26,18 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
+      - name: Check requirements.txt is up to date
+        run: |
+          source venv/bin/activate
+          pip install .[all]
+          pip uninstall -y qless-with-throttles
+          pip freeze > requirements.txt
+          git diff --quiet
+          if [ ! $? -eq 0 ]; then
+            echo "pip freeze caused file changes, failing!"
+            exit 1
+          fi
+
       - name: Check style
         run: |
           source venv/bin/activate
