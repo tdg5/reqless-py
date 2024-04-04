@@ -10,43 +10,43 @@ class AbstractQueue(ABC):
     @property
     @abstractmethod
     def counts(self) -> Dict:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def heartbeat(self) -> int:  # pragma: no cover
-        ...
+        pass
 
     @heartbeat.setter
     @abstractmethod
     def heartbeat(self, value: int) -> None:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def jobs(self) -> AbstractQueueJobs:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def name(self) -> str:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def pause(self) -> None:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def peek(
         self, count: Optional[int] = None
     ) -> Union[AbstractJob, List[AbstractJob], None]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def pop(
         self, count: Optional[int] = None
     ) -> Union[AbstractJob, List[AbstractJob], None]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def put(
@@ -61,7 +61,7 @@ class AbstractQueue(ABC):
         depends: Optional[List[str]] = None,
         throttles: Optional[List[str]] = None,
     ) -> str:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def requeue(
@@ -76,7 +76,7 @@ class AbstractQueue(ABC):
         depends: Optional[List[str]] = None,
         throttles: Optional[List[str]] = None,
     ) -> str:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def recur(
@@ -91,21 +91,21 @@ class AbstractQueue(ABC):
         jid: Optional[str] = None,
         throttles: Optional[List[str]] = None,
     ) -> str:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def stats(self, date: Optional[str] = None) -> Dict:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def throttle(self) -> AbstractThrottle:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def unpause(self) -> None:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def __len__(self) -> int:  # pragma: no cover
-        ...
+        pass

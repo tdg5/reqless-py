@@ -10,9 +10,9 @@ class TransformingQueueResolver(AbstractQueueResolver):
         transformers: Optional[List[AbstractQueueIdentifiersTransformer]] = None,
     ):
         self._queue_identifiers: List[str] = queue_identifiers
-        self._transformers: Optional[
-            List[AbstractQueueIdentifiersTransformer]
-        ] = transformers
+        self._transformers: Optional[List[AbstractQueueIdentifiersTransformer]] = (
+            transformers
+        )
 
     def resolve(self) -> List[str]:
         if not self._transformers:

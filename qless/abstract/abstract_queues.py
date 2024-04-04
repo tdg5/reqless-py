@@ -8,8 +8,8 @@ class AbstractQueues(ABC):
     @property
     @abstractmethod
     def counts(self) -> Dict:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def __getitem__(self, queue_name: str) -> AbstractQueue:  # pragma: no cover
-        ...
+        pass

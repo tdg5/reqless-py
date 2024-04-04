@@ -2,14 +2,17 @@
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
-[tool.pytest.ini_options]
-markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\")"]
-
 [tool.black]
+exclude = "qless/qless-core/.*"
+include = "(qless(_test)?|qmore)/.*\\.py$"
 line-length = 88
 target-version = ["py39"]
-include = "(qless(_test)?|qmore)/.*\\.py$"
-exclude = "qless/qless-core/.*"
+
+[tool.flake8]
+exclude = ["qless/lua", "qless/qless-core"]
+ignore = ["E203", "E251", "E701", "N805", "W503", "DAR101", "DAR201", "DAR301", "DAR401"]
+max-line-length = 88
+min_python_version = "3.9.0"
 
 [tool.isort]
 include_trailing_comma = true
@@ -26,8 +29,21 @@ use_parentheses = true
 check_untyped_defs = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
-exclude = '^(qless/qless-core|qless/lua|fixtures|.*?\.js|.*?\.json)'
+exclude = "^(qless/qless-core|qless/lua|fixtures|.*?\\.js|.*?\\.json)"
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_ignores = true
+
+[tool.nosetests]
+cover-branches = 1
+cover-erase = 1
+cover-min-percentage = 98
+cover-package = ["qless", "qmore"]
+exe = 1
+logging-clear-handlers = 1
+rednose = 1
+verbosity = 2
+
+[tool.pytest.ini_options]
+markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')"]

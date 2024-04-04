@@ -22,16 +22,18 @@ _dependencies = [
 ]
 
 _dev_dependencies = [
-    "black==23.12.1",
-    "build==1.0.3",
-    "isort==5.8.0",
+    "black~=24.2.0",
+    "build~=1.0.3",
+    "flake8-pyproject~=1.2.3",
+    "flake8~=7.0.0",
+    "isort~=5.8.0",
     "mypy~=1.7.0",
-    "pre-commit==2.20.0",
-    "removestar==1.3.1",
+    "pre-commit~=2.20.0",
+    "removestar~=1.3.1",
     "safety==2.3.4",
-    "twine==4.0.2",
-    "types-decorator==5.1.8.4",
-    "types-mock==5.1.0.2",
+    "twine~=4.0.2",
+    "types-decorator~=5.1.8.4",
+    "types-mock~=5.1.0.2",
 ]
 
 _test_dependencies = [

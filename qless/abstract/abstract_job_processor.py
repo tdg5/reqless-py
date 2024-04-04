@@ -30,4 +30,4 @@ class AbstractJobProcessor(Generic[JD], ABC):
     @staticmethod
     @abstractmethod
     def process(job: AbstractJob) -> None:  # pragma: no cover
-        ...
+        pass

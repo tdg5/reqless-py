@@ -1,6 +1,5 @@
 """Basic tests about the client"""
 
-
 from typing import List
 
 from qless import retry

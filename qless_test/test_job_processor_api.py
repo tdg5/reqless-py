@@ -17,7 +17,7 @@ class JobData(dict, AbstractJobData):
 class JobProcessorWithAnnotatedDataClass(AbstractJobProcessor[JobData]):
     @classmethod
     def process(cls, job: AbstractJob) -> None:
-        ...
+        pass
 
 
 class JobProcessorWithExplicitDataClass(AbstractJobProcessor):
@@ -27,7 +27,7 @@ class JobProcessorWithExplicitDataClass(AbstractJobProcessor):
 
     @classmethod
     def process(cls, job: AbstractJob) -> None:
-        ...
+        pass
 
 
 class TestJobProcessorAPI(TestQless):

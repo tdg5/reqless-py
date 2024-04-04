@@ -7,7 +7,7 @@ class AbstractQueueJobs(ABC):
     def depends(
         self, offset: int = 0, count: int = 25
     ) -> List[str]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def recurring(
@@ -15,13 +15,13 @@ class AbstractQueueJobs(ABC):
         offset: int = 0,
         count: int = 25,
     ) -> List[str]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def running(
         self, offset: int = 0, count: int = 25
     ) -> List[str]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def scheduled(
@@ -29,10 +29,10 @@ class AbstractQueueJobs(ABC):
         offset: int = 0,
         count: int = 25,
     ) -> List[str]:  # pragma: no cover
-        ...
+        pass
 
     @abstractmethod
     def stalled(
         self, offset: int = 0, count: int = 25
     ) -> List[str]:  # pragma: no cover
-        ...
+        pass

@@ -15,39 +15,39 @@ if TYPE_CHECKING:  # pragma: no cover
 class AbstractClient(ABC):
     @abstractmethod
     def __call__(self, command: str, *args: Any) -> Any:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def config(self) -> AbstractConfig:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def jobs(self) -> AbstractJobs:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def queues(self) -> AbstractQueues:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def redis(self) -> "Redis":  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def throttles(self) -> AbstractThrottles:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def worker_name(self) -> str:  # pragma: no cover
-        ...
+        pass
 
     @property
     @abstractmethod
     def workers(self) -> AbstractWorkers:  # pragma: no cover
-        ...
+        pass
