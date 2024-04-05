@@ -11,3 +11,8 @@ MANIFEST
 venv/
 *.sublime-project
 *.sublime-workspace
+
+junk/
+
+# Auto-generated
+qless/__version__.py

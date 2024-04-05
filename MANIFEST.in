@@ -1,3 +1,0 @@
-include VERSION
-include qless/lua/*.lua
-include qless/py.typed
