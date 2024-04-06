@@ -58,7 +58,7 @@ repos:
         args: [--markdown-linebreak-ext=md]
         exclude: reqless/lua|reqless/qless-core
       - id: end-of-file-fixer
-        exclude: README.md|VERSION|reqless/lua|reqless/qless-core
+        exclude: README.md|reqless/lua|reqless/qless-core
       - id: check-docstring-first
       - id: debug-statements
       - id: name-tests-test

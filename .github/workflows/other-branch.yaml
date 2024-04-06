@@ -1,4 +1,4 @@
-name: Style, test, build, and publish the package
+name: Style, test, and build package
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   style-test-and-build:
-    name: Test, build, and publish the package
+    name: Style, test, and build package
     runs-on: ubuntu-latest
 
     steps:
@@ -50,5 +50,5 @@ jobs:
         run: |
           source venv/bin/activate
           make nose
-          export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REQLESS="$(cat VERSION)"
+          coverage report
           python -m build

@@ -54,6 +54,7 @@ dev = [
 ]
 test = [
     "coverage",
+    "coverage-badge~=1.1.0",
     "mock",
     "nose",
     "rednose",

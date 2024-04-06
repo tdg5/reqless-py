@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        default: '1.2.3'
+
+jobs:
+  test-and-build-and-publish-and-release:
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    name: Test, build, publish, and release the package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y redis-server
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Check requirements.txt is up to date
+        run: |
+          source venv/bin/activate
+          pip install .[all]
+          pip uninstall -y reqless
+          pip freeze > requirements.txt
+
+          if ! `git diff --quiet`; then
+            echo "pip freeze caused file changes, failing!"
+            git diff
+            exit 1
+          fi
+
+      - name: Check style
+        run: |
+          source venv/bin/activate
+          make style
+
+          if ! `git diff --quiet`; then
+            echo "make style caused file changes, failing!"
+            git diff
+            exit 1
+          fi
+
+      - name: Run tests and build package
+        run: |
+          source venv/bin/activate
+          make nose
+          coverage report | tee .meta/coverage/report.txt
+          coverage-badge -f -o .meta/coverage/badge.svg
+          export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REQLESS="$VERSION"
+          python -m build
+
+      - name: Publish package to pypi
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_USERNAME: __token__
+        run: |
+          source venv/bin/activate
+          python -m twine upload dist/*
+
+      - name: Configure git actor
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Create and push tag for published version
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          RELEASE_NAME: v${{ github.event.inputs.version }}
+        run: |
+          git tag -m "$RELEASE_NAME" "$RELEASE_NAME"
+          git push origin "$RELEASE_NAME"
+
+          gh release create \
+            --generate-notes \
+            --target "$GITHUB_REF" \
+            --title "$RELEASE_NAME" \
+            "$RELEASE_NAME"

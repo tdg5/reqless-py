@@ -1,3 +1,6 @@
+[![code coverage](https://github.com/tdg5/reqless-py/raw/main/.meta/coverage/badge.svg)](https://raw.githubusercontent.com/tdg5/reqless-py/main/.meta/coverage/report.txt)
+[![license](https://img.shields.io/github/license/tdg5/reqless-py.svg)](https://github.com/tdg5/reqless-py/blob/main/LICENSE)
+
 # reqless
 
 This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) that
