@@ -1,10 +1,10 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = [
   "setuptools>=69",
   "setuptools-scm>=8.0.4",
 
 ]
-build-backend = "setuptools.build_meta"
 
 [project]
 authors = [{name = "Danny Guinther"}]
@@ -25,9 +25,7 @@ dependencies = [
   "typing_extensions>=4.8.0",
 ]
 description = "Redis-based Queue Management"
-dynamic = [
-  "version",
-]
+dynamic = ["version"]
 keywords = [
     "job",
     "qless",
@@ -36,6 +34,7 @@ keywords = [
 license = {text = "MIT"}
 name = "qless-with-throttles"
 readme = "README.md"
+requires-python = ">3.9.0"
 
 [project.optional-dependencies]
 dev = [
