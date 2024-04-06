@@ -48,7 +48,7 @@ repos:
       - id: safety-production-dependencies-check
         name: Safety production dependencies check
         entry: safety
-        args: [check, --policy-file=.safety-policy.yml, --full-report, --file]
+        args: [check, --policy-file=.safety-policy.yaml, --full-report, --file]
         language: system
         files: requirements.txt
   - repo: https://github.com/pre-commit/pre-commit-hooks
