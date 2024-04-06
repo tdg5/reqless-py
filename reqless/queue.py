@@ -5,14 +5,14 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Type, Union
 
-from qless.abstract import (
+from reqless.abstract import (
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractQueueJobs,
     AbstractThrottle,
 )
-from qless.job import Job
+from reqless.job import Job
 
 
 class Jobs(AbstractQueueJobs):

@@ -6,7 +6,7 @@ set -e
 sudo apt-get update
 sudo apt-get install -y git libhiredis-dev libevent-dev python-pip python-dev
 
-# Install redis in support of qless
+# Install redis in support of reqless
 sudo apt-get install -y redis-server
 
 # Libraries required to build a complete python with pyenv:

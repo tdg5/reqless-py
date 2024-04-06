@@ -7,15 +7,15 @@ import gevent
 from gevent import Greenlet
 from gevent.pool import Pool
 
-from qless import logger
-from qless.abstract import (
+from reqless import logger
+from reqless.abstract import (
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractQueueResolver,
 )
-from qless.workers.util import create_sandbox
-from qless.workers.worker import Worker
+from reqless.workers.util import create_sandbox
+from reqless.workers.worker import Worker
 
 
 class GeventWorker(Worker):
@@ -44,7 +44,7 @@ class GeventWorker(Worker):
         self.pool = Pool(count)
         # A list of the sandboxes that we'll use
         sandbox_path = kwargs.pop(
-            "sandbox_path", os.path.join(os.getcwd(), "qless-py-workers")
+            "sandbox_path", os.path.join(os.getcwd(), "reqless-py-workers")
         )
         self.sandboxes: List[str] = [
             os.path.join(sandbox_path, "greenlet-%i" % i) for i in range(count)

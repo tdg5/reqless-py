@@ -2,15 +2,15 @@ import time
 from threading import Thread
 from typing import Dict
 
-from qless.abstract import AbstractJob
-from qless.listener import Listener
-from qless_test.common import TestQless
+from reqless.abstract import AbstractJob
+from reqless.listener import Listener
+from reqless_test.common import TestReqless
 
 
-class TestListener(TestQless):
+class TestListener(TestReqless):
     def setUp(self) -> None:
         super().setUp()
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         job = self.client.jobs["jid"]
         assert job is not None and isinstance(job, AbstractJob)
         job.track()

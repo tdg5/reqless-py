@@ -5,14 +5,14 @@ import multiprocessing as mp
 import os
 import sys
 
-import qless
-from qless import logger
-from qless.workers.forking import ForkingWorker
+import reqless
+from reqless import logger
+from reqless.workers.forking import ForkingWorker
 
 
 # First off, read the arguments
 parser = argparse.ArgumentParser(
-    description="Run qless workers.",
+    description="Run reqless workers.",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
 
@@ -95,7 +95,7 @@ if args.greenlets:
 
     monkey.patch_all()
     kwargs.update(
-        {"klass": "qless.workers.greenlet.GeventWorker", "greenlets": args.greenlets}
+        {"klass": "reqless.workers.greenlet.GeventWorker", "greenlets": args.greenlets}
     )
 
 
@@ -112,7 +112,7 @@ if args.verbose:
 if args.logger:
     import logging
 
-    from qless import formatter
+    from reqless import formatter
 
     handler = logging.FileHandler(args.logger)
     handler.setFormatter(formatter)
@@ -130,4 +130,4 @@ for module in getattr(args, "import"):
 os.chdir(args.workdir)
 
 # And now run the worker
-ForkingWorker(args.queue, qless.Client(args.host, hostname=args.name), **kwargs).run()
+ForkingWorker(args.queue, reqless.Client(args.host, hostname=args.name), **kwargs).run()

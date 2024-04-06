@@ -1,4 +1,4 @@
-"""Main qless business"""
+"""Main reqless business"""
 
 import json
 import pkgutil
@@ -11,7 +11,7 @@ import redis
 from redis import Redis
 from redis.commands.core import Script
 
-from qless.abstract import (
+from reqless.abstract import (
     AbstractClient,
     AbstractConfig,
     AbstractJob,
@@ -21,13 +21,13 @@ from qless.abstract import (
     AbstractThrottles,
     AbstractWorkers,
 )
-from qless.config import Config
-from qless.exceptions import QlessError
-from qless.job import Job, RecurringJob
-from qless.listener import Events
-from qless.logger import logger
-from qless.queue import Queue
-from qless.throttle import Throttle
+from reqless.config import Config
+from reqless.exceptions import ReqlessError
+from reqless.job import Job, RecurringJob
+from reqless.listener import Events
+from reqless.logger import logger
+from reqless.queue import Queue
+from reqless.throttle import Throttle
 
 
 def retry(*excepts: Type[Exception]) -> Callable:
@@ -154,7 +154,7 @@ class Throttles(AbstractThrottles):
 
 
 class Client(AbstractClient):
-    """Basic qless client object."""
+    """Basic reqless client object."""
 
     def __init__(
         self,
@@ -176,9 +176,9 @@ class Client(AbstractClient):
         self._events: Optional[Events] = None
 
         # We now have a single unified core script.
-        data = pkgutil.get_data("qless", "lua/qless.lua")
+        data = pkgutil.get_data("reqless", "lua/qless.lua")
         if data is None:
-            raise RuntimeError("Failed to load qless lua!")
+            raise RuntimeError("Failed to load reqless lua!")
         self._lua: Script = self.redis.register_script(data)
 
     @property
@@ -225,7 +225,7 @@ class Client(AbstractClient):
         try:
             return self._lua(keys=[], args=lua_args)
         except redis.ResponseError as exc:
-            raise QlessError(str(exc))
+            raise ReqlessError(str(exc))
 
     def track(self, jid: str) -> bool:
         """Begin tracking this job"""
@@ -254,10 +254,10 @@ __all__ = [
     "Events",
     "Job",
     "Jobs",
-    "QlessError",
     "Queue",
     "Queues",
     "RecurringJob",
+    "ReqlessError",
     "Throttle",
     "Throttles",
     "Workers",

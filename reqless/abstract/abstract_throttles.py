@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from qless.abstract.abstract_throttle import AbstractThrottle
+from reqless.abstract.abstract_throttle import AbstractThrottle
 
 
 class AbstractThrottles(ABC):

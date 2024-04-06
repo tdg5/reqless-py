@@ -2,16 +2,16 @@
 
 from typing import List
 
-from qless_test.common import TestQless
+from reqless_test.common import TestReqless
 
 
-class TestQueue(TestQless):
+class TestQueue(TestReqless):
     """Test the Job class"""
 
     def test_jobs(self) -> None:
         """The queue.Jobs class provides access to job counts"""
         queue = self.client.queues["foo"]
-        queue.put("qless_test.common.NoopJob", "{}")
+        queue.put("reqless_test.common.NoopJob", "{}")
         self.assertEqual(queue.jobs.depends(), [])
         self.assertEqual(queue.jobs.running(), [])
         self.assertEqual(queue.jobs.stalled(), [])
@@ -20,7 +20,7 @@ class TestQueue(TestQless):
 
     def test_counts(self) -> None:
         """Provides access to job counts"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.assertEqual(
             self.client.queues["foo"].counts,
             {
@@ -61,23 +61,23 @@ class TestQueue(TestQless):
 
     def test_multipop(self) -> None:
         """Exposes multi-pop"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         jobs = self.client.queues["foo"].pop(10)
         assert isinstance(jobs, List)
         self.assertEqual(len(jobs), 2)
 
     def test_peek(self) -> None:
         """Exposes queue peeking"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         job = self.client.queues["foo"].peek()
         assert job is not None and not isinstance(job, List)
         self.assertEqual(job.jid, "jid")
 
     def test_multipeek(self) -> None:
         """Exposes multi-peek"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         jobs = self.client.queues["foo"].peek(10)
         assert isinstance(jobs, List)
         self.assertEqual(len(jobs), 2)
@@ -88,7 +88,7 @@ class TestQueue(TestQless):
 
     def test_len(self) -> None:
         """Exposes the length of a queue"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.assertEqual(len(self.client.queues["foo"]), 1)
 
     def test_throttle(self) -> None:
@@ -101,7 +101,9 @@ class TestQueue(TestQless):
     def test_put_with_throttles(self) -> None:
         """Test put with throttles given"""
         queue = self.client.queues["foo"]
-        queue.put("qless_test.common.NoopJob", "{}", jid="jid", throttles=["throttle"])
+        queue.put(
+            "reqless_test.common.NoopJob", "{}", jid="jid", throttles=["throttle"]
+        )
         job = self.client.jobs["jid"]
         assert job is not None
         queue_throttle = queue.throttle.name
@@ -110,13 +112,15 @@ class TestQueue(TestQless):
     def test_requeue_with_throttles(self) -> None:
         """Test requeue with throttles given"""
         queue = self.client.queues["foo"]
-        queue.put("qless_test.common.NoopJob", "{}", jid="jid", throttles=["throttle"])
+        queue.put(
+            "reqless_test.common.NoopJob", "{}", jid="jid", throttles=["throttle"]
+        )
         job_to_fail = queue.pop()
         assert job_to_fail is not None and not isinstance(job_to_fail, List)
         job_to_fail.fail("foo", "bar")
 
         queue.requeue(
-            "qless_test.common.NoopJob", "{}", jid="jid", throttles=["other-throttle"]
+            "reqless_test.common.NoopJob", "{}", jid="jid", throttles=["other-throttle"]
         )
         job = self.client.jobs["jid"]
         assert job is not None
@@ -127,7 +131,7 @@ class TestQueue(TestQless):
         """Test recur with throttles given"""
         queue = self.client.queues["foo"]
         queue.recur(
-            "qless_test.common.NoopJob", "{}", 60, jid="jid", throttles=["throttle"]
+            "reqless_test.common.NoopJob", "{}", 60, jid="jid", throttles=["throttle"]
         )
 
         job = self.client.jobs["jid"]

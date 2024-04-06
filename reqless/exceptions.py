@@ -1,13 +1,13 @@
 """Some exception classes"""
 
 
-class QlessError(Exception):
-    """Any and all qless exceptions"""
+class ReqlessError(Exception):
+    """Any and all reqless exceptions"""
 
     pass
 
 
-class LostLockError(QlessError):
+class LostLockError(ReqlessError):
     """Lost lock on a job"""
 
     pass

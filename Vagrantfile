@@ -7,7 +7,7 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
 # http://docs.vagrantup.com/v2/
 Vagrant.configure('2') do |config|
   config.vm.box = 'ubuntu/trusty64'
-  config.vm.hostname = 'qless-py'
+  config.vm.hostname = 'reqless-py'
   config.ssh.forward_agent = true
 
   config.vm.provider :virtualbox do |vb|

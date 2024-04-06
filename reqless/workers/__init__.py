@@ -1,4 +1,4 @@
-from qless.workers.worker import Worker
+from reqless.workers.worker import Worker
 
 
 __all__ = [

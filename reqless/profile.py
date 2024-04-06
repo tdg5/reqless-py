@@ -7,11 +7,11 @@ from typing import Any, Dict, Optional, Type
 import redis
 from redis import Redis
 
-from qless.abstract import AbstractClient
+from reqless.abstract import AbstractClient
 
 
 class Profiler:
-    """Profiling a series of requests. Initialized with a Qless client"""
+    """Profiling a series of requests. Initialized with a Reqless client"""
 
     @staticmethod
     def clone(client: AbstractClient) -> Redis:
@@ -64,7 +64,7 @@ class Profiler:
                 continue
             if "eval" in command.lower():
                 subcommand = request[3]
-                self._timings["qless-%s" % subcommand].append(duration)
+                self._timings["reqless-%s" % subcommand].append(duration)
                 if current["name"]:
                     if current["name"] not in self._commands:
                         self._commands[current["name"]] = defaultdict(list)
@@ -87,7 +87,7 @@ class Profiler:
         self.pretty(self._timings, "Raw Redis Commands")
         print()
         for key, value in self._commands.items():
-            self.pretty(value, 'Qless "%s" Command' % key)
+            self.pretty(value, 'Reqless "%s" Command' % key)
             print()
 
     def __enter__(self) -> "Profiler":

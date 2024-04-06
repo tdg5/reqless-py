@@ -30,7 +30,7 @@ jobs:
         run: |
           source venv/bin/activate
           pip install .[all]
-          pip uninstall -y qless-with-throttles
+          pip uninstall -y reqless
           pip freeze > requirements.txt
           if ! `git diff --quiet`; then
             echo "pip freeze caused file changes, failing!"
@@ -50,5 +50,5 @@ jobs:
         run: |
           source venv/bin/activate
           make nose
-          export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_QLESS_WITH_THROTTLES="$(cat VERSION)"
+          export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REQLESS="$(cat VERSION)"
           python -m build

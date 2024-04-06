@@ -11,17 +11,17 @@ clean:
 
 .PHONY: qless-core
 qless-core:
-	# Ensure qless is built
-	make -C qless/qless-core/
-	cp qless/qless-core/qless.lua qless/lua/
-	cp qless/qless-core/qless-lib.lua qless/lua/
+	# Ensure qless-core is built
+	make -C reqless/qless-core/
+	cp reqless/qless-core/qless.lua reqless/lua/
+	cp reqless/qless-core/qless-lib.lua reqless/lua/
 
 .PHONY: nose
 nose: qless-core
 	nosetests --with-coverage
 
 requirements:
-	pip freeze | grep -v -e qless-py > requirements.txt
+	pip freeze | grep -v -e reqless > requirements.txt
 
 .PHONY: test
 test: nose

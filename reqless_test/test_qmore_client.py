@@ -1,18 +1,18 @@
 import json
 from typing import Dict, List, Mapping, Union
 
-from qless_test.common import TestQless
 from qmore.client import (
     QUEUE_IDENTIFIER_PATTERNS_KEY,
     QUEUE_PRIORITY_PATTERNS_KEY,
     QmoreClient,
     QueuePriorityPattern,
 )
+from reqless_test.common import TestReqless
 
 
-class TestQmoreClient(TestQless):
+class TestQmoreClient(TestReqless):
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.redis = self.client.redis
         self.subject = QmoreClient(redis=self.client.redis)
 

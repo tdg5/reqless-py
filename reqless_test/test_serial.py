@@ -7,11 +7,11 @@ from tempfile import NamedTemporaryFile
 from threading import Thread
 from typing import Generator, Optional, Tuple
 
-from qless import logger
-from qless.abstract import AbstractJob
-from qless.listener import Listener
-from qless.workers.serial import SerialWorker
-from qless_test.common import TestQless
+from reqless import logger
+from reqless.abstract import AbstractJob
+from reqless.listener import Listener
+from reqless.workers.serial import SerialWorker
+from reqless_test.common import TestReqless
 
 
 class SerialJob:
@@ -58,18 +58,18 @@ class NoListenWorker(Worker):
         pass
 
 
-class TestWorker(TestQless):
+class TestWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.queue = self.client.queues["foo"]
         self.thread: Optional[Thread] = None
 
     def tearDown(self) -> None:
         if self.thread:
             self.thread.join()
-        TestQless.tearDown(self)
+        TestReqless.tearDown(self)
 
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from qless.abstract.abstract_queue import AbstractQueue
+from reqless.abstract.abstract_queue import AbstractQueue
 
 
 class AbstractQueues(ABC):

@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Type, Union
 
-from qless.abstract.abstract_job import AbstractJob
-from qless.abstract.abstract_queue_jobs import AbstractQueueJobs
-from qless.abstract.abstract_throttle import AbstractThrottle
+from reqless.abstract.abstract_job import AbstractJob
+from reqless.abstract.abstract_queue_jobs import AbstractQueueJobs
+from reqless.abstract.abstract_throttle import AbstractThrottle
 
 
 class AbstractQueue(ABC):

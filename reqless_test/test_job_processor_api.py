@@ -1,8 +1,8 @@
 import json
 from typing import Type
 
-from qless.abstract import AbstractJob, AbstractJobData, AbstractJobProcessor
-from qless_test.common import TestQless
+from reqless.abstract import AbstractJob, AbstractJobData, AbstractJobProcessor
+from reqless_test.common import TestReqless
 
 
 class JobData(dict, AbstractJobData):
@@ -30,7 +30,7 @@ class JobProcessorWithExplicitDataClass(AbstractJobProcessor):
         pass
 
 
-class TestJobProcessorAPI(TestQless):
+class TestJobProcessorAPI(TestReqless):
     def test_data_class_can_be_determined_from_type_annotation(self) -> None:
         """The data class type can be inferred from type annotations"""
         self.assertEqual(JobData, JobProcessorWithAnnotatedDataClass.data_class())

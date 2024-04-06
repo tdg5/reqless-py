@@ -3,12 +3,12 @@
 import json
 from typing import Any, Dict, ItemsView, Iterable, Iterator, KeysView, ValuesView
 
-from qless.abstract.abstract_client import AbstractClient
-from qless.abstract.abstract_config import AbstractConfig
+from reqless.abstract.abstract_client import AbstractClient
+from reqless.abstract.abstract_config import AbstractConfig
 
 
 class Config(AbstractConfig):
-    """A class that allows us to change and manipulate qless config"""
+    """A class that allows us to change and manipulate reqless config"""
 
     def __init__(self, client: AbstractClient):
         self._client: AbstractClient = client

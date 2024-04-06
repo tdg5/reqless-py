@@ -1,11 +1,12 @@
-# qless
+# reqless
 
-This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) with
-support for throttles. Qless is a powerful `Redis`-based job queueing system
-inspired by [resque](https://github.com/defunkt/resque#readme), but built on a
-collection of Lua scripts, maintained in the
-[qless-core](https://github.com/seomoz/qless-core) repo. Be sure to check the
-changelog below.
+This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) that
+includes significant type improvements and support for throttles.
+
+`qless` is a powerful `Redis`-based job queueing system inspired by
+[resque](https://github.com/defunkt/resque#readme), but built on a collection
+of Lua scripts, maintained in the
+[qless-core](https://github.com/tdg5/qless-core) repo.
 
 ## Philosophy and Nomenclature
 
@@ -31,7 +32,7 @@ let the system reclaim it.
 ## Features
 
 1. __Jobs don't get dropped on the floor__ -- Sometimes workers drop jobs.
-    Qless automatically picks them back up and gives them to another worker
+    `qless` automatically picks them back up and gives them to another worker
 1. __Tagging / Tracking__ -- Some jobs are more interesting than others. Track
     those jobs to get updates on their progress. Tag jobs with meaningful
     identifiers to find them quickly in the UI.
@@ -66,14 +67,14 @@ Interest piqued? Then read on!
 
 Install from pip:
 
-    pip install qless-py
+    pip install reqless-py
 
-Alternatively, install qless-py from source by checking it out from github,
+Alternatively, install reqless-py from source by checking it out from github,
 and checking out the qless-core submodule:
 
 ```bash
-git clone git://github.com/seomoz/qless-py.git
-cd qless-py
+git clone git://github.com/tdg5/reqless-py.git
+cd reqless-py
 # qless-core is a submodule
 git submodule init
 git submodule update
@@ -168,11 +169,11 @@ Great! With all this in place, let's put them in the queue so that they can
 get run
 
 ```python
-import qless
+import reqless
 # Connecting to localhost on 6379
-client = qless.Client()
+client = reqless.Client()
 # Connecting to a remote machine
-client = qless.Client("redis://foo.bar.com:1234")
+client = reqless.Client("redis://foo.bar.com:1234")
 ```
 
 Now, reference a queue, and start putting your gnomes to work:
@@ -204,7 +205,7 @@ All that remains is to have workers actually run these jobs. This distribution
 comes with a script to help with this:
 
 ```bash
-qless-py-worker -q underpants -q unknown -q profit
+reqless-py-worker -q underpants -q unknown -q profit
 ```
 
 This script actually forks off several subprocesses that perform the work, and
@@ -214,65 +215,60 @@ checks, but for the time being, it's just that the process is still alive. You
 can specify the `host` and `port` you want to use for the qless server as well:
 
 ```bash
-qless-py-worker --host foo.bar --port 1234 ...
+reqless-py-worker --host foo.bar --port 1234 ...
 ```
 
-In the absence of the `--workers` argument, qless will spawn as many workers
-as there are cores on the machine. The interval specifies how often to poll
-in seconds) for work items. Future versions may have a mechanism to support
-blocking pop.
+In the absence of the `--workers` argument, `reqless-py-worker` will spawn as
+many workers as there are cores on the machine. The interval specifies how
+often to poll in seconds) for work items. Future versions may have a mechanism
+to support blocking pop.
 
 ```bash
-qless-py-worker --workers 4 --interval 10
+reqless-py-worker --workers 4 --interval 10
 ```
 
 Because this works on a forked process model, it can be convenient to import
 large modules _before_ subprocesses are forked. Specify these with `--import`:
 
 ```bash
-qless-py-worker --import my.really.bigModule
+reqless-py-worker --import my.really.bigModule
 ```
 
 ## Filesystem
 
-Previous versions of `qless-py` included a feature to have each worker process
-run in its own sandbox directory. We've removed this feature because since
-greenlets can't run in their own directory, the 'regular' and greenlet workers
-behave differently.
-
-In lieu of this behavior, each child process runs in its own sandboxed directory
-and each job is given a `sandbox` attribute which is the name of a directory for
-the sole use of that job. It's guaranteed to be clean by the time the job is
-performed, and it cleaned up afterwards.
+Each child process runs in its own sandboxed directory and each job is given a
+`sandbox` attribute which is the name of a directory for the sole use of that
+job. It's guaranteed to be clean by the time the job is performed, and it
+cleaned up afterwards.
 
 For example, if you invoke:
 
 ```bash
-qless-py-worker --workers 4 --greenlets 5 --workdir foo
+reqless-py-worker --workers 4 --greenlets 5 --workdir foo
 ```
 
 Then four child processes will be spawned using the directories:
 
 ```
-foo/qless-py-workers/sandbox-{0,1,2,3}
+foo/reqless-py-workers/sandbox-{0,1,2,3}
 ```
 
 The jobs run by the greenlets in the first process are given their own sandboxes
 of the form:
 
 ```
-foo/qless-py-workers/sandbox-0/greenlet-{0,1,2,3,4}
+foo/reqless-py-workers/sandbox-0/greenlet-{0,1,2,3,4}
 ```
 
 ## Gevent
 
 Some jobs are I/O-bound, and might want to, say, make use of a greenlet pool.
 If you have a class where you've, say, monkey-patched `socket`, you can ask
-qless to create a pool of greenlets to run you job inside each process. To run
+reqless to create a pool of greenlets to run you job inside each process. To run
 5 processes with 50 greenlets each:
 
 ```bash
-qless-py-worker --workers 5 --greenlets 50
+reqless-py-worker --workers 5 --greenlets 50
 ```
 
 ## Signals
@@ -291,8 +287,8 @@ output).
 This is an __experimental__ feature, but you can start workers `--resume` flag
 to have the worker begin its processing with the jobs it left off with. For
 instance, during deployments, it's common to restart the worker processes, and
-the `--resume` flag has the worker first perform a check with `qless` to see
-which jobs it had last been running (and still has locks for).
+the `--resume` flag has the worker first perform a check with `qless` server to
+see which jobs it had last been running (and still has locks for).
 
 This flag should be used with some caution. In particular, if two workers are
 running with the same worker name, then this should not be used. The reason is
@@ -306,19 +302,19 @@ Whenever a job is processed, it checks to see if the file in which your job is
 defined has been updated since its last import. If it has, it automatically
 reimports it. We think of this as a feature.
 
-With this in mind, when I start a new project and want to make use of qless, I
-first start up the web app locally (see
-[`qless`](http://github.com/seomoz/qless) for more), take a first pass, and
+With this in mind, when I start a new project and want to make use of
+`reqless`, I first start up the web app locally (see
+[`qless`](http://github.com/tdg5/qless) for more), take a first pass, and
 enqueue a single job while the worker is running:
 
     # Supposing that I have /my/awesome/project/awesomeproject.py
     # In one terminal...
-    qless-py-worker --path /my/awesome/project --queue foo --workers 1 --interval 10 --verbose
+    reqless-py-worker --path /my/awesome/project --queue foo --workers 1 --interval 10 --verbose
 
     # In another terminal...
-    >>> import qless
+    >>> import reqless
     >>> import awesomeproject
-    >>> qless.Client().queues["foo"].put(awesomeproject.Job, '{"key": "value"}')
+    >>> reqless.Client().queues["foo"].put(awesomeproject.Job, '{"key": "value"}')
 
 From there, I watch the output on the worker, adjust my job class, save it,
 watch again, etc., but __without restarting the worker__ -- in general it
@@ -338,7 +334,7 @@ priority, the sooner it will be processed. If, for example, you get a new job
 to collect some really valuable underpants:
 
 ```python
-queue.put(qless.gnomes.GnomesJob, '{"address": "123 Brief St."}', priority = 10)
+queue.put(reqless.gnomes.GnomesJob, '{"address": "123 Brief St."}', priority = 10)
 ```
 
 You can also adjust a job's priority while it's waiting:
@@ -355,7 +351,7 @@ example, you just learned of an underpants heist opportunity, but you have to
 wait until later:
 
 ```python
-queue.put(qless.gnomes.GnomesJob, {}, delay=3600)
+queue.put(reqless.gnomes.GnomesJob, {}, delay=3600)
 ```
 
 It's worth noting that it's not guaranteed that this job will run at that time.
@@ -365,7 +361,7 @@ you want it to be processed very soon after the delay expires, you could also
 boost its priority:
 
 ```
-queue.put(qless.gnomes.GnomesJob, {}, delay=3600, priority=100)
+queue.put(reqless.gnomes.GnomesJob, {}, delay=3600, priority=100)
 ```
 
 ### Recurring Jobs
@@ -430,10 +426,10 @@ client.config["jobs-history-count"] = 500
 
 ### Tagging / Tracking
 
-In qless, "tracking" means flagging a job as important. Tracked jobs have a
-tab reserved for them in the web interface, and they also emit subscribable
-events as they make progress (more on that below). You can flag a job from the
-web interface, or the corresponding code:
+In `qless`, "tracking" means flagging a job as important. Tracked jobs have a
+tab reserved for them in the web interface, and they also emit events that can
+be subscribed to as they make progress (more on that below). You can flag a job
+from the web interface, or the corresponding code:
 
 ```python
 client.jobs["b1882e009a3d11e192d0b174d751779d"].track()
@@ -444,7 +440,7 @@ example, jobs might be associated with customer accounts, or some other key
 that makes sense for your project.
 
 ```python
-queue.put(qless.gnomes.GnomesJob, '{"tags": "aplenty"}', tags=["12345", "foo", "bar"])
+queue.put(reqless.gnomes.GnomesJob, '{"tags": "aplenty"}', tags=["12345", "foo", "bar"])
 ```
 
 This makes them searchable in the web interface, or from code:
@@ -500,13 +496,13 @@ should check out the `qless-growl` and `qless-campfire` ruby gems.
 
 Workers sometimes die. That's an unfortunate reality of life. We try to
 mitigate the effects of this by insisting that workers heartbeat their jobs to
-ensure that they do not get dropped. That said, qless will automatically
-requeue jobs that do get "stalled" up to the provided number of retries
-(default is 5). Since underpants profit can sometimes go awry, maybe you want
-to retry a particular heist several times:
+ensure that they do not get dropped. That said, `qless` server will
+automatically requeue jobs that do get "stalled" up to the provided number of
+retries (default is 5). Since underpants profit can sometimes go awry, maybe
+you want to retry a particular heist several times:
 
 ```python
-queue.put(qless.gnomes.GnomesJob, "{}", retries=10)
+queue.put(reqless.gnomes.GnomesJob, "{}", retries=10)
 ```
 
 ### Pop
@@ -548,7 +544,7 @@ job.complete("anotherQueue")
 
 ### Stats
 
-One of the selling points of qless is that it keeps stats for you about your
+One of the selling points of `qless` is that it keeps stats for you about your
 underpants hijinks. It tracks the average wait time, number of jobs that have
 waited in a queue, failures, retries, and average running time. It also keeps
 histograms for the number of jobs that have waited _x_ time, and the number
@@ -558,110 +554,18 @@ Frankly, these are best viewed using the web app.
 
 ### Lua
 
-Qless is a set of client language bindings, but the majority of the work is
+`qless` is a set of client language bindings, but the majority of the work is
 done in a collection of Lua scripts that comprise the
-[core](https://github.com/seomoz/qless-core) functionality. These scripts run
+[core](https://github.com/tdg5/qless-core) functionality. These scripts run
 on the Redis 2.6+ server atomically and allow for portability with the same
 functionality guarantees. Consult the documentation for `qless-core` to learn
 more about its internals.
 
 ### Web App
 
-`Qless` also comes with a web app for administrative tasks, like keeping tabs
+`qless` also comes with a web app for administrative tasks, like keeping tabs
 on the progress of jobs, tracking specific jobs, retrying failed jobs, etc.
-It's available in the [`qless`](https://github.com/seomoz/qless) library as a
+It's available in the [`qless`](https://github.com/tdg5/qless) library as a
 mountable [`Sinatra`](http://www.sinatrarb.com/) app. The web app is language
 agnostic and was one of the major desires out of this project, so you should
 consider using it even if you're not planning on using the Ruby client.
-
-## Changelog
-
-Things that have changed over time.
-
-### v0.10.0
-
-The major change was the switch to `unified` qless. This change is
-semi-incompatibile. In particular, it changes the job history format but the new
-version knows how to convert the old format forward. Upgrades to your workers
-should be made from the end of pipelines towards the start. It will also be
-necessary to upgrade your `qless-web` install if you're using it.
-
-- Preempts workers running jobs for which they've lost their lock
-- Improved coverage (98%, up from 71%), all of which was worker code
-- Debugging signals
-- Resumable workers
-- Redis URL interface. When specifying a qless client, the default is still to
-    point to `localhost:6379`, but rather than specify `host` and `port`, you
-    should provide a single `host` argument of a Redis URL format. For example,
-    `redis://user:auth@host:port/db`. Many of these paremeters are optional, but
-    it seems to be the convention recently.
-
-#### Upgrading to qless-py 0.10.0
-
-Some notes, instructions and potential road blocks to the upgrade. This version
-has much better coverage, and a few added features, including stalled job
-preemption, pauseable queues, unified sandboxing and the ability to use the
-cleaner web interface.
-
-## Road Blocks
-
-Before we talk about how to install the updated client, here are a couple
-potential road blocks that will need to be addressed before you can make the
-switch.
-
-### Sandboxes
-
-If you were using sandboxes (if using the non-greenlet client) and relying on
-using the current working directory as the sandbox, that interface has been
-done away with. The replacement is that each job comes with a `sandbox`
-attribute which is guaranteed to be a directory that exists and empty at the
-start of the job, and which is cleaned up after the job. It's a great place for
-temporary files. __This only applies if you are running a qless-worker, and not
-if you are using the qless client directly to work on jobs.__
-
-The directories are made up of subdirectories under the directory provided as
-`--workdir`, defaulting to the current directory.
-
-### Client Rename
-
-If you are using the `qless` client directly, all instances of `qless.client`
-will have to change to `qless.Client`. It was an unfortunate mistake that it was
-ever named `client` to begin with, but hopefully this change won't be painful.
-
-### Redis Server Spec
-
-There was a feature request to be able to provide redis auth credentials, and
-rather than support any new attributes to the redis client that might come
-along, we'll now use a [redis url](http://redis-py.readthedocs.org/en/latest/#redis.StrictRedis.from_url).
-
-For example:
-
-```python
-# Instead of this
-client = qless.Client(host="foo", port=6380)
-# Now it's this
-client = qless.Client(url="redis://foo:6380")
-```
-
-This allows users to provide auth, select a database, etc. Remember to change
-this in __worker invocations__ and __config files__.
-
-
-## Installation
-
-With an existing copy of `qless-py` checked out
-
-```bash
-# Get the most recent version
-git fetch
-git checkout v0.10.0
-
-# Checkout, update and build the submodule
-git submodule init
-git submodule update
-make -C qless/qless-core
-
-# Install dependencies and then qless
-sudo pip install -r requirements.txt
-sudo python setup.py install
-```

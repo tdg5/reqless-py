@@ -4,14 +4,14 @@ import os
 import time
 from typing import Any, Iterable, List, Optional, Union
 
-from qless.abstract import (
+from reqless.abstract import (
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractQueueResolver,
 )
-from qless.workers.util import create_sandbox, set_title
-from qless.workers.worker import Worker
+from reqless.workers.util import create_sandbox, set_title
+from reqless.workers.worker import Worker
 
 
 class SerialWorker(Worker):
@@ -36,7 +36,7 @@ class SerialWorker(Worker):
         self.jid: Optional[str] = None
         # This is the sandbox we use
         self._sandbox: str = kwargs.pop(
-            "sandbox", os.path.join(os.getcwd(), "qless-py-workers")
+            "sandbox", os.path.join(os.getcwd(), "reqless-py-workers")
         )
 
     def kill(self, jid: str) -> None:

@@ -6,16 +6,16 @@ import signal
 from types import FrameType
 from typing import Any, Dict, Iterable, List, Optional, Type, Union
 
-from qless import logger, util
-from qless.abstract import (
+from reqless import logger, util
+from reqless.abstract import (
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractQueueResolver,
 )
-from qless.workers.serial import SerialWorker
-from qless.workers.util import create_sandbox, divide
-from qless.workers.worker import Worker
+from reqless.workers.serial import SerialWorker
+from reqless.workers.util import create_sandbox, divide
+from reqless.workers.worker import Worker
 
 
 try:
@@ -88,7 +88,7 @@ class ForkingWorker(Worker):
         for index in range(self.count):
             # The sandbox for the child worker
             sandbox = os.path.join(
-                os.getcwd(), "qless-py-workers", "sandbox-%s" % index
+                os.getcwd(), "reqless-py-workers", "sandbox-%s" % index
             )
             cpid = os.fork()
             if cpid:

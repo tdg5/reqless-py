@@ -2,9 +2,11 @@
 
 from typing import List
 
-from qless.abstract import AbstractQueueIdentifiersTransformer
-from qless.queue_resolvers.transforming_queue_resolver import TransformingQueueResolver
-from qless_test.common import TestQless
+from reqless.abstract import AbstractQueueIdentifiersTransformer
+from reqless.queue_resolvers.transforming_queue_resolver import (
+    TransformingQueueResolver,
+)
+from reqless_test.common import TestReqless
 
 
 class OrderReversingQueueIdentifiersTransformer(AbstractQueueIdentifiersTransformer):
@@ -14,7 +16,7 @@ class OrderReversingQueueIdentifiersTransformer(AbstractQueueIdentifiersTransfor
         return _queue_identifiers
 
 
-class TestTransformingQueueResolver(TestQless):
+class TestTransformingQueueResolver(TestReqless):
     def test_resolve_with_no_transformers(self) -> None:
         """It returns the given queue identifiers when no transformers"""
         given_queue_names = ["one", "two", "three"]

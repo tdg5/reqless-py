@@ -1,9 +1,9 @@
 """Tests about the config class"""
 
-from qless_test.common import TestQless
+from reqless_test.common import TestReqless
 
 
-class TestConfig(TestQless):
+class TestConfig(TestReqless):
     """Test the config class"""
 
     def test_set_get_unset(self) -> None:

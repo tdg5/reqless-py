@@ -2,10 +2,10 @@
 
 from typing import List
 
-from qless import retry
-from qless.abstract import AbstractClient, AbstractJob
-from qless.workers.worker import Worker
-from qless_test.common import TestQless
+from reqless import retry
+from reqless.abstract import AbstractClient, AbstractJob
+from reqless.workers.worker import Worker
+from reqless_test.common import TestReqless
 
 
 def pop_one(client: AbstractClient, queue_name: str) -> AbstractJob:
@@ -14,12 +14,12 @@ def pop_one(client: AbstractClient, queue_name: str) -> AbstractJob:
     return job
 
 
-class TestClient(TestQless):
+class TestClient(TestReqless):
     """Test the client"""
 
     def test_track(self) -> None:
         """Gives us access to track and untrack jobs"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         self.assertTrue(self.client.track("jid"))
         self.assertFalse(self.client.track("jid"))
         self.assertEqual(self.client.jobs.tracked()["jobs"][0].jid, "jid")
@@ -39,7 +39,7 @@ class TestClient(TestQless):
         self.assertEqual(self.client.tags(), {})
         for _ in range(10):
             self.client.queues["foo"].put(
-                "qless_test.common.NoopJob", "{}", tags=["foo"]
+                "reqless_test.common.NoopJob", "{}", tags=["foo"]
             )
         self.assertEqual(self.client.tags(), ["foo"])
 
@@ -48,7 +48,7 @@ class TestClient(TestQless):
         job_count = 10
         jids = map(str, range(job_count))
         for jid in jids:
-            self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid=jid)
+            self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid=jid)
             pop_one(self.client, "foo").fail("foo", "bar")
         for jid in jids:
             job = self.client.jobs[jid]
@@ -62,34 +62,34 @@ class TestClient(TestQless):
             self.assertEqual(job.state, "waiting")
 
 
-class TestJobs(TestQless):
+class TestJobs(TestReqless):
     """Test the Jobs class"""
 
     def test_basic(self) -> None:
         """Can give us access to jobs"""
         self.assertEqual(self.client.jobs["jid"], None)
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         self.assertNotEqual(self.client.jobs["jid"], None)
 
     def test_recurring(self) -> None:
         """Can give us access to recurring jobs"""
         self.assertEqual(self.client.jobs["jid"], None)
         self.client.queues["foo"].recur(
-            "qless_test.common.NoopJob", "{}", 60, jid="jid"
+            "reqless_test.common.NoopJob", "{}", 60, jid="jid"
         )
         self.assertNotEqual(self.client.jobs["jid"], None)
 
     def test_complete(self) -> None:
         """Can give us access to complete jobs"""
         self.assertEqual(self.client.jobs.complete(), [])
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         pop_one(self.client, "foo").complete()
         self.assertEqual(self.client.jobs.complete(), ["jid"])
 
     def test_tracked(self) -> None:
         """Gives us access to tracked jobs"""
         self.assertEqual(self.client.jobs.tracked(), {"jobs": [], "expired": {}})
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         self.client.track("jid")
         self.assertEqual(self.client.jobs.tracked()["jobs"][0].jid, "jid")
 
@@ -97,26 +97,26 @@ class TestJobs(TestQless):
         """Gives us access to tagged jobs"""
         self.assertEqual(self.client.jobs.tagged("foo"), {"total": 0, "jobs": {}})
         self.client.queues["foo"].put(
-            "qless_test.common.NoopJob", "{}", jid="jid", tags=["foo"]
+            "reqless_test.common.NoopJob", "{}", jid="jid", tags=["foo"]
         )
         self.assertEqual(self.client.jobs.tagged("foo")["jobs"][0], "jid")
 
     def test_failed(self) -> None:
         """Gives us access to failed jobs"""
         self.assertEqual(self.client.jobs.failed("foo"), {"total": 0, "jobs": []})
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         pop_one(self.client, "foo").fail("foo", "bar")
         self.assertEqual(self.client.jobs.failed("foo")["jobs"][0].jid, "jid")
 
     def test_failures(self) -> None:
         """Gives us access to failure types"""
         self.assertEqual(self.client.jobs.failed(), {})
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         pop_one(self.client, "foo").fail("foo", "bar")
         self.assertEqual(self.client.jobs.failed(), {"foo": 1})
 
 
-class TestQueues(TestQless):
+class TestQueues(TestReqless):
     """Test the Queues class"""
 
     def test_basic(self) -> None:
@@ -126,7 +126,7 @@ class TestQueues(TestQless):
     def test_counts(self) -> None:
         """Gives us access to counts"""
         self.assertEqual(self.client.queues.counts, {})
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.assertEqual(
             self.client.queues.counts,
             [
@@ -152,7 +152,7 @@ class TestQueues(TestQless):
         )
 
 
-class TestThrottles(TestQless):
+class TestThrottles(TestReqless):
     """Test the Throttles class"""
 
     def test_basic(self) -> None:
@@ -188,17 +188,17 @@ class TestThrottles(TestQless):
         self.assertEqual(throttle.ttl(), -2)
 
 
-class TestWorkers(TestQless):
+class TestWorkers(TestReqless):
     """Test the Workers class"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.client.worker_name = "worker"
         self.worker = Worker(["foo"], self.client)
 
     def test_individual(self) -> None:
         """Gives us access to individual workers"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         self.assertEqual(self.client.workers["worker"], {"jobs": [], "stalled": []})
         job = next(self.worker.jobs())
         assert job is not None
@@ -209,7 +209,7 @@ class TestWorkers(TestQless):
 
     def test_counts(self) -> None:
         """Gives us access to worker counts"""
-        self.client.queues["foo"].put("qless_test.common.NoopJob", "{}", jid="jid")
+        self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
         self.assertEqual(self.client.workers.counts, {})
         job = next(self.worker.jobs())
         assert job is not None
@@ -237,7 +237,7 @@ class RetryFoo:
             raise Exception("Foo")
 
 
-class TestRetry(TestQless):
+class TestRetry(TestReqless):
     """Test the retry decorator"""
 
     def test_basic(self) -> None:

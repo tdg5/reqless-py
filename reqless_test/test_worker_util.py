@@ -1,16 +1,16 @@
 import itertools
 import os
 
-from qless.job import Job
-from qless.workers.util import clean, create_sandbox, divide, get_title, set_title
-from qless_test.common import TestQless
+from reqless.job import Job
+from reqless.workers.util import clean, create_sandbox, divide, get_title, set_title
+from reqless_test.common import TestReqless
 
 
-class TestWorkerUtil(TestQless):
+class TestWorkerUtil(TestReqless):
     """Test the worker utils"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.client.worker_name = "worker"
 
     def test_proctitle(self) -> None:
@@ -26,19 +26,19 @@ class TestWorkerUtil(TestQless):
 
     def test_clean(self) -> None:
         """Should be able to clean a directory"""
-        if not os.path.exists("qless_test/tmp"):
-            os.makedirs("qless_test/tmp")
-        self.assertEqual(os.listdir("qless_test/tmp"), [])
-        os.makedirs("qless_test/tmp/foo/bar")
-        with open("qless_test/tmp/file.out", "w+"):
+        if not os.path.exists("reqless_test/tmp"):
+            os.makedirs("reqless_test/tmp")
+        self.assertEqual(os.listdir("reqless_test/tmp"), [])
+        os.makedirs("reqless_test/tmp/foo/bar")
+        with open("reqless_test/tmp/file.out", "w+"):
             pass
-        self.assertNotEqual(os.listdir("qless_test/tmp"), [])
-        clean("qless_test/tmp")
-        self.assertEqual(os.listdir("qless_test/tmp"), [])
+        self.assertNotEqual(os.listdir("reqless_test/tmp"), [])
+        clean("reqless_test/tmp")
+        self.assertEqual(os.listdir("reqless_test/tmp"), [])
 
     def test_sandbox(self) -> None:
         """The sandbox utility should work"""
-        path = "qless_test/tmp/foo"
+        path = "reqless_test/tmp/foo"
         self.assertFalse(os.path.exists(path))
         try:
             with create_sandbox(path):
@@ -56,7 +56,7 @@ class TestWorkerUtil(TestQless):
 
     def test_sandbox_exists(self) -> None:
         """Sandbox creation should not throw an error if the path exists"""
-        path = "qless_test/tmp"
+        path = "reqless_test/tmp"
         self.assertEqual(os.listdir(path), [])
         with create_sandbox(path):
             pass
@@ -65,7 +65,7 @@ class TestWorkerUtil(TestQless):
 
     def test_dirty_sandbox(self) -> None:
         """If a sandbox is dirty on arrival, clean it first"""
-        path = "qless_test/tmp/foo"
+        path = "reqless_test/tmp/foo"
         with create_sandbox(path):
             for name in ["whiz", "widget", "bang"]:
                 with open(os.path.join(path, name), "w+"):
@@ -88,7 +88,7 @@ class TestWorkerUtil(TestQless):
                 failure={},
                 history=[],
                 jid=index,
-                klass="qless_test.common.NoopJob",
+                klass="reqless_test.common.NoopJob",
                 priority=0,
                 remaining=1,
                 retries=1,

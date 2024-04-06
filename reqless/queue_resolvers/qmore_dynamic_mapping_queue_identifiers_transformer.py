@@ -2,9 +2,9 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-from qless import Client
-from qless.abstract import AbstractQueueIdentifiersTransformer
 from qmore.client import QmoreClient
+from reqless import Client
+from reqless.abstract import AbstractQueueIdentifiersTransformer
 
 
 class QmoreDynamicMappingQueueIdentifiersTransformer(
@@ -15,8 +15,8 @@ class QmoreDynamicMappingQueueIdentifiersTransformer(
         client: Client,
         dynamic_queue_mapping_refresh_frequency_milliseconds: Optional[int] = None,
     ):
-        self.qless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(redis=self.qless_client.redis)
+        self.reqless_client: Client = client
+        self.qmore_client: QmoreClient = QmoreClient(redis=self.reqless_client.redis)
 
         self._dynamic_queue_mapping: Optional[Dict[str, List[str]]] = None
         self._dynamic_queue_mapping_ttl_time_delta: timedelta = timedelta(
@@ -93,7 +93,7 @@ class QmoreDynamicMappingQueueIdentifiersTransformer(
         return QmoreDynamicMappingQueueIdentifiersTransformer.resolve_queue_names(
             dynamic_queue_mapping=self._get_dynamic_queue_mapping(),
             known_queue_names=[
-                count["name"] for count in self.qless_client.queues.counts
+                count["name"] for count in self.reqless_client.queues.counts
             ],
             patterns=queue_identifiers,
         )

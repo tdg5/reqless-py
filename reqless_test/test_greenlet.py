@@ -7,10 +7,10 @@ from typing import Generator, Optional
 
 import gevent
 
-from qless.abstract import AbstractJob, AbstractQueue
-from qless.listener import Listener
-from qless.workers.greenlet import GeventWorker
-from qless_test.common import TestQless
+from reqless.abstract import AbstractJob, AbstractQueue
+from reqless.listener import Listener
+from reqless.workers.greenlet import GeventWorker
+from reqless_test.common import TestReqless
 
 
 class GeventJob:
@@ -44,11 +44,11 @@ class PatchedGeventWorker(GeventWorker):
         pass
 
 
-class TestWorker(TestQless):
+class TestWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.worker = PatchedGeventWorker(
             ["foo"], self.client, greenlets=1, interval=0.2
         )
@@ -58,7 +58,7 @@ class TestWorker(TestQless):
     def tearDown(self) -> None:
         if self.thread:
             self.thread.join()
-        TestQless.tearDown(self)
+        TestReqless.tearDown(self)
 
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""
@@ -76,7 +76,7 @@ class TestWorker(TestQless):
             assert job is not None
             sandboxes.append(json.loads(job.data)["sandbox"])
         for sandbox in sandboxes:
-            self.assertIn("qless-py-workers/greenlet-0", sandbox)
+            self.assertIn("reqless-py-workers/greenlet-0", sandbox)
 
     def test_sleeps(self) -> None:
         """Make sure the client sleeps if there aren't jobs to be had"""

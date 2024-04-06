@@ -4,7 +4,7 @@ from typing import Any, Dict, ItemsView, Iterable, Iterator, KeysView, ValuesVie
 
 class AbstractConfig(ABC):
     """Abstract interface describing a class that allows us to change and
-    manipulate qless config"""
+    manipulate reqless config"""
 
     @property
     @abstractmethod

@@ -10,7 +10,7 @@ from redis.client import PubSub
 
 
 # Our logger
-logger = logging.getLogger("qless")
+logger = logging.getLogger("reqless")
 
 
 class Listener:
@@ -36,7 +36,7 @@ class Listener:
 
 
 class Events:
-    """A class for handling qless events"""
+    """A class for handling reqless events"""
 
     namespace = "ql:"
     events: Tuple[str, ...] = (

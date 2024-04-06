@@ -3,8 +3,8 @@ from typing import Generic, Type, TypeVar, get_args
 
 from typing_extensions import get_original_bases
 
-from qless.abstract.abstract_job import AbstractJob
-from qless.abstract.abstract_job_data import AbstractJobData
+from reqless.abstract.abstract_job import AbstractJob
+from reqless.abstract.abstract_job_data import AbstractJobData
 
 
 JD = TypeVar("JD", bound=AbstractJobData)

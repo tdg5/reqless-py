@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from qless.abstract import AbstractClient, AbstractThrottle
+from reqless.abstract import AbstractClient, AbstractThrottle
 
 
 class Throttle(AbstractThrottle):

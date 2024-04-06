@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from qless.abstract import AbstractQueueIdentifiersTransformer, AbstractQueueResolver
+from reqless.abstract import AbstractQueueIdentifiersTransformer, AbstractQueueResolver
 
 
 class TransformingQueueResolver(AbstractQueueResolver):

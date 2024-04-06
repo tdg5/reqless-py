@@ -3,7 +3,7 @@ from logging import Logger
 
 
 def _make_logger() -> Logger:
-    logger = logging.getLogger("qless")
+    logger = logging.getLogger("reqless")
     formatter = logging.Formatter(
         "%(asctime)s | PID %(process)d | [%(levelname)s] %(message)s"
     )

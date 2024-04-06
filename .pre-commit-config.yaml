@@ -11,13 +11,13 @@ repos:
         name: black
         language: system
         entry: black
-        args: ["qless", "qmore", "qless_test"]
+        args: ["reqless", "qmore", "reqless_test"]
         types: [python]
       - id: flake8
         name: flake8
         language: python
         entry: flake8p
-        args: ["qless", "qmore", "qless_test"]
+        args: ["reqless", "qmore", "reqless_test"]
         types: [python]
         additional_dependencies:
           - darglint
@@ -32,18 +32,18 @@ repos:
         name: Mypy check
         entry: mypy
         language: system
-        args: ["qless", "qmore", "qless_test"]
+        args: ["reqless", "qmore", "reqless_test"]
         pass_filenames: false
       - id: isort
         name: isort
         entry: isort
-        args: ["qless", "qmore", "qless_test"]
+        args: ["reqless", "qmore", "reqless_test"]
         language: system
       - id: removestar
         name: removestar
         language: system
         entry: removestar
-        args: ["-i", "qless", "qmore", "qless_test"]
+        args: ["-i", "reqless", "qmore", "reqless_test"]
         types: [python]
       - id: safety-production-dependencies-check
         name: Safety production dependencies check
@@ -56,9 +56,9 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: qless/lua|qless/qless-core
+        exclude: reqless/lua|reqless/qless-core
       - id: end-of-file-fixer
-        exclude: README.md|VERSION|qless/lua|qless/qless-core
+        exclude: README.md|VERSION|reqless/lua|reqless/qless-core
       - id: check-docstring-first
       - id: debug-statements
       - id: name-tests-test

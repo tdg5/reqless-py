@@ -6,7 +6,7 @@ import random
 import threading
 import time
 
-import qless
+import reqless
 
 
 # First off, read the arguments
@@ -78,7 +78,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-logger = logging.getLogger("qless-bench")
+logger = logging.getLogger("reqless-bench")
 formatter = logging.Formatter("[%(asctime)s] %(threadName)s => %(message)s")
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
@@ -89,15 +89,15 @@ if args.verbose:
 else:
     logger.setLevel(logging.WARN)
 
-# Our qless client
-client = qless.client(host=args.host, port=args.port)
+# Our reqless client
+client = reqless.client(host=args.host, port=args.port)
 
 
 class ForgetfulWorker(threading.Thread):
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
         # This is to fake out thread-level workers
-        tmp = qless.client(host=args.host, port=args.port)
+        tmp = reqless.client(host=args.host, port=args.port)
         tmp.worker += "-" + self.getName()
         self.q = tmp.queue("testing")
 
@@ -137,7 +137,7 @@ put_time = -time.time()
 testing = client.queue("testing")
 jids = [
     testing.put(
-        qless.Job,
+        reqless.Job,
         {"test": "benchmark", "count": c, "stages": args.stages},
         retries=args.retries,
     )

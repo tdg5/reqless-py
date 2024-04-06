@@ -4,9 +4,9 @@ from contextlib import contextmanager
 from itertools import zip_longest
 from typing import Callable, Generator, Iterable, List, Optional
 
-from qless.abstract import AbstractJob
-from qless.logger import logger
-from qless.proctitle import getproctitle, setproctitle
+from reqless.abstract import AbstractJob
+from reqless.logger import logger
+from reqless.proctitle import getproctitle, setproctitle
 
 
 def divide(jobs: Iterable[AbstractJob], count: int) -> List[List[AbstractJob]]:
@@ -62,4 +62,4 @@ def get_title() -> str:
 
 def set_title(message: str) -> None:
     """Set the title of the process"""
-    setproctitle("qless-py-worker %s" % message)
+    setproctitle("reqless-py-worker %s" % message)

@@ -6,16 +6,16 @@ import traceback
 import types
 from typing import Any, Dict, List, Optional, Type, Union
 
-from qless.abstract import (
+from reqless.abstract import (
     AbstractBaseJob,
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractRecurringJob,
 )
-from qless.exceptions import LostLockError, QlessError
-from qless.importer import Importer
-from qless.logger import logger
+from reqless.exceptions import LostLockError, ReqlessError
+from reqless.importer import Importer
+from reqless.logger import logger
 
 
 class BaseJob(AbstractBaseJob):
@@ -350,7 +350,7 @@ class Job(BaseJob, AbstractJob):
                 )
                 or 0
             )
-        except QlessError:
+        except ReqlessError:
             raise LostLockError(self.jid)
         logger.debug("Heartbeated %s (ttl = %s)", self.jid, self.ttl)
         return self.expires_at

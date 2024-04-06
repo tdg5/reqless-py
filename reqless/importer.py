@@ -3,7 +3,7 @@ import os
 import time
 from typing import Dict, Type
 
-from qless.logger import logger
+from reqless.logger import logger
 
 
 class Importer:

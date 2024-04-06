@@ -2,17 +2,19 @@ import time
 from typing import Dict, List
 from uuid import uuid4
 
-from qless.queue_resolvers.qmore_dynamic_mapping_queue_identifiers_transformer import (
+from qmore.client import QmoreClient
+from reqless.queue_resolvers.qmore_dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
     QmoreDynamicMappingQueueIdentifiersTransformer,
 )
-from qless.queue_resolvers.transforming_queue_resolver import TransformingQueueResolver
-from qless_test.common import TestQless
-from qmore.client import QmoreClient
+from reqless.queue_resolvers.transforming_queue_resolver import (
+    TransformingQueueResolver,
+)
+from reqless_test.common import TestReqless
 
 
-class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestQless):
+class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.qmore_client = QmoreClient(redis=self.client.redis)
 
     def set_dynamic_queues(self, mapping: Dict[str, List[str]]) -> None:

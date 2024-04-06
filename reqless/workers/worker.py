@@ -11,15 +11,15 @@ from contextlib import contextmanager
 from types import FrameType
 from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from qless import exceptions, logger
-from qless.abstract import (
+from reqless import exceptions, logger
+from reqless.abstract import (
     AbstractClient,
     AbstractJob,
     AbstractQueue,
     AbstractQueueResolver,
 )
-from qless.listener import Listener
-from qless.queue_resolvers import TransformingQueueResolver
+from reqless.listener import Listener
+from reqless.queue_resolvers import TransformingQueueResolver
 
 
 class Worker:

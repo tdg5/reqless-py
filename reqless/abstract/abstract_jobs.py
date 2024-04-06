@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Union
 
-from qless.abstract.abstract_job import AbstractJob, AbstractRecurringJob
+from reqless.abstract.abstract_job import AbstractJob, AbstractRecurringJob
 
 
 class AbstractJobs(ABC):

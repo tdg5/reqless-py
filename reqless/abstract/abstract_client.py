@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
-from qless.abstract.abstract_config import AbstractConfig
-from qless.abstract.abstract_jobs import AbstractJobs
-from qless.abstract.abstract_queues import AbstractQueues
-from qless.abstract.abstract_throttles import AbstractThrottles
-from qless.abstract.abstract_workers import AbstractWorkers
+from reqless.abstract.abstract_config import AbstractConfig
+from reqless.abstract.abstract_jobs import AbstractJobs
+from reqless.abstract.abstract_queues import AbstractQueues
+from reqless.abstract.abstract_throttles import AbstractThrottles
+from reqless.abstract.abstract_workers import AbstractWorkers
 
 
 if TYPE_CHECKING:  # pragma: no cover

@@ -7,10 +7,10 @@ import time
 from threading import Thread
 from typing import Optional, Tuple
 
-from qless.abstract import AbstractJob
-from qless.workers.forking import ForkingWorker
-from qless.workers.worker import Worker
-from qless_test.common import TestQless
+from reqless.abstract import AbstractJob
+from reqless.workers.forking import ForkingWorker
+from reqless.workers.worker import Worker
+from reqless_test.common import TestReqless
 
 
 class Foo:
@@ -43,11 +43,11 @@ class PatchedForkingWorker(ForkingWorker):
         pass
 
 
-class TestWorker(TestQless):
+class TestWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.client.worker_name = "worker"
         self.worker = PatchedForkingWorker(["foo"], self.client, workers=1, interval=1)
         self.queue = self.client.queues["foo"]
@@ -56,7 +56,7 @@ class TestWorker(TestQless):
     def tearDown(self) -> None:
         if self.thread:
             self.thread.join()
-        TestQless.tearDown(self)
+        TestReqless.tearDown(self)
 
     def test_respawn(self) -> None:
         """It respawns workers as needed"""
@@ -77,7 +77,7 @@ class TestWorker(TestQless):
         jid = self.queue.put(CWD, "{}")
         self.thread.join(1)
         self.assertFalse(self.thread.is_alive())
-        expected = os.path.join(os.getcwd(), "qless-py-workers/sandbox-0")
+        expected = os.path.join(os.getcwd(), "reqless-py-workers/sandbox-0")
         job = self.client.jobs[jid]
         assert isinstance(job, AbstractJob)
         self.assertEqual(json.loads(job.data)["cwd"], expected)
@@ -86,7 +86,7 @@ class TestWorker(TestQless):
         """Should be able to import by class string"""
         worker = PatchedForkingWorker(
             client=self.client,
-            klass="qless.workers.serial.SerialWorker",
+            klass="reqless.workers.serial.SerialWorker",
             queues=["foo"],
         )
         self.assertIsInstance(worker.spawn(), Worker)

@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 from random import SystemRandom
 from typing import List, Optional
 
-from qless import Client
-from qless.abstract import AbstractQueueIdentifiersTransformer
 from qmore.client import QmoreClient, QueuePriorityPattern
+from reqless import Client
+from reqless.abstract import AbstractQueueIdentifiersTransformer
 
 
 class QmoreDynamicPriorityQueueIdentifiersTransformer(
@@ -16,8 +16,8 @@ class QmoreDynamicPriorityQueueIdentifiersTransformer(
         client: Client,
         dynamic_queue_priorities_refresh_frequency_milliseconds: Optional[int] = None,
     ):
-        self.qless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(redis=self.qless_client.redis)
+        self.reqless_client: Client = client
+        self.qmore_client: QmoreClient = QmoreClient(redis=self.reqless_client.redis)
 
         self._dynamic_queue_priorities: Optional[List[QueuePriorityPattern]] = None
         self._dynamic_queue_priorities_ttl_time_delta: timedelta = timedelta(

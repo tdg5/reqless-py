@@ -2,18 +2,20 @@
 
 from typing import List
 
-import qless
-from qless.abstract import AbstractClient, AbstractJob
-from qless.queue_resolvers.transforming_queue_resolver import TransformingQueueResolver
-from qless.workers.worker import Worker
-from qless_test.common import TestQless
+import reqless
+from reqless.abstract import AbstractClient, AbstractJob
+from reqless.queue_resolvers.transforming_queue_resolver import (
+    TransformingQueueResolver,
+)
+from reqless.workers.worker import Worker
+from reqless_test.common import TestReqless
 
 
-class TestWorker(TestQless):
+class TestWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
-        TestQless.setUp(self)
+        TestReqless.setUp(self)
         self.client.worker_name = "worker"
         self.worker = Worker(["foo"], self.client)
 
@@ -24,7 +26,7 @@ class TestWorker(TestQless):
     def test_resume(self) -> None:
         """We should be able to resume jobs"""
         queue = self.worker.client.queues["foo"]
-        queue.put("qless_test.common.NoopJob", "{}")
+        queue.put("reqless_test.common.NoopJob", "{}")
         job = self.client.queues["foo"].peek()
         assert isinstance(job, AbstractJob)
         # Now, we'll create a new worker and make sure it gets that job first
@@ -36,9 +38,9 @@ class TestWorker(TestQless):
     def test_unresumable(self) -> None:
         """If we can't heartbeat jobs, we should not try to resume it"""
         queue = self.worker.client.queues["foo"]
-        queue.put("qless_test.common.NoopJob", "{}")
+        queue.put("reqless_test.common.NoopJob", "{}")
         # Pop from another worker
-        other = qless.Client(hostname="other")
+        other = reqless.Client(hostname="other")
         job = self.pop_one(other, "foo")
         # Now, we'll create a new worker and make sure it gets that job first
         job_again = self.client.jobs[job.jid]
@@ -49,8 +51,8 @@ class TestWorker(TestQless):
     def test_resumable(self) -> None:
         """We should be able to find all the jobs that can be resumed"""
         # We're going to put some jobs into some queues, and pop them.
-        jid = self.client.queues["foo"].put("qless_test.common.NoopJob", "{}")
-        self.client.queues["bar"].put("qless_test.common.NoopJob", "{}")
+        jid = self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
+        self.client.queues["bar"].put("reqless_test.common.NoopJob", "{}")
         self.pop_one(self.client, "foo")
         self.pop_one(self.client, "bar")
 

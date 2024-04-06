@@ -30,9 +30,10 @@ keywords = [
     "job",
     "qless",
     "redis",
+    "reqless",
 ]
 license = {text = "MIT"}
-name = "qless-with-throttles"
+name = "reqless"
 readme = "README.md"
 requires-python = ">3.9.0"
 
@@ -58,41 +59,41 @@ test = [
     "rednose",
     "setuptools>=69",
 ]
-all = ["qless-with-throttles[dev,test]"]
+all = ["reqless[dev,test]"]
 
 [project.urls]
-Homepage = "https://github.com/tdg5/qless-py"
-Source = "https://github.com/tdg5/qless-py"
-Tracker = "https://github.com/tdg5/qless-py/issues"
+Homepage = "https://github.com/tdg5/reqless-py"
+Source = "https://github.com/tdg5/reqless-py"
+Tracker = "https://github.com/tdg5/reqless-py/issues"
 
 [tool.black]
-exclude = "qless/(lua|qless-core)/.*"
-include = "(qless(_test)?|qmore)/.*\\.py$"
+exclude = "reqless/(lua|qless-core)/.*"
+include = "(reqless(_test)?|qmore)/.*\\.py$"
 line-length = 88
 target-version = ["py39"]
 
 [tool.flake8]
-exclude = ["qless/lua", "qless/qless-core"]
+exclude = ["reqless/lua", "reqless/qless-core"]
 ignore = ["E203", "E251", "E701", "N805", "W503", "DAR101", "DAR201", "DAR301", "DAR401"]
 max-line-length = 88
 min_python_version = "3.9.0"
 
 [tool.isort]
 include_trailing_comma = true
-known_first_party = ["qless", "qmore", "qless_test"]
+known_first_party = ["reqless", "qmore", "reqless_test"]
 line_length = 88
 lines_after_imports = 2
 multi_line_output = 3
 profile = "black"
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-skip_glob = ["qless/lua", "qless/qless-core"]
+skip_glob = ["reqless/lua", "reqless/qless-core"]
 use_parentheses = true
 
 [tool.mypy]
 check_untyped_defs = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
-exclude = "^(qless/qless-core|qless/lua|fixtures|.*?\\.js|.*?\\.json)"
+exclude = "^(reqless/qless-core|reqless/lua|fixtures|.*?\\.js|.*?\\.json)"
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_return_any = true
@@ -102,7 +103,7 @@ warn_unused_ignores = true
 cover-branches = 1
 cover-erase = 1
 cover-min-percentage = 98
-cover-package = ["qless", "qmore"]
+cover-package = ["reqless", "qmore"]
 exe = 1
 logging-clear-handlers = 1
 rednose = 1
@@ -112,21 +113,21 @@ verbosity = 2
 markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')"]
 
 [tool.setuptools]
-script-files = ["bin/qless-py-worker"]
+script-files = ["bin/reqless-py-worker"]
 
 [tool.setuptools.package-data]
-"qless" = ["lua/*.lua", "py.typed"]
+"reqless" = ["lua/*.lua", "py.typed"]
 "qmore" = ["py.typed"]
 
 [tool.setuptools.packages.find]
 include = [
-  "qless",
-  "qless.abstract",
-  "qless.queue_resolvers",
-  "qless.workers",
   "qmore",
+  "reqless",
+  "reqless.abstract",
+  "reqless.queue_resolvers",
+  "reqless.workers",
 ]
 where = ["."]
 
 [tool.setuptools_scm]
-version_file = "qless/__version__.py"
+version_file = "reqless/__version__.py"

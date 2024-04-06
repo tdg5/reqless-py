@@ -15,4 +15,4 @@ venv/
 junk/
 
 # Auto-generated
-qless/__version__.py
+reqless/__version__.py
