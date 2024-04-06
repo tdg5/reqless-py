@@ -67,7 +67,7 @@ Interest piqued? Then read on!
 
 Install from pip:
 
-    pip install reqless-py
+    pip install reqless
 
 Alternatively, install reqless-py from source by checking it out from github,
 and checking out the qless-core submodule:
