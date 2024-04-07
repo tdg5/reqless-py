@@ -50,6 +50,6 @@ jobs:
       - name: Run tests and build package
         run: |
           source venv/bin/activate
-          make nose
+          make test-with-coverage
           coverage report
           python -m build

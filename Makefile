@@ -16,15 +16,15 @@ qless-core:
 	cp reqless/qless-core/qless.lua reqless/lua/
 	cp reqless/qless-core/qless-lib.lua reqless/lua/
 
-.PHONY: nose
-nose: qless-core
-	nosetests --with-coverage
+.PHONY: test-with-coverage
+test-with-coverage: qless-core
+	coverage run -m pytest
 
 requirements:
 	pip freeze | grep -v -e reqless > requirements.txt
 
 .PHONY: test
-test: nose
+test: pytest
 
 # style the code according to accepted standards for the repo
 .PHONY: style

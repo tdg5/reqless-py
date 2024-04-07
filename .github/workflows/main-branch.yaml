@@ -55,7 +55,7 @@ jobs:
       - name: Run tests and build package
         run: |
           source venv/bin/activate
-          make nose
+          make test-with-coverage
           coverage report | tee .meta/coverage/report.txt
           coverage-badge -f -o .meta/coverage/badge.svg
           python -m build

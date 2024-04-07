@@ -29,6 +29,7 @@ dynamic = ["version"]
 keywords = [
     "job",
     "qless",
+    "qmore",
     "redis",
     "reqless",
 ]
@@ -56,8 +57,7 @@ test = [
     "coverage",
     "coverage-badge~=1.1.0",
     "mock",
-    "nose",
-    "rednose",
+    "pytest~=7.4.0",
     "setuptools>=69",
 ]
 all = ["reqless[dev,test]"]
@@ -72,6 +72,19 @@ exclude = "reqless/(lua|qless-core)/.*"
 include = "(reqless(_test)?|qmore)/.*\\.py$"
 line-length = 88
 target-version = ["py39"]
+
+[tool.coverage.run]
+omit = [
+  "reqless/__version__.py",
+  "reqless/profile.py",
+]
+source = [
+  "qmore",
+  "reqless",
+]
+
+[tool.coverage.report]
+fail_under = 98
 
 [tool.flake8]
 exclude = ["reqless/lua", "reqless/qless-core"]
@@ -100,18 +113,13 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unused_ignores = true
 
-[tool.nosetests]
-cover-branches = 1
-cover-erase = 1
-cover-min-percentage = 98
-cover-package = ["reqless", "qmore"]
-exe = 1
-logging-clear-handlers = 1
-rednose = 1
-verbosity = 2
-
 [tool.pytest.ini_options]
 markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')"]
+norecursedirs = [
+  "reqless/lua",
+  "reqless/qless-core",
+]
+testpaths = ["reqless_test"]
 
 [tool.setuptools]
 script-files = ["bin/reqless-py-worker"]
