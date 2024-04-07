@@ -158,7 +158,7 @@ class Worker:
             message = "".join(traceback.format_stack(frame))
             message = "Signaled traceback for %s:\n%s" % (os.getpid(), message)
             print(message, file=sys.stderr)
-            logger.warn(message)
+            logger.warning(message)
         elif signum == signal.SIGUSR2:
             # USR2 - Enter a debugger
             # Much thanks to http://stackoverflow.com/questions/132058

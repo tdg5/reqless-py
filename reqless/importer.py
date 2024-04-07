@@ -38,7 +38,7 @@ class Importer:
                 if Importer._loaded[class_name] < mtime:
                     mod = importlib.reload(mod)
             except OSError:
-                logger.warn("Could not check modification time of %s", mod.__file__)
+                logger.warning("Could not check modification time of %s", mod.__file__)
 
         _class: Type = getattr(mod, class_name.rpartition(".")[2])
         return _class

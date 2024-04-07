@@ -373,7 +373,7 @@ class Job(BaseJob, AbstractJob):
         that job will fail. Failed jobs are kept until they are canceled or
         completed. __Returns__ the id of the failed job if successful, or
         `False` on failure."""
-        logger.warn("Failing %s (%s): %s", self.jid, group, message)
+        logger.warning("Failing %s (%s): %s", self.jid, group, message)
         response: bool = self.client(
             "fail",
             self.jid,
