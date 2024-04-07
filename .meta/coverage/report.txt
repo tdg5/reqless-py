@@ -1,13 +1,5 @@
 Name                                                                              Stmts   Miss  Cover
 -----------------------------------------------------------------------------------------------------
-/usr/lib/python3/dist-packages/pkg_resources/__init__.py                           1532   1497     2%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/_structures.py        41     40     2%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/requirements.py       72     62    14%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/specifiers.py        306    294     4%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/version.py           160    140    12%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/pyparsing.py                  2513   2301     8%
-/usr/lib/python3/dist-packages/pkg_resources/_vendor/six.py                         444    442     1%
-/usr/lib/python3/dist-packages/pkg_resources/extern/__init__.py                      36     33     8%
 qmore/__init__.py                                                                     0      0   100%
 qmore/client.py                                                                      42      1    98%
 reqless/__init__.py                                                                 146      1    99%
@@ -64,6 +56,6 @@ reqless_test/test_queue.py                                                      
 reqless_test/test_serial.py                                                          91      0   100%
 reqless_test/test_transforming_queue_resolver.py                                     20      0   100%
 reqless_test/test_worker.py                                                          53      0   100%
-reqless_test/test_worker_util.py                                                     64      3    95%
+reqless_test/test_worker_util.py                                                     64      2    97%
 -----------------------------------------------------------------------------------------------------
-TOTAL                                                                              7783   4872    37%
+TOTAL                                                                              2679     62    98%
