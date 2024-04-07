@@ -36,7 +36,7 @@ reqless/workers/__init__.py                                                     
 reqless/workers/forking.py                                                           55      2    96%
 reqless/workers/greenlet.py                                                          50      0   100%
 reqless/workers/serial.py                                                            29      0   100%
-reqless/workers/util.py                                                              39      2    95%
+reqless/workers/util.py                                                              39      1    97%
 reqless/workers/worker.py                                                            78      3    96%
 -----------------------------------------------------------------------------------------------------
-TOTAL                                                                              1338     25    98%
+TOTAL                                                                              1338     24    98%
