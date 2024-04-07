@@ -81,7 +81,7 @@ cd reqless-py
 # qless-core is a submodule
 git submodule init
 git submodule update
-sudo python setup.py install
+pip install .
 ```
 
 ## Business Time!
