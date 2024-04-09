@@ -1,7 +1,5 @@
 Name                                                                              Stmts   Miss  Cover
 -----------------------------------------------------------------------------------------------------
-reqless/qmore/__init__.py                                                                     0      0   100%
-reqless/qmore/client.py                                                                      42      1    98%
 reqless/__init__.py                                                                 146      1    99%
 reqless/abstract/__init__.py                                                         15      0   100%
 reqless/abstract/abstract_client.py                                                  23      0   100%
@@ -25,6 +23,8 @@ reqless/job.py                                                                  
 reqless/listener.py                                                                  49      0   100%
 reqless/logger.py                                                                    13      0   100%
 reqless/proctitle.py                                                                  3      0   100%
+reqless/qmore/__init__.py                                                             0      0   100%
+reqless/qmore/client.py                                                              42      1    98%
 reqless/queue.py                                                                     89      0   100%
 reqless/queue_resolvers/__init__.py                                                   4      0   100%
 reqless/queue_resolvers/qmore_dynamic_mapping_queue_identifiers_transformer.py       50      0   100%
