@@ -1,7 +1,7 @@
 Name                                                                              Stmts   Miss  Cover
 -----------------------------------------------------------------------------------------------------
-qmore/__init__.py                                                                     0      0   100%
-qmore/client.py                                                                      42      1    98%
+reqless/qmore/__init__.py                                                                     0      0   100%
+reqless/qmore/client.py                                                                      42      1    98%
 reqless/__init__.py                                                                 146      1    99%
 reqless/abstract/__init__.py                                                         15      0   100%
 reqless/abstract/abstract_client.py                                                  23      0   100%

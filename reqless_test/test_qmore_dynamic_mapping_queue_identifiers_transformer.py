@@ -2,7 +2,7 @@ import time
 from typing import Dict, List
 from uuid import uuid4
 
-from qmore.client import QmoreClient
+from reqless.qmore.client import QmoreClient
 from reqless.queue_resolvers.qmore_dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
     QmoreDynamicMappingQueueIdentifiersTransformer,
 )

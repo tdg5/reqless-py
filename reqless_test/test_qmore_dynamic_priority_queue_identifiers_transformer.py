@@ -1,7 +1,7 @@
 import time
 from typing import List
 
-from qmore.client import QmoreClient, QueuePriorityPattern
+from reqless.qmore.client import QmoreClient, QueuePriorityPattern
 from reqless.queue_resolvers.qmore_dynamic_priority_queue_identifiers_transformer import (  # noqa: E501
     QmoreDynamicPriorityQueueIdentifiersTransformer,
 )

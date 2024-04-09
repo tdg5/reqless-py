@@ -71,7 +71,7 @@ Tracker = "https://github.com/tdg5/reqless-py/issues"
 
 [tool.black]
 exclude = "reqless/(lua|qless-core)/.*"
-include = "(reqless(_test)?|qmore)/.*\\.py$"
+include = "(reqless(_test)?)/.*\\.py$"
 line-length = 88
 target-version = ["py39"]
 
@@ -81,7 +81,6 @@ omit = [
   "reqless/profile.py",
 ]
 source = [
-  "qmore",
   "reqless",
 ]
 
@@ -96,7 +95,7 @@ min_python_version = "3.9.0"
 
 [tool.isort]
 include_trailing_comma = true
-known_first_party = ["reqless", "qmore", "reqless_test"]
+known_first_party = ["reqless", "reqless_test"]
 line_length = 88
 lines_after_imports = 2
 multi_line_output = 3
@@ -128,13 +127,12 @@ script-files = ["bin/reqless-py-worker"]
 
 [tool.setuptools.package-data]
 "reqless" = ["lua/*.lua", "py.typed"]
-"qmore" = ["py.typed"]
 
 [tool.setuptools.packages.find]
 include = [
-  "qmore",
   "reqless",
   "reqless.abstract",
+  "reqless.qmore",
   "reqless.queue_resolvers",
   "reqless.workers",
 ]

@@ -24,7 +24,8 @@ requirements:
 	pip freeze | grep -v -e reqless > requirements.txt
 
 .PHONY: test
-test: pytest
+test:
+	pytest
 
 # style the code according to accepted standards for the repo
 .PHONY: style

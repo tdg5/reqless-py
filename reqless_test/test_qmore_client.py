@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Mapping, Union
 
-from qmore.client import (
+from reqless.qmore.client import (
     QUEUE_IDENTIFIER_PATTERNS_KEY,
     QUEUE_PRIORITY_PATTERNS_KEY,
     QmoreClient,

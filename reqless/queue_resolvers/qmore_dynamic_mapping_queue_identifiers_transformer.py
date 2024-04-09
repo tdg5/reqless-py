@@ -2,9 +2,9 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
-from qmore.client import QmoreClient
 from reqless import Client
 from reqless.abstract import AbstractQueueIdentifiersTransformer
+from reqless.qmore.client import QmoreClient
 
 
 class QmoreDynamicMappingQueueIdentifiersTransformer(

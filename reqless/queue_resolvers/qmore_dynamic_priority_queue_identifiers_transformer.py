@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 from random import SystemRandom
 from typing import List, Optional
 
-from qmore.client import QmoreClient, QueuePriorityPattern
 from reqless import Client
 from reqless.abstract import AbstractQueueIdentifiersTransformer
+from reqless.qmore.client import QmoreClient, QueuePriorityPattern
 
 
 class QmoreDynamicPriorityQueueIdentifiersTransformer(
