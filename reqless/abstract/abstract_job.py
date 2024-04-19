@@ -65,7 +65,7 @@ class AbstractJob(AbstractBaseJob):
     @abstractmethod
     def complete(
         self,
-        nextq: Optional[str] = None,
+        next_queue: Optional[str] = None,
         delay: Optional[int] = None,
         depends: Optional[List[str]] = None,
     ) -> bool:  # pragma: no cover

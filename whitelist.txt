@@ -35,7 +35,6 @@ klass
 listdir
 lua
 malformed
-nextq
 nonlocal
 nonstatic
 noop

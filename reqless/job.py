@@ -298,15 +298,20 @@ class Job(BaseJob, AbstractJob):
 
     def complete(
         self,
-        nextq: Optional[str] = None,
+        next_queue: Optional[str] = None,
         delay: Optional[int] = None,
         depends: Optional[List[str]] = None,
     ) -> bool:
         """Turn this job in as complete, optionally advancing it to another
         queue. Like ``Queue.put`` and ``move``, it accepts a delay, and
         dependencies"""
-        if nextq:
-            logger.info("Advancing %s to %s from %s", self.jid, nextq, self.queue_name)
+        if next_queue:
+            logger.info(
+                "Advancing %s to %s from %s",
+                self.jid,
+                next_queue,
+                self.queue_name,
+            )
             return (
                 self.client(
                     "complete",
@@ -315,7 +320,7 @@ class Job(BaseJob, AbstractJob):
                     self.queue_name,
                     self.data,
                     "next",
-                    nextq,
+                    next_queue,
                     "delay",
                     delay or 0,
                     "depends",
