@@ -1,5 +1,5 @@
 async-timeout==4.0.3
-black==24.2.0
+black==24.4.0
 build==1.0.3
 certifi==2024.2.2
 cffi==1.16.0
