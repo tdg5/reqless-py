@@ -59,7 +59,7 @@ class TestQueue(TestReqless):
             lambda: self.client.queues["foo"].foo,  # type: ignore[attr-defined]
         )
 
-    def test_multipop(self) -> None:
+    def test_pop_many(self) -> None:
         """Exposes multi-pop"""
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
@@ -74,11 +74,11 @@ class TestQueue(TestReqless):
         assert job is not None and not isinstance(job, List)
         self.assertEqual(job.jid, "jid")
 
-    def test_multipeek(self) -> None:
+    def test_peek_many(self) -> None:
         """Exposes multi-peek"""
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
-        jobs = self.client.queues["foo"].peek(10)
+        jobs = self.client.queues["foo"].peek(count=10)
         assert isinstance(jobs, List)
         self.assertEqual(len(jobs), 2)
 

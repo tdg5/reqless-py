@@ -38,7 +38,7 @@ class AbstractQueue(ABC):
 
     @abstractmethod
     def peek(
-        self, count: Optional[int] = None
+        self, offset: Optional[int] = None, count: Optional[int] = None
     ) -> Union[AbstractJob, List[AbstractJob], None]:  # pragma: no cover
         pass
 

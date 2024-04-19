@@ -231,13 +231,15 @@ class Queue(AbstractQueue):
         return results
 
     def peek(
-        self, count: Optional[int] = None
+        self, offset: Optional[int] = None, count: Optional[int] = None
     ) -> Union[AbstractJob, List[AbstractJob], None]:
         """Similar to the pop command, except that it merely peeks at the next
         items"""
+        _offset = offset or 0
+        _count = count or 1
         results: List[AbstractJob] = [
             Job(self.client, **rec)
-            for rec in json.loads(self.client("peek", self.name, count or 1))
+            for rec in json.loads(self.client("peek", self.name, _offset, _count))
         ]
         if count is None:
             return (len(results) and results[0]) or None

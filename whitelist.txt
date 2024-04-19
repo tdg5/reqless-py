@@ -35,8 +35,6 @@ klass
 listdir
 lua
 malformed
-multipeek
-multipop
 nextq
 nonlocal
 nonstatic
