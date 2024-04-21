@@ -1,15 +1,9 @@
 """Our base worker"""
 
 import json
-import os
-import signal
-import sys
 import threading
-import traceback
-from code import InteractiveConsole
 from contextlib import contextmanager
-from types import FrameType
-from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 from reqless import exceptions, logger
 from reqless.abstract import (
@@ -137,36 +131,6 @@ class BaseWorker:
         """Run this worker"""
         raise NotImplementedError('Derived classes must override "run"')
 
-    def signals(self, signals: Tuple[str, ...] = ("QUIT", "USR1", "USR2")) -> None:
-        """Register our signal handler"""
-        for sig in signals:
-            signal.signal(getattr(signal, "SIG" + sig), self.handler)
-
     def stop(self) -> None:
         """Mark this for shutdown"""
         self.shutdown = True
-
-    def handler(
-        self, signum: int, frame: Optional[FrameType]
-    ) -> None:  # pragma: no cover
-        """Signal handler for this process"""
-        if signum == signal.SIGQUIT:
-            # QUIT - Finish processing, but don't do any more work after that
-            self.stop()
-        elif signum == signal.SIGUSR1:
-            # USR1 - Print the backtrace
-            message = "".join(traceback.format_stack(frame))
-            message = "Signaled traceback for %s:\n%s" % (os.getpid(), message)
-            print(message, file=sys.stderr)
-            logger.warning(message)
-        elif signum == signal.SIGUSR2:
-            # USR2 - Enter a debugger
-            # Much thanks to http://stackoverflow.com/questions/132058
-            data = {"_frame": frame}  # Allow access to frame object.
-            if frame:
-                data.update(frame.f_globals)  # Unless shadowed by global
-                data.update(frame.f_locals)
-                # Build up a message with a traceback
-                message = "".join(traceback.format_stack(frame))
-            message = "Traceback:\n%s" % message
-            InteractiveConsole(data).interact(message)

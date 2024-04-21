@@ -15,6 +15,7 @@ from reqless.abstract import (
     AbstractQueueResolver,
 )
 from reqless.workers.base_worker import BaseWorker
+from reqless.workers.signals import basic_signal_handler, register_signal_handler
 from reqless.workers.util import create_sandbox
 
 
@@ -69,10 +70,12 @@ class GeventWorker(BaseWorker):
             logger.warning("Lost ownership of %s" % jid)
             greenlet.kill()
 
+    def before_run(self) -> None:
+        register_signal_handler(handler=basic_signal_handler(on_quit=self.stop))
+
     def run(self) -> None:
         """Work on jobs"""
-        # Register signal handlers
-        self.signals()
+        self.before_run()
 
         # Start listening
         with self.listener():

@@ -5,7 +5,7 @@ import time
 from os import path
 from tempfile import NamedTemporaryFile
 from threading import Thread
-from typing import Generator, Optional, Tuple
+from typing import Generator, Optional
 
 from reqless import logger
 from reqless.abstract import AbstractJob
@@ -44,10 +44,6 @@ class Worker(SerialWorker):
         """We'll push a message to the database instead of falling on our sword"""
         self.client.database.rpush("foo", jid)
         raise KeyboardInterrupt()
-
-    def signals(self, signals: Tuple[str, ...] = ()) -> None:
-        """Do not set any signal handlers"""
-        pass
 
 
 class NoListenWorker(Worker):

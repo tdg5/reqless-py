@@ -15,6 +15,7 @@ from reqless.abstract import (
 )
 from reqless.workers.base_worker import BaseWorker
 from reqless.workers.serial_worker import SerialWorker
+from reqless.workers.signals import register_signal_handler
 from reqless.workers.util import create_sandbox, divide
 
 
@@ -79,9 +80,15 @@ class ForkingWorker(BaseWorker):
         copy.update(kwargs)
         return self.klass(self.queues, self.client, **copy)
 
+    def before_run(self) -> None:
+        register_signal_handler(
+            handler=self.signal_handler,
+            signals=("TERM", "INT", "QUIT"),
+        )
+
     def run(self) -> None:
         """Run this worker"""
-        self.signals(("TERM", "INT", "QUIT"))
+        self.before_run()
         # Divide up the jobs that we have to divy up between the workers. This
         # produces evenly-sized groups of jobs
         resume = divide(self.resume, self.count)
@@ -129,7 +136,7 @@ class ForkingWorker(BaseWorker):
         finally:
             self.stop(signal.SIGKILL)
 
-    def handler(
+    def signal_handler(
         self, signum: int, frame: Optional[FrameType]
     ) -> None:  # pragma: no cover
         """Signal handler for this process"""

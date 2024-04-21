@@ -46,9 +46,6 @@ class SerialWorker(BaseWorker):
 
     def run(self) -> None:
         """Run jobs, popping one after another"""
-        # Register our signal handlers
-        self.signals()
-
         with self.listener():
             for job in self.jobs():
                 # If there was no job to be had, we should sleep a little bit

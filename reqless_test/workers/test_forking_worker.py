@@ -5,7 +5,7 @@ import os
 import signal
 import time
 from threading import Thread
-from typing import Optional, Tuple
+from typing import Optional
 
 from reqless.abstract import AbstractJob
 from reqless.workers.base_worker import BaseWorker
@@ -38,7 +38,7 @@ class CWD:
 class PatchedForkingWorker(ForkingWorker):
     """A forking worker that doesn't register signal handlers"""
 
-    def signals(self, signals: Tuple[str, ...] = ()) -> None:
+    def before_run(self) -> None:
         """Do not actually register signal handlers"""
         pass
 
