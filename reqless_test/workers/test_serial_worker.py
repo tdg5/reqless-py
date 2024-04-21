@@ -10,7 +10,7 @@ from typing import Generator, Optional, Tuple
 from reqless import logger
 from reqless.abstract import AbstractJob
 from reqless.listener import Listener
-from reqless.workers.serial import SerialWorker
+from reqless.workers.serial_worker import SerialWorker
 from reqless_test.common import TestReqless
 
 
@@ -58,7 +58,7 @@ class NoListenWorker(Worker):
         pass
 
 
-class TestWorker(TestReqless):
+class TestSerialWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:

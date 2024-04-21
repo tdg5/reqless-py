@@ -9,7 +9,7 @@ import gevent
 
 from reqless.abstract import AbstractJob, AbstractQueue
 from reqless.listener import Listener
-from reqless.workers.greenlet import GeventWorker
+from reqless.workers.gevent_worker import GeventWorker
 from reqless_test.common import TestReqless
 
 
@@ -44,7 +44,7 @@ class PatchedGeventWorker(GeventWorker):
         pass
 
 
-class TestWorker(TestReqless):
+class TestGeventWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:

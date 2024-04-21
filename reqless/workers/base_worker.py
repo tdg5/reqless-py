@@ -22,8 +22,8 @@ from reqless.listener import Listener
 from reqless.queue_resolvers import TransformingQueueResolver
 
 
-class Worker:
-    """Worker. For doing work"""
+class BaseWorker:
+    """Base worker, for doing work"""
 
     def __init__(
         self,

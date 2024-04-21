@@ -13,9 +13,9 @@ from reqless.abstract import (
     AbstractQueue,
     AbstractQueueResolver,
 )
-from reqless.workers.serial import SerialWorker
+from reqless.workers.base_worker import BaseWorker
+from reqless.workers.serial_worker import SerialWorker
 from reqless.workers.util import create_sandbox, divide
-from reqless.workers.worker import Worker
 
 
 try:
@@ -24,7 +24,7 @@ except NotImplementedError:
     NUM_CPUS = 1
 
 
-class ForkingWorker(Worker):
+class ForkingWorker(BaseWorker):
     """A worker that forks child processes"""
 
     def __init__(
@@ -44,7 +44,7 @@ class ForkingWorker(Worker):
         )
         # Worker class to use
         _klass = self.kwargs.pop("klass", SerialWorker)
-        self.klass: Type[Worker] = (
+        self.klass: Type[BaseWorker] = (
             util.import_class(_klass) if isinstance(_klass, str) else _klass
         )
         # How many children to launch
@@ -73,7 +73,7 @@ class ForkingWorker(Worker):
             finally:
                 self.sandboxes.pop(cpid, None)
 
-    def spawn(self, **kwargs: Any) -> Worker:
+    def spawn(self, **kwargs: Any) -> BaseWorker:
         """Return a new worker for a child process"""
         copy = dict(self.kwargs)
         copy.update(kwargs)

@@ -1,6 +1,6 @@
-from reqless.workers.worker import Worker
+from reqless.workers.base_worker import BaseWorker
 
 
 __all__ = [
-    "Worker",
+    "BaseWorker",
 ]

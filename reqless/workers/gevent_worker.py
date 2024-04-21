@@ -14,11 +14,11 @@ from reqless.abstract import (
     AbstractQueue,
     AbstractQueueResolver,
 )
+from reqless.workers.base_worker import BaseWorker
 from reqless.workers.util import create_sandbox
-from reqless.workers.worker import Worker
 
 
-class GeventWorker(Worker):
+class GeventWorker(BaseWorker):
     """A Gevent-based worker"""
 
     def __init__(

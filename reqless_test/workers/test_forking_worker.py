@@ -8,8 +8,8 @@ from threading import Thread
 from typing import Optional, Tuple
 
 from reqless.abstract import AbstractJob
-from reqless.workers.forking import ForkingWorker
-from reqless.workers.worker import Worker
+from reqless.workers.base_worker import BaseWorker
+from reqless.workers.forking_worker import ForkingWorker
 from reqless_test.common import TestReqless
 
 
@@ -43,7 +43,7 @@ class PatchedForkingWorker(ForkingWorker):
         pass
 
 
-class TestWorker(TestReqless):
+class TestForkingWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
@@ -86,11 +86,11 @@ class TestWorker(TestReqless):
         """Should be able to import by class string"""
         worker = PatchedForkingWorker(
             client=self.client,
-            klass="reqless.workers.serial.SerialWorker",
+            klass="reqless.workers.serial_worker.SerialWorker",
             queues=["foo"],
         )
-        self.assertIsInstance(worker.spawn(), Worker)
+        self.assertIsInstance(worker.spawn(), BaseWorker)
 
     def test_spawn(self) -> None:
         """It gives us back a worker instance"""
-        self.assertIsInstance(self.worker.spawn(), Worker)
+        self.assertIsInstance(self.worker.spawn(), BaseWorker)

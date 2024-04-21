@@ -7,17 +7,17 @@ from reqless.abstract import AbstractClient, AbstractJob
 from reqless.queue_resolvers.transforming_queue_resolver import (
     TransformingQueueResolver,
 )
-from reqless.workers.worker import Worker
+from reqless.workers.base_worker import BaseWorker
 from reqless_test.common import TestReqless
 
 
-class TestWorker(TestReqless):
+class TestBaseWorker(TestReqless):
     """Test the worker"""
 
     def setUp(self) -> None:
         TestReqless.setUp(self)
         self.client.worker_name = "worker"
-        self.worker = Worker(["foo"], self.client)
+        self.worker = BaseWorker(["foo"], self.client)
 
     def test_kill(self) -> None:
         """The base worker class' kill method should raise an exception"""
@@ -30,7 +30,7 @@ class TestWorker(TestReqless):
         job = self.client.queues["foo"].peek()
         assert isinstance(job, AbstractJob)
         # Now, we'll create a new worker and make sure it gets that job first
-        worker = Worker(["foo"], self.client, resume=[job])
+        worker = BaseWorker(["foo"], self.client, resume=[job])
         job_from_worker = next(worker.jobs())
         assert job_from_worker is not None and isinstance(job_from_worker, AbstractJob)
         self.assertEqual(job_from_worker.jid, job.jid)
@@ -45,7 +45,7 @@ class TestWorker(TestReqless):
         # Now, we'll create a new worker and make sure it gets that job first
         job_again = self.client.jobs[job.jid]
         assert job_again is not None and isinstance(job_again, AbstractJob)
-        worker = Worker(["foo"], self.client, resume=[job_again])
+        worker = BaseWorker(["foo"], self.client, resume=[job_again])
         self.assertEqual(next(worker.jobs()), None)
 
     def test_resumable(self) -> None:
@@ -58,21 +58,21 @@ class TestWorker(TestReqless):
 
         # Now, we should be able to see a resumable job in 'foo', but we should
         # not see the job that we popped from 'bar'
-        worker = Worker(["foo"], self.client, resume=True)
+        worker = BaseWorker(["foo"], self.client, resume=True)
         jids = [job.jid for job in worker.resume]
         self.assertEqual(jids, [jid])
 
     def test_queue_resolver_when_list_of_queues_given(self) -> None:
         """When given a list of queues, it wraps them in a queue resolver"""
         queue_names = ["foo"]
-        worker = Worker(queue_names, self.client)
+        worker = BaseWorker(queue_names, self.client)
         self.assertEqual(queue_names, worker.queue_resolver.resolve())
 
     def test_queue_resolver_when_queue_resolver_given(self) -> None:
         """When given a queue resolver, it takes it without modification"""
         queue_names = ["foo"]
         queue_resolver = TransformingQueueResolver(queue_identifiers=queue_names)
-        worker = Worker(client=self.client, queues=queue_resolver)
+        worker = BaseWorker(client=self.client, queues=queue_resolver)
         self.assertEqual(queue_resolver, worker.queue_resolver)
         self.assertEqual(queue_names, worker.queue_resolver.resolve())
 

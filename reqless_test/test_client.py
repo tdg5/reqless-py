@@ -4,7 +4,7 @@ from typing import List
 
 from reqless import retry
 from reqless.abstract import AbstractClient, AbstractJob
-from reqless.workers.worker import Worker
+from reqless.workers.base_worker import BaseWorker
 from reqless_test.common import TestReqless
 
 
@@ -194,7 +194,7 @@ class TestWorkers(TestReqless):
     def setUp(self) -> None:
         TestReqless.setUp(self)
         self.client.worker_name = "worker"
-        self.worker = Worker(["foo"], self.client)
+        self.worker = BaseWorker(["foo"], self.client)
 
     def test_individual(self) -> None:
         """Gives us access to individual workers"""
