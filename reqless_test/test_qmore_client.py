@@ -13,8 +13,8 @@ from reqless_test.common import TestReqless
 class TestQmoreClient(TestReqless):
     def setUp(self) -> None:
         TestReqless.setUp(self)
-        self.redis = self.client.redis
-        self.subject = QmoreClient(redis=self.client.redis)
+        self.database = self.client.database
+        self.subject = QmoreClient(database=self.client.database)
 
     def test_get_queue_identifier_patterns(self) -> None:
         """It fetches the expected queue identifier patterns"""
@@ -22,7 +22,7 @@ class TestQmoreClient(TestReqless):
         json_mapping: Mapping[Union[bytes, str], Union[bytes, float, int, str]] = {
             key: json.dumps(value) for key, value in mapping.items()
         }
-        self.redis.hset(QUEUE_IDENTIFIER_PATTERNS_KEY, mapping=json_mapping)
+        self.database.hset(QUEUE_IDENTIFIER_PATTERNS_KEY, mapping=json_mapping)
         fetched_mapping = self.subject.get_queue_identifier_patterns()
         self.assertEqual({"default": "*", **mapping}, fetched_mapping)
 
@@ -30,7 +30,7 @@ class TestQmoreClient(TestReqless):
         """It sets the expected queue identifier patterns"""
         mapping = {"not_three": ["one", "two*", "!three"], "five": ["four", "five"]}
         self.subject.set_queue_identifier_patterns(mapping)
-        serialized_patterns = self.redis.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
+        serialized_patterns = self.database.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
         patterns = {
             identifier: json.loads(json_patterns)
             for identifier, json_patterns in serialized_patterns.items()
@@ -42,12 +42,12 @@ class TestQmoreClient(TestReqless):
         # Make sure there's something there to clear out
         mapping = {"not_three": ["one", "two*", "!three"], "five": ["four", "five"]}
         self.subject.set_queue_identifier_patterns(mapping)
-        serialized_patterns = self.redis.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
+        serialized_patterns = self.database.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
         self.assertEqual(2, len(serialized_patterns))
 
         empty_mapping: Dict[str, List[str]] = {}
         self.subject.set_queue_identifier_patterns(empty_mapping)
-        serialized_patterns = self.redis.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
+        serialized_patterns = self.database.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
         patterns = {
             identifier: json.loads(json_patterns)
             for identifier, json_patterns in serialized_patterns.items()
@@ -68,7 +68,7 @@ class TestQmoreClient(TestReqless):
             )
             for queue_priority in given_queue_priorities
         ]
-        pipeline = self.redis.pipeline()
+        pipeline = self.database.pipeline()
         pipeline.delete(QUEUE_PRIORITY_PATTERNS_KEY)
         for serialized_queue_priority in serialized_queue_priorities:
             pipeline.rpush(QUEUE_PRIORITY_PATTERNS_KEY, serialized_queue_priority)
@@ -88,7 +88,7 @@ class TestQmoreClient(TestReqless):
             QueuePriorityPattern(patterns=["*"], should_distribute_fairly=True),
         ]
         self.subject.set_queue_priority_patterns(given_queue_priorities)
-        serialized_queue_priorities = self.redis.lrange(
+        serialized_queue_priorities = self.database.lrange(
             QUEUE_PRIORITY_PATTERNS_KEY, 0, -1
         )
         queue_priorities = []

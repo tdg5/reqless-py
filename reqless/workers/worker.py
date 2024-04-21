@@ -110,7 +110,7 @@ class Worker:
     def listener(self) -> Generator[None, None, None]:
         """Listen for pubsub messages relevant to this worker in a thread"""
         channels = ["ql:w:" + self.client.worker_name]
-        listener = Listener(self.client.redis, channels)
+        listener = Listener(self.client.database, channels)
         thread = threading.Thread(target=self.listen, args=(listener,))
         thread.start()
         try:

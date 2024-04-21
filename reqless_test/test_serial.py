@@ -41,8 +41,8 @@ class Worker(SerialWorker):
             yield next(generator)
 
     def kill(self, jid: str) -> None:
-        """We'll push a message to redis instead of falling on our sword"""
-        self.client.redis.rpush("foo", jid)
+        """We'll push a message to the database instead of falling on our sword"""
+        self.client.database.rpush("foo", jid)
         raise KeyboardInterrupt()
 
     def signals(self, signals: Tuple[str, ...] = ()) -> None:
@@ -110,7 +110,7 @@ class TestWorker(TestReqless):
             assert job is not None and isinstance(job, AbstractJob)
         job.timeout()
         temp_file.close()
-        self.assertEqual(self.client.redis.brpop(["foo"], 1), ("foo", jid))
+        self.assertEqual(self.client.database.brpop(["foo"], 1), ("foo", jid))
 
     def test_kill(self) -> None:
         """Should be able to fall on its sword if need be"""

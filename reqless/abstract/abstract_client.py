@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+from redis import Redis
 
 from reqless.abstract.abstract_config import AbstractConfig
 from reqless.abstract.abstract_jobs import AbstractJobs
 from reqless.abstract.abstract_queues import AbstractQueues
 from reqless.abstract.abstract_throttles import AbstractThrottles
 from reqless.abstract.abstract_workers import AbstractWorkers
-
-
-if TYPE_CHECKING:  # pragma: no cover
-    from redis import Redis
 
 
 class AbstractClient(ABC):
@@ -34,7 +32,7 @@ class AbstractClient(ABC):
 
     @property
     @abstractmethod
-    def redis(self) -> "Redis":  # pragma: no cover
+    def database(self) -> Redis:  # pragma: no cover
         pass
 
     @property

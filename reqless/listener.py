@@ -9,15 +9,14 @@ from redis import Redis
 from redis.client import PubSub
 
 
-# Our logger
 logger = logging.getLogger("reqless")
 
 
 class Listener:
     """A class that listens to pubsub channels and can unlisten"""
 
-    def __init__(self, redis: Redis, channels: List[str]):
-        self._pubsub: PubSub = redis.pubsub()
+    def __init__(self, database: Redis, channels: List[str]):
+        self._pubsub: PubSub = database.pubsub()
         self._channels: List[str] = channels
 
     def listen(self) -> Generator[Dict[str, Any], None, None]:
@@ -50,10 +49,10 @@ class Events:
         "untrack",
     )
 
-    def __init__(self, redis: Redis):
+    def __init__(self, database: Redis):
         self._listener = Listener(
             channels=[self.namespace + event for event in self.events],
-            redis=redis,
+            database=database,
         )
         self._callbacks: Dict[str, Optional[Callable]] = {k: None for k in self.events}
 

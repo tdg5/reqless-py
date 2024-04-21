@@ -27,7 +27,7 @@ class TestListener(TestReqless):
             self.assertEqual("message", message["type"])
             self.assertEqual("jid", message["data"])
 
-        listener = Listener(channels=["ql:popped"], redis=self.client.redis)
+        listener = Listener(channels=["ql:popped"], database=self.client.database)
 
         def publish() -> None:
             for message in listener.listen():

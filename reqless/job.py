@@ -504,7 +504,9 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     @property
     def next(self) -> Optional[float]:
-        return self.client.redis.zscore("ql:q:" + self.queue_name + "-recur", self.jid)
+        return self.client.database.zscore(
+            "ql:q:" + self.queue_name + "-recur", self.jid
+        )
 
     def move(self, queue: str) -> bool:
         """Make this recurring job attached to another queue"""

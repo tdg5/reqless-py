@@ -23,7 +23,7 @@ dependencies = [
   "redis",
   "typing_extensions>=4.8.0",
 ]
-description = "Redis-based Queue Management"
+description = "Queue Management built on remote data structure stores like redis and valkey"
 dynamic = ["version"]
 keywords = [
     "job",
@@ -31,6 +31,7 @@ keywords = [
     "qmore",
     "redis",
     "reqless",
+    "valkey",
 ]
 license = {text = "MIT"}
 name = "reqless"

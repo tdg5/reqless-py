@@ -7,8 +7,7 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 import decorator
-import redis
-from redis import Redis
+from redis import Redis, ResponseError
 from redis.commands.core import Script
 
 from reqless.abstract import (
@@ -165,9 +164,10 @@ class Client(AbstractClient):
         # This is our unique identifier as a worker
         self._worker_name: str = hostname or socket.gethostname()
         kwargs["decode_responses"] = True
-        # This is just the redis instance we're connected to conceivably
-        # someone might want to work with multiple instances simultaneously.
-        self._redis: Redis = redis.Redis.from_url(url, **kwargs)
+        # This is just the data structure server instance we're connected to
+        # conceivably someone might want to work with multiple instances
+        # simultaneously.
+        self._database: Redis = Redis.from_url(url, **kwargs)
         self._jobs: AbstractJobs = Jobs(self)
         self._queues: AbstractQueues = Queues(self)
         self._throttles: AbstractThrottles = Throttles(self)
@@ -179,7 +179,7 @@ class Client(AbstractClient):
         data = pkgutil.get_data("reqless", "lua/qless.lua")
         if data is None:
             raise RuntimeError("Failed to load reqless lua!")
-        self._lua: Script = self.redis.register_script(data)
+        self._lua: Script = self.database.register_script(data)
 
     @property
     def config(self) -> AbstractConfig:
@@ -194,8 +194,8 @@ class Client(AbstractClient):
         return self._queues
 
     @property
-    def redis(self) -> Redis:
-        return self._redis
+    def database(self) -> Redis:
+        return self._database
 
     @property
     def throttles(self) -> AbstractThrottles:
@@ -216,7 +216,7 @@ class Client(AbstractClient):
     @property
     def events(self) -> Events:
         if self._events is None:
-            self._events = Events(self.redis)
+            self._events = Events(self.database)
         return self._events
 
     def __call__(self, command: str, *args: Any) -> Any:
@@ -224,7 +224,7 @@ class Client(AbstractClient):
         lua_args.extend(args)
         try:
             return self._lua(keys=[], args=lua_args)
-        except redis.ResponseError as exc:
+        except ResponseError as exc:
             raise ReqlessError(str(exc))
 
     def track(self, jid: str) -> bool:

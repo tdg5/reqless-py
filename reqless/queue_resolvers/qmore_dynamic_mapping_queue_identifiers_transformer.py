@@ -16,7 +16,9 @@ class QmoreDynamicMappingQueueIdentifiersTransformer(
         dynamic_queue_mapping_refresh_frequency_milliseconds: Optional[int] = None,
     ):
         self.reqless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(redis=self.reqless_client.redis)
+        self.qmore_client: QmoreClient = QmoreClient(
+            database=self.reqless_client.database
+        )
 
         self._dynamic_queue_mapping: Optional[Dict[str, List[str]]] = None
         self._dynamic_queue_mapping_ttl_time_delta: timedelta = timedelta(

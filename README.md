@@ -6,7 +6,8 @@
 This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) that
 includes significant type improvements and support for throttles.
 
-`qless` is a powerful `Redis`-based job queueing system inspired by
+`qless` is a powerful job queueing system based on remote dictionary servers
+(like `redis` and `valkey`) inspired by
 [resque](https://github.com/defunkt/resque#readme), but built on a collection
 of Lua scripts, maintained in the
 [qless-core](https://github.com/tdg5/qless-core) repo.
@@ -413,11 +414,11 @@ len(queue.pop(10))
 
 ### Configuration Options
 
-You can get and set global (read: in the context of the same Redis instance)
-configuration to change the behavior for heartbeating, and so forth. There
-aren't a tremendous number of configuration options, but an important one is
-how long job data is kept around. Job data is expired after it has been
-completed for `jobs-history` seconds, but is limited to the last
+You can get and set global (in the context of the same remote dictionary
+server instance) configuration to change the behavior for heartbeating, and so
+forth. There aren't a tremendous number of configuration options, but an
+important one is how long job data is kept around. Job data is expired after it
+has been completed for `jobs-history` seconds, but is limited to the last
 `jobs-history-count` completed jobs. These default to 50k jobs, and 30 days,
 but depending on volume, your needs may change. To only keep the last 500 jobs
 for up to 7 days:
@@ -560,9 +561,9 @@ Frankly, these are best viewed using the web app.
 `qless` is a set of client language bindings, but the majority of the work is
 done in a collection of Lua scripts that comprise the
 [core](https://github.com/tdg5/qless-core) functionality. These scripts run
-on the Redis 2.6+ server atomically and allow for portability with the same
-functionality guarantees. Consult the documentation for `qless-core` to learn
-more about its internals.
+on `redis` and `valkey` 7.0+ server atomically and allow for portability with
+the same functionality guarantees. Consult the documentation for `qless-core`
+to learn more about its internals.
 
 ### Web App
 

@@ -4,8 +4,8 @@ from collections import defaultdict
 from types import TracebackType
 from typing import Any, Dict, Optional, Type
 
-import redis
 from redis import Redis
+from redis.connection import ConnectionPool, DefaultParser
 
 from reqless.abstract import AbstractClient
 
@@ -15,11 +15,11 @@ class Profiler:
 
     @staticmethod
     def clone(client: AbstractClient) -> Redis:
-        """Clone the redis client to be slowlog-compatible"""
-        kwargs = client.redis.connection_pool.connection_kwargs
-        kwargs["parser_class"] = redis.connection.DefaultParser
-        pool = redis.connection.ConnectionPool(**kwargs)
-        return redis.Redis(connection_pool=pool)
+        """Clone the data structure server client to be slowlog-compatible"""
+        kwargs = client.database.connection_pool.connection_kwargs
+        kwargs["parser_class"] = DefaultParser
+        pool = ConnectionPool(**kwargs)
+        return Redis(connection_pool=pool)
 
     @staticmethod
     def pretty(timings: Dict, label: str) -> None:
@@ -39,24 +39,24 @@ class Profiler:
             )
 
     def __init__(self, client: AbstractClient):
-        self._client: Redis = self.clone(client)
+        self._database: Redis = self.clone(client)
         self._configs: Optional[Dict] = None
         self._timings: Dict = defaultdict(list)
         self._commands: Dict = {}
 
     def start(self) -> None:
         """Get ready for a profiling run"""
-        self._configs = self._client.config_get("slow-*")
-        self._client.config_set("slowlog-max-len", 100000)
-        self._client.config_set("slowlog-log-slower-than", 0)
-        self._client.execute_command("slowlog", "reset")
+        self._configs = self._database.config_get("slow-*")
+        self._database.config_set("slowlog-max-len", 100000)
+        self._database.config_set("slowlog-log-slower-than", 0)
+        self._database.execute_command("slowlog", "reset")
 
     def stop(self) -> None:
         """Set everything back to normal and collect our data"""
         if self._configs:
             for key, value in self._configs.items():
-                self._client.config_set(key, value)
-        logs = self._client.execute_command("slowlog", "get", 100000)
+                self._database.config_set(key, value)
+        logs = self._database.execute_command("slowlog", "get", 100000)
         current: Dict[str, Any] = {"name": None, "accumulated": defaultdict(list)}
         for _, _, duration, request in logs:
             command = request[0]
@@ -84,7 +84,7 @@ class Profiler:
 
     def display(self) -> None:
         """Print the results of this profiling"""
-        self.pretty(self._timings, "Raw Redis Commands")
+        self.pretty(self._timings, "Raw Data Structure Server Commands")
         print()
         for key, value in self._commands.items():
             self.pretty(value, 'Reqless "%s" Command' % key)

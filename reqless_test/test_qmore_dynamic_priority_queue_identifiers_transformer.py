@@ -14,7 +14,7 @@ from reqless_test.common import TestReqless
 class TestQmoreDynamicPriorityQueueIdentifiersTransformer(TestReqless):
     def setUp(self) -> None:
         TestReqless.setUp(self)
-        self.qmore_client = QmoreClient(redis=self.client.redis)
+        self.qmore_client = QmoreClient(database=self.client.database)
         # We use many queues to reduce the chances that we shuffle a list into
         # the same order.
         # Identifiers are [a1a, a2a, a3a, ... g1g, g2g, g3g]  # noqa: SC100

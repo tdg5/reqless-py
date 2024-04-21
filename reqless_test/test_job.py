@@ -213,7 +213,7 @@ class TestJob(TestReqless):
         job.depend("b")
         job = self.get_job("c")
         actual_dependencies = job.dependencies
-        # Redis sets have an undefined order
+        # DB server sets have an undefined order
         actual_dependencies.sort()
         self.assertEqual(actual_dependencies, ["a", "b"])
         job.undepend("a")

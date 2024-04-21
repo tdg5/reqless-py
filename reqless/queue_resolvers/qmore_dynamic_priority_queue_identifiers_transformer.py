@@ -17,7 +17,9 @@ class QmoreDynamicPriorityQueueIdentifiersTransformer(
         dynamic_queue_priorities_refresh_frequency_milliseconds: Optional[int] = None,
     ):
         self.reqless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(redis=self.reqless_client.redis)
+        self.qmore_client: QmoreClient = QmoreClient(
+            database=self.reqless_client.database
+        )
 
         self._dynamic_queue_priorities: Optional[List[QueuePriorityPattern]] = None
         self._dynamic_queue_priorities_ttl_time_delta: timedelta = timedelta(

@@ -25,11 +25,11 @@ class QueuePriorityPattern:
 
 
 class QmoreClient:
-    def __init__(self, redis: Redis):
-        self.redis: Redis = redis
+    def __init__(self, database: Redis):
+        self.database: Redis = database
 
     def get_queue_identifier_patterns(self) -> Dict[str, List[str]]:
-        serialized_patterns = self.redis.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
+        serialized_patterns = self.database.hgetall(QUEUE_IDENTIFIER_PATTERNS_KEY)
         patterns = {
             identifier: json.loads(json_patterns)
             for identifier, json_patterns in serialized_patterns.items()
@@ -46,14 +46,14 @@ class QmoreClient:
             identifier: json.dumps(patterns)
             for identifier, patterns in identifier_patterns.items()
         }
-        pipeline = self.redis.pipeline()
+        pipeline = self.database.pipeline()
         pipeline.delete(QUEUE_IDENTIFIER_PATTERNS_KEY)
         if json_patterns:
             pipeline.hset(QUEUE_IDENTIFIER_PATTERNS_KEY, mapping=json_patterns)
         pipeline.execute()
 
     def get_queue_priority_patterns(self) -> List[QueuePriorityPattern]:
-        serialized_priority_patterns = self.redis.lrange(
+        serialized_priority_patterns = self.database.lrange(
             QUEUE_PRIORITY_PATTERNS_KEY, 0, -1
         )
         queue_priority_patterns: List[QueuePriorityPattern] = []
@@ -75,7 +75,7 @@ class QmoreClient:
         self,
         queue_priority_patterns: List[QueuePriorityPattern],
     ) -> None:
-        pipeline = self.redis.pipeline()
+        pipeline = self.database.pipeline()
         pipeline.delete(QUEUE_PRIORITY_PATTERNS_KEY)
         for queue_priority_pattern in queue_priority_patterns:
             serialized_queue_priority_pattern = json.dumps(

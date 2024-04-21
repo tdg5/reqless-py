@@ -15,7 +15,7 @@ from reqless_test.common import TestReqless
 class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
     def setUp(self) -> None:
         TestReqless.setUp(self)
-        self.qmore_client = QmoreClient(redis=self.client.redis)
+        self.qmore_client = QmoreClient(database=self.client.database)
 
     def set_dynamic_queues(self, mapping: Dict[str, List[str]]) -> None:
         self.qmore_client.set_queue_identifier_patterns(mapping)

@@ -23,14 +23,14 @@ parser.add_argument(
     "--host",
     dest="host",
     default="localhost",
-    help="The host to connect to as the Redis server",
+    help="The host to use when connecting to the remote data structure server",
 )
 parser.add_argument(
     "--port",
     dest="port",
     default=6379,
     type=int,
-    help="The port to connect on as the Redis server",
+    help="The port to use when connecting to the remote data structure server",
 )
 parser.add_argument(
     "--stages",
@@ -72,7 +72,7 @@ parser.add_argument(
     dest="flush",
     default=True,
     action="store_false",
-    help="Don't flush Redis after running",
+    help="Don't flush the remote data structure server after running",
 )
 
 args = parser.parse_args()
@@ -123,14 +123,16 @@ class ForgetfulWorker(threading.Thread):
                     job.complete()
 
 
-# Make sure that the redis instance is empty first
-if len(client.redis.keys("*")):
-    print("Must begin on an empty Redis instance")
+# Make sure that the data structure server instance is empty first
+if len(client.database.keys("*")):
+    print("Must begin with empty data structure server")
     exit(1)
 
 client.config.set("heartbeat", 1)
-# This is how much CPU Redis had used /before/
-cpu_before = client.redis.info()["used_cpu_user"] + client.redis.info()["used_cpu_sys"]
+# This is how much CPU the data structure server had used /before/
+cpu_before = (
+    client.database.info()["used_cpu_user"] + client.database.info()["used_cpu_sys"]
+)
 # This is how long it took to add the jobs
 put_time = -time.time()
 # Alright, let's make a bunch of jobs
@@ -187,12 +189,15 @@ histo(stats["run"]["histogram"])
 print("=" * 50)
 print("Put jobs : %fs" % put_time)
 print("Do jobs  : %fs" % work_time)
-info = client.redis.info()
-print("Redis Mem: %s" % info["used_memory_human"])
-print("Redis Lua: %s" % info["used_memory_lua"])
-print("Redis CPU: %fs" % (info["used_cpu_user"] + info["used_cpu_sys"] - cpu_before))
+info = client.database.info()
+print("Data Structure Server Mem: %s" % info["used_memory_human"])
+print("Data Structure Server Lua: %s" % info["used_memory_lua"])
+print(
+    "Data Structure Server CPU: %fs"
+    % (info["used_cpu_user"] + info["used_cpu_sys"] - cpu_before)
+)
 
 # Flush the database when we're done
 if args.flush:
     print("Flushing")
-    client.redis.flushdb()
+    client.database.flushdb()

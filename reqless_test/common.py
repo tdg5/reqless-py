@@ -4,7 +4,7 @@ import logging
 import unittest
 from typing import List
 
-import redis
+from redis import Redis
 
 import reqless
 from reqless.abstract import AbstractJob
@@ -19,17 +19,17 @@ class NoopJob:
 class TestReqless(unittest.TestCase):
     """Base class for all of our tests"""
 
-    redis: redis.Redis
+    database: Redis
 
     @classmethod
     def setUpClass(cls) -> None:
         reqless.logger.setLevel(logging.CRITICAL)
-        cls.redis = redis.Redis()
+        cls.database = Redis()
         # Clear the script cache, and nuke everything
-        cls.redis.execute_command("script", "flush")
+        cls.database.execute_command("script", "flush")
 
     def setUp(self) -> None:
-        all_keys: List = self.redis.keys("*")
+        all_keys: List = self.database.keys("*")
         assert len(all_keys) == 0
         # The reqless client we're using
         self.client = reqless.Client()
@@ -45,4 +45,4 @@ class TestReqless(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Ensure that we leave no keys behind, and that we've unfrozen time
-        self.redis.flushdb()
+        self.database.flushdb()
