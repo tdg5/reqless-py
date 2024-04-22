@@ -63,7 +63,7 @@ class GeventWorker(BaseWorker):
             self.greenlets.pop(job.jid, None)
             self.sandboxes.append(sandbox)
 
-    def kill(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:
         """Stop the greenlet processing the provided jid"""
         greenlet = self.greenlets.get(jid)
         if greenlet is not None:

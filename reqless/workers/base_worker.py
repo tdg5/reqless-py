@@ -119,13 +119,13 @@ class BaseWorker:
             try:
                 data = json.loads(message["data"])
                 if data["event"] in ("canceled", "lock_lost", "put"):
-                    self.kill(data["jid"])
+                    self.halt_job_processing(data["jid"])
             except Exception:
                 logger.exception("Pubsub error")
 
-    def kill(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:
         """Stop processing the provided jid"""
-        raise NotImplementedError('Derived classes must override "kill"')
+        raise NotImplementedError('Derived classes must override "halt_job_processing"')
 
     def run(self) -> None:
         """Run this worker"""

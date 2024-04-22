@@ -15,7 +15,7 @@ class ShortLivedMainWorker(MainWorker):
         for _ in range(5):
             yield next(generator)
 
-    def kill(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:
         raise KeyboardInterrupt()
 
 

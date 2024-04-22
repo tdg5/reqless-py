@@ -39,7 +39,7 @@ class SerialWorker(BaseWorker):
             "sandbox", os.path.join(os.getcwd(), "reqless-py-workers")
         )
 
-    def kill(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:
         """The best way to do this is to fall on our sword"""
         if jid == self.jid:
             exit(1)

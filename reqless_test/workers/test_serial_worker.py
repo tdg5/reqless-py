@@ -40,7 +40,7 @@ class Worker(SerialWorker):
         for _ in range(5):
             yield next(generator)
 
-    def kill(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:
         """We'll push a message to the database instead of falling on our sword"""
         self.client.database.rpush("foo", jid)
         raise KeyboardInterrupt()
@@ -99,7 +99,8 @@ class TestSerialWorker(TestReqless):
         self.thread.start()
         job = self.client.jobs[jid]
         assert job is not None and isinstance(job, AbstractJob)
-        # Now, we'll timeout one of the jobs and ensure that kill is invoked
+        # Now, we'll timeout one of the jobs and ensure that
+        # halt_job_processing is invoked
         while job.state != "running":
             time.sleep(0.01)
             job = self.client.jobs[jid]
@@ -108,20 +109,20 @@ class TestSerialWorker(TestReqless):
         temp_file.close()
         self.assertEqual(self.client.database.brpop(["foo"], 1), ("foo", jid))
 
-    def test_kill(self) -> None:
+    def test_halt_job_processing(self) -> None:
         """Should be able to fall on its sword if need be"""
         worker = SerialWorker([], self.client)
         worker.jid = "foo"
-        thread = Thread(target=worker.kill, args=(worker.jid,))
+        thread = Thread(target=worker.halt_job_processing, args=(worker.jid,))
         thread.start()
         thread.join()
         self.assertFalse(thread.is_alive())
 
-    def test_kill_dead(self) -> None:
+    def test_halt_job_processing_dead(self) -> None:
         """If we've moved on to another job, say so"""
         # If this tests runs to completion, it has succeeded
         worker = SerialWorker([], self.client)
-        worker.kill("foo")
+        worker.halt_job_processing("foo")
 
     def test_shutdown(self) -> None:
         """We should be able to shutdown a serial worker"""

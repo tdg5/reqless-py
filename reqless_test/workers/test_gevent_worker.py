@@ -86,16 +86,16 @@ class TestGeventWorker(TestReqless):
         self.worker.run()
         self.assertGreater(time.time() - before, 0.2)
 
-    def test_kill(self) -> None:
-        """Can kill greenlets when it loses its lock"""
+    def test_halt_job_processing(self) -> None:
+        """Can halt_job_processing greenlets when it loses its lock"""
         worker = PatchedGeventWorker(["foo"], self.client)
         greenlet = gevent.spawn(gevent.sleep, 1)
         worker.greenlets["foo"] = greenlet
-        worker.kill("foo")
+        worker.halt_job_processing("foo")
         greenlet.join()
         self.assertIsInstance(greenlet.value, gevent.GreenletExit)
 
-    def test_kill_dead(self) -> None:
+    def test_halt_job_processing_dead(self) -> None:
         """Does not panic if the greenlet handling a job is no longer around"""
         # This test succeeds if it finishes without an exception
-        self.worker.kill("foo")
+        self.worker.halt_job_processing("foo")

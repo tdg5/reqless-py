@@ -19,9 +19,10 @@ class TestBaseWorker(TestReqless):
         self.client.worker_name = "worker"
         self.worker = BaseWorker(["foo"], self.client)
 
-    def test_kill(self) -> None:
-        """The base worker class' kill method should raise an exception"""
-        self.assertRaises(NotImplementedError, self.worker.kill, 1)
+    def test_halt_job_processing(self) -> None:
+        """The base worker class' halt_job_processing method should raise an
+        exception"""
+        self.assertRaises(NotImplementedError, self.worker.halt_job_processing, 1)
 
     def test_resume(self) -> None:
         """We should be able to resume jobs"""
