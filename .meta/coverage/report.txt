@@ -33,12 +33,12 @@ reqless/queue_resolvers/transforming_queue_resolver.py                          
 reqless/throttle.py                                                                  29      0   100%
 reqless/util.py                                                                       7      0   100%
 reqless/workers/__init__.py                                                           2      0   100%
-reqless/workers/base_worker.py                                                       69      3    96%
+reqless/workers/base_worker.py                                                       65      2    97%
 reqless/workers/forking_worker.py                                                    58      3    95%
 reqless/workers/gevent_worker.py                                                     53      0   100%
-reqless/workers/main_worker.py                                                        8      0   100%
-reqless/workers/serial_worker.py                                                     28      0   100%
+reqless/workers/main_worker.py                                                       13      0   100%
+reqless/workers/serial_worker.py                                                     27      0   100%
 reqless/workers/signals.py                                                           13      0   100%
 reqless/workers/util.py                                                              39      1    97%
 -----------------------------------------------------------------------------------------------------
-TOTAL                                                                              1357     25    98%
+TOTAL                                                                              1357     24    98%

@@ -1,13 +1,34 @@
 """A base class for all of our common tests"""
 
+import json
 import logging
+import time
 import unittest
+from os import path
 from typing import List
 
 from redis import Redis
 
 import reqless
+from reqless import logger
 from reqless.abstract import AbstractJob
+
+
+class BlockingJob:
+    """Job that can block until a given file is removed from the file system"""
+
+    @staticmethod
+    def process(job: AbstractJob) -> None:
+        """Dummy job"""
+        data_dict = json.loads(job.data)
+        blocker_file = data_dict.get("blocker_file")
+        if blocker_file:
+            while path.exists(blocker_file):
+                time.sleep(0.1)
+        try:
+            job.complete()
+        except Exception:
+            logger.exception("Unable to complete job %s" % job.jid)
 
 
 class NoopJob:

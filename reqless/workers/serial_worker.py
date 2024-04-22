@@ -40,9 +40,14 @@ class SerialWorker(BaseWorker):
         )
 
     def halt_job_processing(self, jid: str) -> None:
-        """The best way to do this is to fall on our sword"""
-        if jid == self.jid:
-            exit(1)
+        """Since this method is most likely to be called by the listener, and
+        the worker is definitely running in a different thread from the
+        listenter, there's not a lot we can reliably do here. Trying to exit
+        would only kill the listener thread, while the thread doing the actual
+        work continued. So, in this scenario, we have to depend on the job
+        doing a good job of heartbeating since that's the best way for the job
+        to learn that it should halt. As such, do nothing."""
+        pass
 
     def run(self) -> None:
         """Run jobs, popping one after another"""

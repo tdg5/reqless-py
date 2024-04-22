@@ -123,11 +123,11 @@ class BaseWorker:
             except Exception:
                 logger.exception("Pubsub error")
 
-    def halt_job_processing(self, jid: str) -> None:
+    def halt_job_processing(self, jid: str) -> None:  # pragma: no cover
         """Stop processing the provided jid"""
         raise NotImplementedError('Derived classes must override "halt_job_processing"')
 
-    def run(self) -> None:
+    def run(self) -> None:  # pragma: no cover
         """Run this worker"""
         raise NotImplementedError('Derived classes must override "run"')
 

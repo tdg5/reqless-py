@@ -28,8 +28,7 @@ class TestBaseWorker(TestReqless):
         """We should be able to resume jobs"""
         queue = self.worker.client.queues["foo"]
         queue.put("reqless_test.common.NoopJob", "{}")
-        job = self.client.queues["foo"].peek()
-        assert isinstance(job, AbstractJob)
+        job = self.pop_one(self.client, "foo")
         # Now, we'll create a new worker and make sure it gets that job first
         worker = BaseWorker(["foo"], self.client, resume=[job])
         job_from_worker = next(worker.jobs())

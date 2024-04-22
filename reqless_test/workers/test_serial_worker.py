@@ -2,55 +2,28 @@
 
 import json
 import time
-from os import path
 from tempfile import NamedTemporaryFile
 from threading import Thread
 from typing import Generator, Optional
 
-from reqless import logger
 from reqless.abstract import AbstractJob
 from reqless.listener import Listener
 from reqless.workers.serial_worker import SerialWorker
-from reqless_test.common import TestReqless
+from reqless_test.common import BlockingJob, TestReqless
 
 
-class SerialJob:
-    """Dummy class"""
-
-    @staticmethod
-    def foo(job: AbstractJob) -> None:
-        """Dummy job"""
-        data_dict = json.loads(job.data)
-        blocker_file = data_dict.get("blocker_file")
-        if blocker_file:
-            while path.exists(blocker_file):
-                time.sleep(0.1)
-        try:
-            job.complete()
-        except Exception:
-            logger.exception("Unable to complete job %s" % job.jid)
-
-
-class Worker(SerialWorker):
-    """A worker that limits the number of jobs it runs"""
-
+class ShortLivedSerialWorker(SerialWorker):
     def jobs(self) -> Generator[Optional[AbstractJob], None, None]:
-        """Yield only a few jobs"""
         generator = SerialWorker.jobs(self)
         for _ in range(5):
             yield next(generator)
 
     def halt_job_processing(self, jid: str) -> None:
-        """We'll push a message to the database instead of falling on our sword"""
         self.client.database.rpush("foo", jid)
-        raise KeyboardInterrupt()
 
 
-class NoListenWorker(Worker):
-    """A worker that just won't listen"""
-
+class NoListenSerialWorker(ShortLivedSerialWorker):
     def listen(self, listener: Listener) -> None:
-        """Don't listen for lost locks"""
         pass
 
 
@@ -69,8 +42,8 @@ class TestSerialWorker(TestReqless):
 
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""
-        jids = [self.queue.put(SerialJob, "{}") for _ in range(5)]
-        NoListenWorker(["foo"], self.client, interval=0.2).run()
+        jids = [self.queue.put(BlockingJob, "{}") for _ in range(5)]
+        NoListenSerialWorker(["foo"], self.client, interval=0.2).run()
         states = []
         for jid in jids:
             job = self.client.jobs[jid]
@@ -80,22 +53,24 @@ class TestSerialWorker(TestReqless):
 
     def test_jobs(self) -> None:
         """The jobs method yields None if there are no jobs"""
-        worker = NoListenWorker(["foo"], self.client, interval=0.2)
+        worker = NoListenSerialWorker(["foo"], self.client, interval=0.2)
         self.assertEqual(next(worker.jobs()), None)
 
     def test_sleeps(self) -> None:
         """Make sure the client sleeps if there aren't jobs to be had"""
         for _ in range(4):
-            self.queue.put(SerialJob, "{}")
+            self.queue.put(BlockingJob, "{}")
         before = time.time()
-        NoListenWorker(["foo"], self.client, interval=0.2).run()
+        NoListenSerialWorker(["foo"], self.client, interval=0.2).run()
         self.assertGreater(time.time() - before, 0.2)
 
     def test_lost_locks(self) -> None:
         """The worker should be able to stop processing if need be"""
         temp_file = NamedTemporaryFile()
-        jid = self.queue.put(SerialJob, json.dumps({"blocker_file": temp_file.name}))
-        self.thread = Thread(target=Worker(["foo"], self.client, interval=0.2).run)
+        jid = self.queue.put(BlockingJob, json.dumps({"blocker_file": temp_file.name}))
+        self.thread = Thread(
+            target=ShortLivedSerialWorker(["foo"], self.client, interval=0.2).run
+        )
         self.thread.start()
         job = self.client.jobs[jid]
         assert job is not None and isinstance(job, AbstractJob)
