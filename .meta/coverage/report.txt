@@ -32,7 +32,7 @@ reqless/queue_resolvers/qmore_dynamic_priority_queue_identifiers_transformer.py 
 reqless/queue_resolvers/transforming_queue_resolver.py                               13      0   100%
 reqless/throttle.py                                                                  29      0   100%
 reqless/util.py                                                                       7      0   100%
-reqless/workers/__init__.py                                                           2      0   100%
+reqless/workers/__init__.py                                                           5      0   100%
 reqless/workers/base_worker.py                                                       65      2    97%
 reqless/workers/forking_worker.py                                                    58      3    95%
 reqless/workers/gevent_worker.py                                                     53      0   100%
@@ -41,4 +41,4 @@ reqless/workers/serial_worker.py                                                
 reqless/workers/signals.py                                                           13      0   100%
 reqless/workers/util.py                                                              39      1    97%
 -----------------------------------------------------------------------------------------------------
-TOTAL                                                                              1357     24    98%
+TOTAL                                                                              1360     24    98%
