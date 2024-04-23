@@ -19,6 +19,8 @@ qless-core:
 .PHONY: test-with-coverage
 test-with-coverage: qless-core
 	coverage run -m pytest
+	coverage report | tee .meta/coverage/report.txt
+	coverage-badge -f -o .meta/coverage/badge.svg
 
 requirements:
 	pip freeze | grep -v -e reqless > requirements.txt

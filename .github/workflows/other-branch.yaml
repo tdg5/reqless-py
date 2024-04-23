@@ -51,5 +51,4 @@ jobs:
         run: |
           source venv/bin/activate
           make test-with-coverage
-          coverage report
           python -m build
