@@ -573,3 +573,8 @@ It's available in the [`qless`](https://github.com/tdg5/qless) library as a
 mountable [`Sinatra`](http://www.sinatrarb.com/) app. The web app is language
 agnostic and was one of the major desires out of this project, so you should
 consider using it even if you're not planning on using the Ruby client.
+
+The web app is also available as a Docker container,
+[`tdg5/reqless-ui`](https://hub.docker.com/repository/docker/tdg5/reqless-ui/general),
+with source code available at
+[`tdg5/reqless-ui-docker`](https://github.com/tdg5/reqless-ui-docker).
