@@ -62,11 +62,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: .github/actions/tdg5/github-action-pack
-          ref: v0.0.5
+          ref: v0.0.6
           repository: tdg5/github-action-pack
 
       - name: Commit and push code coverage snapshot
-        uses: ./.github/actions/tdg5/github-action-pack/packages/stage-files-and-commit-and-push-action/src
+        uses: ./.github/actions/tdg5/github-action-pack/packages/stage-files-and-commit-and-push-action
         with:
           authorEmail: dannyguinther+spamburglar@gmail.com
           authorName: Spamburglar
