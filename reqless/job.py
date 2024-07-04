@@ -312,7 +312,7 @@ class Job(BaseJob, AbstractJob):
                 next_queue,
                 self.queue_name,
             )
-            return (
+            return bool(
                 self.client(
                     "complete",
                     self.jid,
@@ -361,17 +361,17 @@ class Job(BaseJob, AbstractJob):
         return self.expires_at
 
     def fail(self, group: str, message: str) -> Union[bool, str]:
-        """Mark the particular job as failed, with the provided type, and a
-        more specific message. By `type`, we mean some phrase that might be
-        one of several categorical modes of failure. The `message` is
-        something more job-specific, like perhaps a traceback.
+        """Mark the particular job as failed, with the provided group, and a
+        more specific message. By `group`, we mean some phrase that might be
+        one of several categorical modes of failure. The `message` is something
+        more job-specific, like perhaps a traceback.
 
         This method should __not__ be used to note that a job has been dropped
         or has failed in a transient way. This method __should__ be used to
         note that a job has something really wrong with it that must be
         remedied.
 
-        The motivation behind the `type` is so that similar errors can be
+        The motivation behind the `group` is so that similar errors can be
         grouped together. Optionally, updated data can be provided for the job.
         A job in any state can be marked as failed. If it has been given to a
         worker as a job, then its subsequent requests to heartbeat or complete
@@ -379,7 +379,7 @@ class Job(BaseJob, AbstractJob):
         completed. __Returns__ the id of the failed job if successful, or
         `False` on failure."""
         logger.warning("Failing %s (%s): %s", self.jid, group, message)
-        response: bool = self.client(
+        response: str = self.client(
             "fail",
             self.jid,
             self.client.worker_name,
@@ -387,7 +387,7 @@ class Job(BaseJob, AbstractJob):
             message,
             self.data,
         )
-        return response or False
+        return bool(response) or False
 
     def track(self) -> bool:
         """Begin tracking this job"""

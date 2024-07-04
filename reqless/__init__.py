@@ -75,7 +75,7 @@ class Jobs(AbstractJobs):
         limit: int = 25,
     ) -> Dict[str, Any]:
         """If no group is provided, this returns a JSON blob of the counts of
-        the various types of failures known. If a type is provided, returns
+        the various groupss of failures known. If a group is provided, returns
         paginated job objects affected by that kind of failure."""
         results: Dict[str, Any]
         if not group:
