@@ -44,7 +44,6 @@ pids
 proctitle
 pth
 pubsub
-qless
 qmore
 redef
 requeue

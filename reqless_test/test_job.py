@@ -75,7 +75,7 @@ class TestJob(TestReqless):
                 "retries_left": 3,
                 "tags": ["foo"],
                 "worker_name": "",
-                "throttles": ["throttle", "ql:q:foo"],
+                "throttles": ["throttle", "rql:q:foo"],
             },
         )
 

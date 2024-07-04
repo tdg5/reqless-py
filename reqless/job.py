@@ -76,7 +76,7 @@ class BaseJob(AbstractBaseJob):
 
     @priority.setter
     def priority(self, value: int) -> None:
-        self.client("priority", self.jid, value)
+        self.client("job.priority", self.jid, value)
         self._priority = value
 
     @property
@@ -121,17 +121,17 @@ class BaseJob(AbstractBaseJob):
         """Cancel a job. It will be deleted from the system, the thinking
         being that if you don't want to do any work on it, it shouldn't be in
         the queuing system."""
-        response: List[str] = self.client("cancel", self.jid)
+        response: List[str] = self.client("job.cancel", self.jid)
         return response
 
     def tag(self, *tags: str) -> List[str]:
         """Tag a job with additional tags"""
-        response: List[str] = self.client("tag", "add", self.jid, *tags)
+        response: List[str] = self.client("job.tag", self.jid, *tags)
         return response
 
     def untag(self, *tags: str) -> List[str]:
         """Remove tags from a job"""
-        response: List[str] = self.client("tag", "remove", self.jid, *tags)
+        response: List[str] = self.client("job.untag", self.jid, *tags)
         return response
 
 
@@ -282,7 +282,7 @@ class Job(BaseJob, AbstractJob):
         delay, and dependencies"""
         logger.info("Moving %s to %s from %s", self.jid, queue, self.queue_name)
         response: str = self.client(
-            "put",
+            "queue.put",
             self.worker_name,
             queue,
             self.jid,
@@ -314,7 +314,7 @@ class Job(BaseJob, AbstractJob):
             )
             return bool(
                 self.client(
-                    "complete",
+                    "job.complete",
                     self.jid,
                     self.client.worker_name,
                     self.queue_name,
@@ -332,7 +332,7 @@ class Job(BaseJob, AbstractJob):
             logger.info("Completing %s", self.jid)
             return (
                 self.client(
-                    "complete",
+                    "job.complete",
                     self.jid,
                     self.client.worker_name,
                     self.queue_name,
@@ -348,7 +348,7 @@ class Job(BaseJob, AbstractJob):
         try:
             self.expires_at = float(
                 self.client(
-                    "heartbeat",
+                    "job.heartbeat",
                     self.jid,
                     self.client.worker_name,
                     self.data,
@@ -380,7 +380,7 @@ class Job(BaseJob, AbstractJob):
         `False` on failure."""
         logger.warning("Failing %s (%s): %s", self.jid, group, message)
         response: str = self.client(
-            "fail",
+            "job.fail",
             self.jid,
             self.client.worker_name,
             group,
@@ -391,12 +391,12 @@ class Job(BaseJob, AbstractJob):
 
     def track(self) -> bool:
         """Begin tracking this job"""
-        response: str = self.client("track", "track", self.jid)
+        response: str = self.client("job.track", self.jid)
         return response == "1"
 
     def untrack(self) -> bool:
         """Stop tracking this job"""
-        response: str = self.client("track", "untrack", self.jid)
+        response: str = self.client("job.untrack", self.jid)
         return response == "1"
 
     def retry(
@@ -408,7 +408,7 @@ class Job(BaseJob, AbstractJob):
         """Retry this job in a little bit, in the same queue. This is meant
         for the times when you detect a transient failure yourself"""
         args: List[str] = [
-            "retry",
+            "job.retry",
             self.jid,
             self.queue_name,
             self.worker_name,
@@ -423,7 +423,7 @@ class Job(BaseJob, AbstractJob):
     def depend(self, *args: str) -> bool:
         """If and only if a job already has other dependencies, this will add
         more jids to the list of this job's dependencies."""
-        return self.client("depends", self.jid, "on", *args) or False
+        return self.client("job.depends", self.jid, "on", *args) or False
 
     def undepend(self, *args: str, **kwargs: bool) -> bool:
         """Remove specific (or all) job dependencies from this job:
@@ -431,13 +431,13 @@ class Job(BaseJob, AbstractJob):
         job.remove(jid1, jid2)
         job.remove(all=True)"""
         if kwargs.get("all", False):
-            return self.client("depends", self.jid, "off", "all") or False
+            return self.client("job.depends", self.jid, "off", "all") or False
         else:
-            return self.client("depends", self.jid, "off", *args) or False
+            return self.client("job.depends", self.jid, "off", *args) or False
 
     def timeout(self) -> None:
         """Time out this job"""
-        self.client("timeout", self.jid)
+        self.client("job.timeout", self.jid)
 
 
 class RecurringJob(BaseJob, AbstractRecurringJob):
@@ -455,7 +455,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     @count.setter
     def count(self, value: int) -> None:
-        self.client("recur.update", self.jid, "count", value)
+        self.client("recurringJob.update", self.jid, "count", value)
 
     @property
     def data(self) -> str:
@@ -464,7 +464,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
     @data.setter
     def data(self, value: str) -> None:
         self._data = value
-        self.client("recur.update", self.jid, "data", self.data)
+        self.client("recurringJob.update", self.jid, "data", self.data)
 
     @property
     def interval(self) -> int:
@@ -473,7 +473,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
     @interval.setter
     def interval(self, value: int) -> None:
         self._interval = value
-        self.client("recur.update", self.jid, "interval", value)
+        self.client("recurringJob.update", self.jid, "interval", value)
 
     @property
     def priority(self) -> int:
@@ -481,7 +481,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     @priority.setter
     def priority(self, value: int) -> None:
-        self.client("recur.update", self.jid, "priority", value)
+        self.client("recurringJob.update", self.jid, "priority", value)
 
     @property
     def retries(self) -> int:
@@ -489,7 +489,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     @retries.setter
     def retries(self, value: int) -> None:
-        self.client("recur.update", self.jid, "retries", value)
+        self.client("recurringJob.update", self.jid, "retries", value)
 
     @property
     def klass(self) -> Type:
@@ -498,32 +498,32 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
     @klass.setter
     def klass(self, value: Type) -> None:
         name = value.__module__ + "." + value.__name__
-        self.client("recur.update", self.jid, "klass", name)
+        self.client("recurringJob.update", self.jid, "klass", name)
         self._klass = value
         self._klass_name = name
 
     @property
     def next(self) -> Optional[float]:
         return self.client.database.zscore(
-            "ql:q:" + self.queue_name + "-recur", self.jid
+            "rql:q:" + self.queue_name + "-recur", self.jid
         )
 
     def move(self, queue: str) -> bool:
         """Make this recurring job attached to another queue"""
-        response: bool = self.client("recur.update", self.jid, "queue", queue)
+        response: bool = self.client("recurringJob.update", self.jid, "queue", queue)
         return response
 
     def cancel(self) -> List[str]:
         """Cancel all future recurring jobs"""
-        self.client("unrecur", self.jid)
+        self.client("recurringJob.unrecur", self.jid)
         return [self.jid]
 
     def tag(self, *tags: str) -> List[str]:
         """Add tags to this recurring job"""
-        response: List[str] = self.client("recur.tag", self.jid, *tags)
+        response: List[str] = self.client("recurringJob.tag", self.jid, *tags)
         return response
 
     def untag(self, *tags: str) -> List[str]:
         """Remove tags from this job"""
-        response: List[str] = self.client("recur.untag", self.jid, *tags)
+        response: List[str] = self.client("recurringJob.untag", self.jid, *tags)
         return response

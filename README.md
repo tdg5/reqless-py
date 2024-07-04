@@ -6,11 +6,11 @@
 This is a fork of [seomoz/qless-py](https://github.com/seomoz/qless-py) that
 includes significant type improvements and support for throttles.
 
-`qless` is a powerful job queueing system based on remote dictionary servers
+`reqless` is a powerful job queueing system based on remote dictionary servers
 (like `redis` and `valkey`) inspired by
 [resque](https://github.com/defunkt/resque#readme), but built on a collection
 of Lua scripts, maintained in the
-[qless-core](https://github.com/tdg5/qless-core) repo.
+[reqless-core](https://github.com/tdg5/reqless-core) repo.
 
 ## Philosophy and Nomenclature
 
@@ -36,13 +36,13 @@ let the system reclaim it.
 ## Features
 
 1. __Jobs don't get dropped on the floor__ -- Sometimes workers drop jobs.
-    `qless` automatically picks them back up and gives them to another worker
+    `reqless` automatically picks them back up and gives them to another worker
 1. __Tagging / Tracking__ -- Some jobs are more interesting than others. Track
     those jobs to get updates on their progress. Tag jobs with meaningful
     identifiers to find them quickly in the UI.
 1. __Job Dependencies__ -- One job might need to wait for another job to
     complete
-1. __Stats__ -- `qless` automatically keeps statistics about how long jobs wait
+1. __Stats__ -- `reqless` automatically keeps statistics about how long jobs wait
     to be processed and how long they take to be processed. Currently, we keep
     track of the count, mean, standard deviation, and a histogram of these
     times.
@@ -74,12 +74,12 @@ Install from pip:
     pip install reqless
 
 Alternatively, install reqless-py from source by checking it out from github,
-and checking out the qless-core submodule:
+and checking out the reqless-core submodule:
 
 ```bash
 git clone git://github.com/tdg5/reqless-py.git
 cd reqless-py
-# qless-core is a submodule
+# reqless-core is a submodule
 git submodule init
 git submodule update
 pip install .
@@ -216,7 +216,7 @@ This script actually forks off several subprocesses that perform the work, and
 the original process keeps tabs on them to ensure that they are all up and
 running. In the future, the parent process might also perform other sanity
 checks, but for the time being, it's just that the process is still alive. You
-can specify the `host` and `port` you want to use for the qless server as well:
+can specify the `host` and `port` you want to use for the reqless server as well:
 
 ```bash
 reqless-py-worker --host foo.bar --port 1234 ...
@@ -291,12 +291,12 @@ output).
 This is an __experimental__ feature, but you can start workers `--resume` flag
 to have the worker begin its processing with the jobs it left off with. For
 instance, during deployments, it's common to restart the worker processes, and
-the `--resume` flag has the worker first perform a check with `qless` server to
+the `--resume` flag has the worker first perform a check with `reqless` server to
 see which jobs it had last been running (and still has locks for).
 
 This flag should be used with some caution. In particular, if two workers are
 running with the same worker name, then this should not be used. The reason is
-that through the `qless` interface, it's impossible to differentiate the two,
+that through the `reqless` interface, it's impossible to differentiate the two,
 and currently-running jobs may be confused with jobs that were simply dropped
 when the worker was stopped.
 
@@ -308,7 +308,7 @@ reimports it. We think of this as a feature.
 
 With this in mind, when I start a new project and want to make use of
 `reqless`, I first start up the web app locally (see
-[`qless`](http://github.com/tdg5/qless) for more), take a first pass, and
+[`reqless-ui`](http://github.com/tdg5/reqless-ui-docker) for more), take a first pass, and
 enqueue a single job while the worker is running:
 
     # Supposing that I have /my/awesome/project/awesomeproject.py
@@ -430,7 +430,7 @@ client.config["jobs-history-count"] = 500
 
 ### Tagging / Tracking
 
-In `qless`, "tracking" means flagging a job as important. Tracked jobs have a
+In `reqless`, "tracking" means flagging a job as important. Tracked jobs have a
 tab reserved for them in the web interface, and they also emit events that can
 be subscribed to as they make progress (more on that below). You can flag a job
 from the web interface, or the corresponding code:
@@ -493,14 +493,11 @@ for evt in ["canceled", "completed", "failed", "popped", "put", "stalled", "trac
 client.events.listen()
 ```
 
-If you're interested in, say, getting growl or campfire notifications, you
-should check out the `qless-growl` and `qless-campfire` ruby gems.
-
 ### Retries
 
 Workers sometimes die. That's an unfortunate reality of life. We try to
 mitigate the effects of this by insisting that workers heartbeat their jobs to
-ensure that they do not get dropped. That said, `qless` server will
+ensure that they do not get dropped. That said, `reqless` server will
 automatically requeue jobs that do get "stalled" up to the provided number of
 retries (default is 5). Since underpants profit can sometimes go awry, maybe
 you want to retry a particular heist several times:
@@ -548,7 +545,7 @@ job.complete("anotherQueue")
 
 ### Stats
 
-One of the selling points of `qless` is that it keeps stats for you about your
+One of the selling points of `reqless` is that it keeps stats for you about your
 underpants hijinks. It tracks the average wait time, number of jobs that have
 waited in a queue, failures, retries, and average running time. It also keeps
 histograms for the number of jobs that have waited _x_ time, and the number
@@ -558,21 +555,22 @@ Frankly, these are best viewed using the web app.
 
 ### Lua
 
-`qless` is a set of client language bindings, but the majority of the work is
-done in a collection of Lua scripts that comprise the
-[core](https://github.com/tdg5/qless-core) functionality. These scripts run
-on `redis` and `valkey` 7.0+ server atomically and allow for portability with
-the same functionality guarantees. Consult the documentation for `qless-core`
-to learn more about its internals.
+`reqless` is a set of client language bindings, but the majority of the work is
+done in a collection of Lua scripts that comprise
+[reqless-core](https://github.com/tdg5/reqless-core) functionality. These
+scripts run on `redis` and `valkey` 7.0+ server atomically and allow for
+portability with the same functionality guarantees. Consult the documentation
+for `reqless-core` to learn more about its internals.
 
 ### Web App
 
-`qless` also comes with a web app for administrative tasks, like keeping tabs
+`reqless` also comes with a web app for administrative tasks, like keeping tabs
 on the progress of jobs, tracking specific jobs, retrying failed jobs, etc.
-It's available in the [`qless`](https://github.com/tdg5/qless) library as a
-mountable [`Sinatra`](http://www.sinatrarb.com/) app. The web app is language
-agnostic and was one of the major desires out of this project, so you should
-consider using it even if you're not planning on using the Ruby client.
+It's available in the [`reqless-rb`](https://github.com/tdg5/reqless-rb)
+library as a mountable [`Sinatra`](http://www.sinatrarb.com/) app. The web app
+is language agnostic and was one of the major desires out of this project, so
+you should consider using it even if you're not planning on using the Ruby
+client.
 
 The web app is also available as a Docker container,
 [`tdg5/reqless-ui`](https://hub.docker.com/repository/docker/tdg5/reqless-ui/general),

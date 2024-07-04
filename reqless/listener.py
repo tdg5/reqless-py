@@ -37,7 +37,7 @@ class Listener:
 class Events:
     """A class for handling reqless events"""
 
-    namespace = "ql:"
+    namespace = "rql:"
     events: Tuple[str, ...] = (
         "canceled",
         "completed",

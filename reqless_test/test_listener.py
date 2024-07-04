@@ -23,11 +23,11 @@ class TestListener(TestReqless):
         def func(message: Dict) -> None:
             nonlocal count
             count += 1
-            self.assertEqual("ql:popped", message["channel"])
+            self.assertEqual("rql:popped", message["channel"])
             self.assertEqual("message", message["type"])
             self.assertEqual("jid", message["data"])
 
-        listener = Listener(channels=["ql:popped"], database=self.client.database)
+        listener = Listener(channels=["rql:popped"], database=self.client.database)
 
         def publish() -> None:
             for message in listener.listen():

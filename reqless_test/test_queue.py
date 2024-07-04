@@ -96,7 +96,7 @@ class TestQueue(TestReqless):
         queue_name = "foo"
         queue = self.client.queues[queue_name]
         throttle = queue.throttle
-        self.assertEqual(throttle.name, f"ql:q:{queue_name}")
+        self.assertEqual(throttle.name, f"rql:q:{queue_name}")
 
     def test_put_with_throttles(self) -> None:
         """Test put with throttles given"""

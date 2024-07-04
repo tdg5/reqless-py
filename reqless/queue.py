@@ -28,27 +28,37 @@ class Jobs(AbstractQueueJobs):
 
     def depends(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently dependent jobs"""
-        response: List[str] = self.client("jobs", "depends", self.name, offset, count)
+        response: List[str] = self.client(
+            "queue.jobsByState", "depends", self.name, offset, count
+        )
         return response
 
     def recurring(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the recurring jobs"""
-        response: List[str] = self.client("jobs", "recurring", self.name, offset, count)
+        response: List[str] = self.client(
+            "queue.jobsByState", "recurring", self.name, offset, count
+        )
         return response
 
     def running(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-running jobs"""
-        response: List[str] = self.client("jobs", "running", self.name, offset, count)
+        response: List[str] = self.client(
+            "queue.jobsByState", "running", self.name, offset, count
+        )
         return response
 
     def scheduled(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-scheduled jobs"""
-        response: List[str] = self.client("jobs", "scheduled", self.name, offset, count)
+        response: List[str] = self.client(
+            "queue.jobsByState", "scheduled", self.name, offset, count
+        )
         return response
 
     def stalled(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-stalled jobs"""
-        response: List[str] = self.client("jobs", "stalled", self.name, offset, count)
+        response: List[str] = self.client(
+            "queue.jobsByState", "stalled", self.name, offset, count
+        )
         return response
 
 
@@ -63,7 +73,7 @@ class Queue(AbstractQueue):
 
     @property
     def counts(self) -> Dict[str, Any]:
-        response: Dict[str, Any] = json.loads(self.client("queues", self.name))
+        response: Dict[str, Any] = json.loads(self.client("queue.counts", self.name))
         return response
 
     @property
@@ -88,7 +98,7 @@ class Queue(AbstractQueue):
 
     @property
     def throttle(self) -> AbstractThrottle:
-        return self.client.throttles[f"ql:q:{self.name}"]
+        return self.client.throttles[f"rql:q:{self.name}"]
 
     def class_string(self, klass: Union[str, Type]) -> str:
         """Return a string representative of the class"""
@@ -97,10 +107,10 @@ class Queue(AbstractQueue):
         return klass.__module__ + "." + klass.__name__
 
     def pause(self) -> None:
-        self.client("pause", self.name)
+        self.client("queue.pause", self.name)
 
     def unpause(self) -> None:
-        self.client("unpause", self.name)
+        self.client("queue.unpause", self.name)
 
     def put(
         self,
@@ -125,7 +135,7 @@ class Queue(AbstractQueue):
         the `valid after` argument should be in how many seconds the instance
         should be considered actionable."""
         response: str = self.client(
-            "put",
+            "queue.put",
             self.worker_name,
             self.name,
             jid or uuid.uuid4().hex,
@@ -161,7 +171,7 @@ class Queue(AbstractQueue):
         throttles: Optional[List[str]] = None,
     ) -> str:
         response: str = self.client(
-            "requeue",
+            "job.requeue",
             self.worker_name,
             self.name,
             jid or uuid.uuid4().hex,
@@ -195,7 +205,7 @@ class Queue(AbstractQueue):
     ) -> str:
         """Place a recurring job in this queue"""
         response: str = self.client(
-            "recur",
+            "queue.recur",
             self.name,
             jid or uuid.uuid4().hex,
             self.class_string(klass),
@@ -223,7 +233,7 @@ class Queue(AbstractQueue):
         results: List[AbstractJob] = [
             Job(self.client, **job)
             for job in json.loads(
-                self.client("pop", self.name, self.worker_name, count or 1)
+                self.client("queue.pop", self.name, self.worker_name, count or 1)
             )
         ]
         if count is None:
@@ -239,7 +249,7 @@ class Queue(AbstractQueue):
         _count = count or 1
         results: List[AbstractJob] = [
             Job(self.client, **rec)
-            for rec in json.loads(self.client("peek", self.name, _offset, _count))
+            for rec in json.loads(self.client("queue.peek", self.name, _offset, _count))
         ]
         if count is None:
             return (len(results) and results[0]) or None
@@ -264,10 +274,10 @@ class Queue(AbstractQueue):
         days, and then at the day resolution from there on out. The
         `histogram` key is a list of those values."""
         response: Dict = json.loads(
-            self.client("stats", self.name, date or repr(time.time()))
+            self.client("queue.stats", self.name, date or repr(time.time()))
         )
         return response
 
     def __len__(self) -> int:
-        response: int = self.client("length", self.name)
+        response: int = self.client("queue.length", self.name)
         return response
