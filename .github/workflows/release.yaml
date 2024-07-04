@@ -7,6 +7,10 @@ on:
         description: 'Release version'
         required: true
         default: '1.2.3'
+      previousVersion:
+        description: 'Previous release version (used for release notes)'
+        required: true
+        default: '1.2.2'
 
 jobs:
   test-and-build-and-publish-and-release:
@@ -83,6 +87,7 @@ jobs:
       - name: Create and push tag for published version
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          PREVIOUS_RELEASE_NAME: v${{ github.event.inputs.previousVersion }}
           RELEASE_NAME: v${{ github.event.inputs.version }}
         run: |
           git tag -m "$RELEASE_NAME" "$RELEASE_NAME"
@@ -90,6 +95,8 @@ jobs:
 
           gh release create \
             --generate-notes \
+            --notes-start-tag "$PREVIOUS_RELEASE_NAME" \
             --target "$GITHUB_REF" \
             --title "$RELEASE_NAME" \
+            --verify-tag \
             "$RELEASE_NAME"
