@@ -27,7 +27,6 @@ description = "Queue Management built on remote data structure stores like redis
 dynamic = ["version"]
 keywords = [
     "job",
-    "qless",
     "qmore",
     "redis",
     "reqless",
@@ -69,7 +68,7 @@ Source = "https://github.com/tdg5/reqless-py"
 Tracker = "https://github.com/tdg5/reqless-py/issues"
 
 [tool.black]
-exclude = "reqless/(lua|qless-core)/.*"
+exclude = "reqless/(lua|reqless-core)/.*"
 include = "(reqless(_test)?)/.*\\.py$"
 line-length = 88
 target-version = ["py39"]
@@ -87,7 +86,7 @@ source = [
 fail_under = 98
 
 [tool.flake8]
-exclude = ["reqless/lua", "reqless/qless-core"]
+exclude = ["reqless/lua", "reqless/reqless-core"]
 ignore = ["E203", "E251", "E701", "N805", "W503", "DAR101", "DAR201", "DAR301", "DAR401"]
 max-line-length = 88
 min_python_version = "3.9.0"
@@ -100,14 +99,14 @@ lines_after_imports = 2
 multi_line_output = 3
 profile = "black"
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-skip_glob = ["reqless/lua", "reqless/qless-core"]
+skip_glob = ["reqless/lua", "reqless/reqless-core"]
 use_parentheses = true
 
 [tool.mypy]
 check_untyped_defs = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
-exclude = "^(reqless/qless-core|reqless/lua|fixtures|.*?\\.js|.*?\\.json)"
+exclude = "^(reqless/reqless-core|reqless/lua|fixtures|.*?\\.js|.*?\\.json)"
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_return_any = true
@@ -117,7 +116,7 @@ warn_unused_ignores = true
 markers = ["integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')"]
 norecursedirs = [
   "reqless/lua",
-  "reqless/qless-core",
+  "reqless/reqless-core",
 ]
 testpaths = ["reqless_test"]
 

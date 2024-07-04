@@ -56,9 +56,9 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: reqless/lua|reqless/qless-core
+        exclude: reqless/lua|reqless/reqless-core
       - id: end-of-file-fixer
-        exclude: README.md|reqless/lua|reqless/qless-core
+        exclude: README.md|reqless/lua|reqless/reqless-core
       - id: check-docstring-first
       - id: debug-statements
       - id: name-tests-test

@@ -19,7 +19,7 @@ class TestConfig(TestReqless):
         self.assertEqual(
             self.client.config.all,
             {
-                "application": "qless",
+                "application": "reqless",
                 "grace-period": 10,
                 "heartbeat": 60,
                 "histogram-history": 7,

@@ -9,15 +9,15 @@ clean:
 	# And lastly, .coverage files
 	find . -name .coverage -delete
 
-.PHONY: qless-core
-qless-core:
-	# Ensure qless-core is built
-	make -C reqless/qless-core/
-	cp reqless/qless-core/qless.lua reqless/lua/
-	cp reqless/qless-core/qless-lib.lua reqless/lua/
+.PHONY: reqless-core
+reqless-core:
+	# Ensure reqless-core is built
+	make -C reqless/reqless-core/
+	cp reqless/reqless-core/reqless.lua reqless/lua/
+	cp reqless/reqless-core/reqless-lib.lua reqless/lua/
 
 .PHONY: test-with-coverage
-test-with-coverage: qless-core
+test-with-coverage: reqless-core
 	coverage run -m pytest
 	coverage report | tee .meta/coverage/report.txt
 	coverage-badge -f -o .meta/coverage/badge.svg

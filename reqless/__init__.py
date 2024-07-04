@@ -52,19 +52,19 @@ class Jobs(AbstractJobs):
 
     def complete(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return the paginated jids of complete jobs"""
-        response: List[str] = self.client("jobs", "complete", offset, count)
+        response: List[str] = self.client("jobs.completed", offset, count)
         return response
 
     def tracked(self) -> Dict[str, List[Any]]:
         """Return an array of job objects that are being tracked"""
-        results: Dict[str, Any] = json.loads(self.client("track"))
+        results: Dict[str, Any] = json.loads(self.client("jobs.tracked"))
         results["jobs"] = [Job(self.client, **job) for job in results["jobs"]]
         return results
 
     def tagged(self, tag: str, offset: int = 0, count: int = 25) -> Dict[str, Any]:
         """Return the paginated jids of jobs tagged with a tag"""
         response: Dict[str, Any] = json.loads(
-            self.client("tag", "get", tag, offset, count)
+            self.client("jobs.tagged", tag, offset, count)
         )
         return response
 
@@ -79,9 +79,9 @@ class Jobs(AbstractJobs):
         paginated job objects affected by that kind of failure."""
         results: Dict[str, Any]
         if not group:
-            results = json.loads(self.client("failed"))
+            results = json.loads(self.client("jobs.failed"))
         else:
-            results = json.loads(self.client("failed", group, start, limit))
+            results = json.loads(self.client("jobs.failed", group, start, limit))
             results["jobs"] = self.get(*results["jobs"])
         return results
 
@@ -90,16 +90,16 @@ class Jobs(AbstractJobs):
         if jids:
             return [
                 Job(self.client, **j)
-                for j in json.loads(self.client("multiget", *jids))
+                for j in json.loads(self.client("job.getMulti", *jids))
             ]
         return []
 
     def __getitem__(self, jid: str) -> Optional[Union[Job, RecurringJob]]:
         """Get a job object corresponding to that jid, or ``None`` if it
         doesn't exist"""
-        results = self.client("get", jid)
+        results = self.client("job.get", jid)
         if not results:
-            results = self.client("recur.get", jid)
+            results = self.client("recurringJob.get", jid)
             if not results:
                 return None
             return RecurringJob(self.client, **json.loads(results))
@@ -114,12 +114,12 @@ class Workers(AbstractWorkers):
 
     @property
     def counts(self) -> Dict[str, Any]:
-        counts: Dict[str, Any] = json.loads(self.client("workers"))
+        counts: Dict[str, Any] = json.loads(self.client("workers.list"))
         return counts
 
     def __getitem__(self, worker_name: str) -> Dict[str, Any]:
         """Which jobs does a particular worker have running"""
-        result: Dict[str, Any] = json.loads(self.client("workers", worker_name))
+        result: Dict[str, Any] = json.loads(self.client("worker.counts", worker_name))
         result["jobs"] = result["jobs"] or []
         result["stalled"] = result["stalled"] or []
         return result
@@ -133,7 +133,7 @@ class Queues(AbstractQueues):
 
     @property
     def counts(self) -> Dict:
-        counts: Dict = json.loads(self.client("queues"))
+        counts: Dict = json.loads(self.client("queues.list"))
         return counts
 
     def __getitem__(self, queue_name: str) -> AbstractQueue:
@@ -176,7 +176,7 @@ class Client(AbstractClient):
         self._events: Optional[Events] = None
 
         # We now have a single unified core script.
-        data = pkgutil.get_data("reqless", "lua/qless.lua")
+        data = pkgutil.get_data("reqless", "lua/reqless.lua")
         if data is None:
             raise RuntimeError("Failed to load reqless lua!")
         self._lua: Script = self.database.register_script(data)
@@ -229,22 +229,22 @@ class Client(AbstractClient):
 
     def track(self, jid: str) -> bool:
         """Begin tracking this job"""
-        response: str = self("track", "track", jid)
+        response: str = self("job.track", jid)
         return response == "1"
 
     def untrack(self, jid: str) -> bool:
         """Stop tracking this job"""
-        response: str = self("track", "untrack", jid)
+        response: str = self("job.untrack", jid)
         return response == "1"
 
     def tags(self, offset: int = 0, count: int = 100) -> List[str]:
         """The most common tags among jobs"""
-        tags: List[str] = json.loads(self("tag", "top", offset, count))
+        tags: List[str] = json.loads(self("tags.top", offset, count))
         return tags
 
     def unfail(self, group: str, queue: str, count: int = 500) -> int:
         """Move jobs from the failed group to the provided queue"""
-        unfail_count = self("unfail", queue, group, count)
+        unfail_count = self("queue.unfail", queue, group, count)
         return int(unfail_count)
 
 
