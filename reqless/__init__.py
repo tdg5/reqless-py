@@ -79,9 +79,9 @@ class Jobs(AbstractJobs):
         paginated job objects affected by that kind of failure."""
         results: Dict[str, Any]
         if not group:
-            results = json.loads(self.client("jobs.failed"))
+            results = json.loads(self.client("failureGroups.counts"))
         else:
-            results = json.loads(self.client("jobs.failed", group, start, limit))
+            results = json.loads(self.client("jobs.failedByGroup", group, start, limit))
             results["jobs"] = self.get(*results["jobs"])
         return results
 

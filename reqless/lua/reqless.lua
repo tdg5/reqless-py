@@ -1,4 +1,4 @@
--- Current SHA: d89767dd00f059dad713d1cc907167104135da86
+-- Current SHA: 03b8e8c201112886a643fc91dd6e5a082338b4e5
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -2153,6 +2153,10 @@ ReqlessAPI['config.unset'] = function(now, key)
   return Reqless.config.unset(key)
 end
 
+ReqlessAPI['failureGroups.counts'] = function(now, start, limit)
+  return cjson.encode(Reqless.failed(nil, start, limit))
+end
+
 ReqlessAPI['job.cancel'] = function(now, ...)
   return Reqless.cancel(now, unpack(arg))
 end
@@ -2241,7 +2245,7 @@ ReqlessAPI["jobs.completed"] = function(now, offset, limit)
   return Reqless.jobs(now, 'complete', offset, limit)
 end
 
-ReqlessAPI['jobs.failed'] = function(now, group, start, limit)
+ReqlessAPI['jobs.failedByGroup'] = function(now, group, start, limit)
   return cjson.encode(Reqless.failed(group, start, limit))
 end
 
@@ -2419,7 +2423,10 @@ ReqlessAPI['fail'] = function(now, jid, worker, group, message, data)
 end
 
 ReqlessAPI['failed'] = function(now, group, start, limit)
-  return ReqlessAPI['jobs.failed'](now, group, start, limit)
+  if group then
+    return ReqlessAPI['jobs.failedByGroup'](now, group, start, limit)
+  end
+  return ReqlessAPI['failureGroups.counts'](now, start, limit)
 end
 
 ReqlessAPI['get'] = function(now, jid)
