@@ -314,7 +314,7 @@ class Job(BaseJob, AbstractJob):
             )
             return bool(
                 self.client(
-                    "job.complete",
+                    "job.completeAndRequeue",
                     self.jid,
                     self.client.worker_name,
                     self.queue_name,
@@ -423,7 +423,7 @@ class Job(BaseJob, AbstractJob):
     def depend(self, *args: str) -> bool:
         """If and only if a job already has other dependencies, this will add
         more jids to the list of this job's dependencies."""
-        return self.client("job.depends", self.jid, "on", *args) or False
+        return self.client("job.addDependency", self.jid, *args) or False
 
     def undepend(self, *args: str, **kwargs: bool) -> bool:
         """Remove specific (or all) job dependencies from this job:
@@ -431,9 +431,9 @@ class Job(BaseJob, AbstractJob):
         job.remove(jid1, jid2)
         job.remove(all=True)"""
         if kwargs.get("all", False):
-            return self.client("job.depends", self.jid, "off", "all") or False
+            return self.client("job.removeDependency", self.jid, "all") or False
         else:
-            return self.client("job.depends", self.jid, "off", *args) or False
+            return self.client("job.removeDependency", self.jid, *args) or False
 
     def timeout(self) -> None:
         """Time out this job"""

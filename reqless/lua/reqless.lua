@@ -1,4 +1,4 @@
--- Current SHA: 03b8e8c201112886a643fc91dd6e5a082338b4e5
+-- Current SHA: d658205ece465f9b27ebd7aba93ededc4b2ae0ed
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -133,13 +133,13 @@ function Reqless.jobs(now, state, ...)
       offset + count - 1)
   end
 
-  local name  = assert(arg[1], 'Jobs(): Arg "queue" missing')
+  local queue_name  = assert(arg[1], 'Jobs(): Arg "queue" missing')
   local offset = assert(tonumber(arg[2] or 0),
     'Jobs(): Arg "offset" not a number: ' .. tostring(arg[2]))
   local count  = assert(tonumber(arg[3] or 25),
     'Jobs(): Arg "count" not a number: ' .. tostring(arg[3]))
 
-  local queue = Reqless.queue(name)
+  local queue = Reqless.queue(queue_name)
   if state == 'running' then
     return queue.locks.peek(now, offset, count)
   elseif state == 'stalled' then
@@ -332,12 +332,13 @@ end
 
 Reqless.config.defaults = {
   ['application']        = 'reqless',
-  ['heartbeat']          = 60,
   ['grace-period']       = 10,
-  ['stats-history']      = 30,
-  ['histogram-history']  = 7,
+  ['heartbeat']          = 60,
+  ['jobs-history']       = 604800,
   ['jobs-history-count'] = 50000,
-  ['jobs-history']       = 604800
+  ['max-job-history']    = 100,
+  ['max-pop-retry']      = 1,
+  ['max-worker-age']     = 86400,
 }
 
 Reqless.config.get = function(key, default)
@@ -459,9 +460,7 @@ function ReqlessJob:complete(now, worker, queue_name, raw_data, ...)
 
   self:history(now, 'done')
 
-  if raw_data then
-    redis.call('hset', ReqlessJob.ns .. self.jid, 'data', raw_data)
-  end
+  redis.call('hset', ReqlessJob.ns .. self.jid, 'data', raw_data)
 
   local queue = Reqless.queue(queue_name)
   queue:remove_job(self.jid)
@@ -749,6 +748,10 @@ end
 
 function ReqlessJob:depends(now, command, ...)
   assert(command, 'Depends(): Arg "command" missing')
+  if command ~= 'on' and command ~= 'off' then
+    error('Depends(): Argument "command" must be "on" or "off"')
+  end
+
   local state = redis.call('hget', ReqlessJob.ns .. self.jid, 'state')
   if state ~= 'depends' then
     error('Depends(): Job ' .. self.jid ..
@@ -766,44 +769,42 @@ function ReqlessJob:depends(now, command, ...)
       end
     end
     return true
-  elseif command == 'off' then
-    if arg[1] == 'all' then
-      for _, j in ipairs(redis.call(
-        'smembers', ReqlessJob.ns .. self.jid .. '-dependencies')) do
-        redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
-      end
-      redis.call('del', ReqlessJob.ns .. self.jid .. '-dependencies')
-      local queue_name, priority = unpack(redis.call(
-        'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
-      if queue_name then
-        local queue = Reqless.queue(queue_name)
-        queue.depends.remove(self.jid)
-        queue.work.add(now, priority, self.jid)
-        redis.call('hset', ReqlessJob.ns .. self.jid, 'state', 'waiting')
-      end
-    else
-      for _, j in ipairs(arg) do
-        redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
-        redis.call(
-          'srem', ReqlessJob.ns .. self.jid .. '-dependencies', j)
-        if redis.call('scard',
-          ReqlessJob.ns .. self.jid .. '-dependencies') == 0 then
-          local queue_name, priority = unpack(redis.call(
-            'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
-          if queue_name then
-            local queue = Reqless.queue(queue_name)
-            queue.depends.remove(self.jid)
-            queue.work.add(now, priority, self.jid)
-            redis.call('hset',
-              ReqlessJob.ns .. self.jid, 'state', 'waiting')
-          end
+  end
+
+  if arg[1] == 'all' then
+    for _, j in ipairs(redis.call(
+      'smembers', ReqlessJob.ns .. self.jid .. '-dependencies')) do
+      redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
+    end
+    redis.call('del', ReqlessJob.ns .. self.jid .. '-dependencies')
+    local queue_name, priority = unpack(redis.call(
+      'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
+    if queue_name then
+      local queue = Reqless.queue(queue_name)
+      queue.depends.remove(self.jid)
+      queue.work.add(now, priority, self.jid)
+      redis.call('hset', ReqlessJob.ns .. self.jid, 'state', 'waiting')
+    end
+  else
+    for _, j in ipairs(arg) do
+      redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
+      redis.call(
+        'srem', ReqlessJob.ns .. self.jid .. '-dependencies', j)
+      if redis.call('scard',
+        ReqlessJob.ns .. self.jid .. '-dependencies') == 0 then
+        local queue_name, priority = unpack(redis.call(
+          'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
+        if queue_name then
+          local queue = Reqless.queue(queue_name)
+          queue.depends.remove(self.jid)
+          queue.work.add(now, priority, self.jid)
+          redis.call('hset',
+            ReqlessJob.ns .. self.jid, 'state', 'waiting')
         end
       end
     end
-    return true
   end
-
-  error('Depends(): Argument "command" must be "on" or "off"')
+  return true
 end
 
 function ReqlessJob:heartbeat(now, worker, data)
@@ -2142,6 +2143,10 @@ ReqlessAPI['config.get'] = function(now, key)
   if key then
     return Reqless.config.get(key)
   end
+  return ReqlessAPI['config.getAll'](now)
+end
+
+ReqlessAPI['config.getAll'] = function(now)
   return cjson.encode(Reqless.config.get(nil))
 end
 
@@ -2157,16 +2162,20 @@ ReqlessAPI['failureGroups.counts'] = function(now, start, limit)
   return cjson.encode(Reqless.failed(nil, start, limit))
 end
 
+ReqlessAPI['job.addDependency'] = function(now, jid, ...)
+  return Reqless.job(jid):depends(now, "on", unpack(arg))
+end
+
 ReqlessAPI['job.cancel'] = function(now, ...)
   return Reqless.cancel(now, unpack(arg))
 end
 
-ReqlessAPI['job.complete'] = function(now, jid, worker, queue, data, ...)
-  return Reqless.job(jid):complete(now, worker, queue, data, unpack(arg))
+ReqlessAPI['job.complete'] = function(now, jid, worker, queue, data)
+  return Reqless.job(jid):complete(now, worker, queue, data)
 end
 
-ReqlessAPI['job.depends'] = function(now, jid, command, ...)
-  return Reqless.job(jid):depends(now, command, unpack(arg))
+ReqlessAPI['job.completeAndRequeue'] = function(now, jid, worker, queue, data, next_queue, ...)
+  return Reqless.job(jid):complete(now, worker, queue, data, 'next', next_queue, unpack(arg))
 end
 
 ReqlessAPI['job.fail'] = function(now, jid, worker, group, message, data)
@@ -2213,6 +2222,10 @@ ReqlessAPI['job.requeue'] = function(now, worker, queue, jid, ...)
   local job = Reqless.job(jid)
   assert(job:exists(), 'Requeue(): Job ' .. jid .. ' does not exist')
   return ReqlessAPI['queue.put'](now, worker, queue, jid, unpack(arg))
+end
+
+ReqlessAPI['job.removeDependency'] = function(now, jid, ...)
+  return Reqless.job(jid):depends(now, "off", unpack(arg))
 end
 
 ReqlessAPI['job.retry'] = function(now, jid, queue, worker, delay, group, message)
@@ -2411,11 +2424,16 @@ ReqlessAPI['cancel'] = function(now, ...)
 end
 
 ReqlessAPI['complete'] = function(now, jid, worker, queue, data, ...)
-  return ReqlessAPI['job.complete'](now, jid, worker, queue, data, unpack(arg))
+  return Reqless.job(jid):complete(now, worker, queue, data, unpack(arg))
 end
 
 ReqlessAPI['depends'] = function(now, jid, command, ...)
-  return ReqlessAPI['job.depends'](now, jid, command, unpack(arg))
+  if command == "on" then
+    return ReqlessAPI['job.addDependency'](now, jid, unpack(arg))
+  elseif command == "off" then
+    return ReqlessAPI['job.removeDependency'](now, jid, unpack(arg))
+  end
+  error('Depends(): Argument "command" must be "on" or "off"')
 end
 
 ReqlessAPI['fail'] = function(now, jid, worker, group, message, data)

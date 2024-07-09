@@ -1,4 +1,4 @@
--- Current SHA: d89767dd00f059dad713d1cc907167104135da86
+-- Current SHA: d658205ece465f9b27ebd7aba93ededc4b2ae0ed
 -- This is a generated file
 -------------------------------------------------------------------------------
 -- Forward declarations to make everything happy
@@ -194,13 +194,13 @@ function Reqless.jobs(now, state, ...)
       offset + count - 1)
   end
 
-  local name  = assert(arg[1], 'Jobs(): Arg "queue" missing')
+  local queue_name  = assert(arg[1], 'Jobs(): Arg "queue" missing')
   local offset = assert(tonumber(arg[2] or 0),
     'Jobs(): Arg "offset" not a number: ' .. tostring(arg[2]))
   local count  = assert(tonumber(arg[3] or 25),
     'Jobs(): Arg "count" not a number: ' .. tostring(arg[3]))
 
-  local queue = Reqless.queue(name)
+  local queue = Reqless.queue(queue_name)
   if state == 'running' then
     return queue.locks.peek(now, offset, count)
   elseif state == 'stalled' then
@@ -474,12 +474,13 @@ end
 -- This represents our default configuration settings
 Reqless.config.defaults = {
   ['application']        = 'reqless',
-  ['heartbeat']          = 60,
   ['grace-period']       = 10,
-  ['stats-history']      = 30,
-  ['histogram-history']  = 7,
+  ['heartbeat']          = 60,
+  ['jobs-history']       = 604800,
   ['jobs-history-count'] = 50000,
-  ['jobs-history']       = 604800
+  ['max-job-history']    = 100,
+  ['max-pop-retry']      = 1,
+  ['max-worker-age']     = 86400,
 }
 
 -- Get one or more of the keys
@@ -604,7 +605,7 @@ function ReqlessJob:complete(now, worker, queue_name, raw_data, ...)
   local depends = assert(cjson.decode(options['depends'] or '[]'),
     'Complete(): Arg "depends" not JSON: ' .. tostring(options['depends']))
 
-  -- Depends doesn't make sense without next_queue_name
+  -- Delay doesn't make sense without next_queue_name
   if options['delay'] and next_queue_name == nil then
     error('Complete(): "delay" cannot be used without a "next".')
   end
@@ -643,9 +644,7 @@ function ReqlessJob:complete(now, worker, queue_name, raw_data, ...)
   --          update history
   self:history(now, 'done')
 
-  if raw_data then
-    redis.call('hset', ReqlessJob.ns .. self.jid, 'data', raw_data)
-  end
+  redis.call('hset', ReqlessJob.ns .. self.jid, 'data', raw_data)
 
   -- Remove the job from the previous queue
   local queue = Reqless.queue(queue_name)
@@ -1043,10 +1042,14 @@ end
 -- the current dependencies are removed. If 'off' is provided and the next
 -- argument is not 'all', then those jids are removed as dependencies.
 --
--- If a job is not already in the 'depends' state, then this call will return
--- false. Otherwise, it will return true
+-- If a job is not already in the 'depends' state, then this call will raise an
+-- error.  Otherwise, it will return true.
 function ReqlessJob:depends(now, command, ...)
   assert(command, 'Depends(): Arg "command" missing')
+  if command ~= 'on' and command ~= 'off' then
+    error('Depends(): Argument "command" must be "on" or "off"')
+  end
+
   local state = redis.call('hget', ReqlessJob.ns .. self.jid, 'state')
   if state ~= 'depends' then
     error('Depends(): Job ' .. self.jid ..
@@ -1066,44 +1069,42 @@ function ReqlessJob:depends(now, command, ...)
       end
     end
     return true
-  elseif command == 'off' then
-    if arg[1] == 'all' then
-      for _, j in ipairs(redis.call(
-        'smembers', ReqlessJob.ns .. self.jid .. '-dependencies')) do
-        redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
-      end
-      redis.call('del', ReqlessJob.ns .. self.jid .. '-dependencies')
-      local queue_name, priority = unpack(redis.call(
-        'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
-      if queue_name then
-        local queue = Reqless.queue(queue_name)
-        queue.depends.remove(self.jid)
-        queue.work.add(now, priority, self.jid)
-        redis.call('hset', ReqlessJob.ns .. self.jid, 'state', 'waiting')
-      end
-    else
-      for _, j in ipairs(arg) do
-        redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
-        redis.call(
-          'srem', ReqlessJob.ns .. self.jid .. '-dependencies', j)
-        if redis.call('scard',
-          ReqlessJob.ns .. self.jid .. '-dependencies') == 0 then
-          local queue_name, priority = unpack(redis.call(
-            'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
-          if queue_name then
-            local queue = Reqless.queue(queue_name)
-            queue.depends.remove(self.jid)
-            queue.work.add(now, priority, self.jid)
-            redis.call('hset',
-              ReqlessJob.ns .. self.jid, 'state', 'waiting')
-          end
+  end
+
+  if arg[1] == 'all' then
+    for _, j in ipairs(redis.call(
+      'smembers', ReqlessJob.ns .. self.jid .. '-dependencies')) do
+      redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
+    end
+    redis.call('del', ReqlessJob.ns .. self.jid .. '-dependencies')
+    local queue_name, priority = unpack(redis.call(
+      'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
+    if queue_name then
+      local queue = Reqless.queue(queue_name)
+      queue.depends.remove(self.jid)
+      queue.work.add(now, priority, self.jid)
+      redis.call('hset', ReqlessJob.ns .. self.jid, 'state', 'waiting')
+    end
+  else
+    for _, j in ipairs(arg) do
+      redis.call('srem', ReqlessJob.ns .. j .. '-dependents', self.jid)
+      redis.call(
+        'srem', ReqlessJob.ns .. self.jid .. '-dependencies', j)
+      if redis.call('scard',
+        ReqlessJob.ns .. self.jid .. '-dependencies') == 0 then
+        local queue_name, priority = unpack(redis.call(
+          'hmget', ReqlessJob.ns .. self.jid, 'queue', 'priority'))
+        if queue_name then
+          local queue = Reqless.queue(queue_name)
+          queue.depends.remove(self.jid)
+          queue.work.add(now, priority, self.jid)
+          redis.call('hset',
+            ReqlessJob.ns .. self.jid, 'state', 'waiting')
         end
       end
     end
-    return true
   end
-
-  error('Depends(): Argument "command" must be "on" or "off"')
+  return true
 end
 
 -- Heartbeat

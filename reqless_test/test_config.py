@@ -22,10 +22,11 @@ class TestConfig(TestReqless):
                 "application": "reqless",
                 "grace-period": 10,
                 "heartbeat": 60,
-                "histogram-history": 7,
                 "jobs-history": 604800,
                 "jobs-history-count": 50000,
-                "stats-history": 30,
+                "max-job-history": 100,
+                "max-pop-retry": 1,
+                "max-worker-age": 86400,
             },
         )
 
@@ -47,7 +48,7 @@ class TestConfig(TestReqless):
 
     def test_len(self) -> None:
         """We can see how many items are in the config"""
-        self.assertEqual(len(self.client.config), 7)
+        self.assertEqual(len(self.client.config), 8)
 
     def test_contains(self) -> None:
         """We can use the 'in' syntax"""
