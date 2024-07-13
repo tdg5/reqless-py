@@ -1,4 +1,4 @@
--- Current SHA: d658205ece465f9b27ebd7aba93ededc4b2ae0ed
+-- Current SHA: dd5bf762055d02a1af69111e0223c3b42494bc7b
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -2214,10 +2214,6 @@ ReqlessAPI['job.log'] = function(now, jid, message, data)
   job:history(now, message, data)
 end
 
-ReqlessAPI['job.priority'] = function(now, jid, priority)
-  return Reqless.job(jid):priority(priority)
-end
-
 ReqlessAPI['job.requeue'] = function(now, worker, queue, jid, ...)
   local job = Reqless.job(jid)
   assert(job:exists(), 'Requeue(): Job ' .. jid .. ' does not exist')
@@ -2230,6 +2226,10 @@ end
 
 ReqlessAPI['job.retry'] = function(now, jid, queue, worker, delay, group, message)
   return Reqless.job(jid):retry(now, queue, worker, delay, group, message)
+end
+
+ReqlessAPI['job.setPriority'] = function(now, jid, priority)
+  return Reqless.job(jid):priority(priority)
 end
 
 ReqlessAPI['job.tag'] = function(now, jid, ...)
@@ -2487,7 +2487,7 @@ ReqlessAPI['pop'] = function(now, queue, worker, count)
 end
 
 ReqlessAPI['priority'] = function(now, jid, priority)
-  return ReqlessAPI['job.priority'](now, jid, priority)
+  return ReqlessAPI['job.setPriority'](now, jid, priority)
 end
 
 ReqlessAPI['put'] = function(now, worker, queue, jid, klass, data, delay, ...)

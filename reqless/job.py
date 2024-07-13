@@ -76,7 +76,7 @@ class BaseJob(AbstractBaseJob):
 
     @priority.setter
     def priority(self, value: int) -> None:
-        self.client("job.priority", self.jid, value)
+        self.client("job.setPriority", self.jid, value)
         self._priority = value
 
     @property
