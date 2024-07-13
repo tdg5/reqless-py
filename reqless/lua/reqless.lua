@@ -1,4 +1,4 @@
--- Current SHA: 4504ab481b84f03fcfd10318bf18c5835b31d159
+-- Current SHA: afac7aa7551a88559164b184e9deea40d46713dd
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -2228,6 +2228,10 @@ ReqlessAPI['job.removeDependency'] = function(now, jid, ...)
   return Reqless.job(jid):depends(now, "off", unpack(arg))
 end
 
+ReqlessAPI['job.removeTag'] = function(now, jid, ...)
+  return cjson.encode(Reqless.tag(now, 'remove', jid, unpack(arg)))
+end
+
 ReqlessAPI['job.retry'] = function(now, jid, queue, worker, delay, group, message)
   return Reqless.job(jid):retry(now, queue, worker, delay, group, message)
 end
@@ -2244,10 +2248,6 @@ end
 
 ReqlessAPI['job.track'] = function(now, jid)
   return cjson.encode(Reqless.track(now, 'track', jid))
-end
-
-ReqlessAPI['job.removeTag'] = function(now, jid, ...)
-  return cjson.encode(Reqless.tag(now, 'remove', jid, unpack(arg)))
 end
 
 ReqlessAPI['job.untrack'] = function(now, jid)
@@ -2350,16 +2350,16 @@ ReqlessAPI['recurringJob.get'] = function(now, jid)
   end
 end
 
-ReqlessAPI['recurringJob.tag'] = function(now, jid, ...)
+ReqlessAPI['recurringJob.addTag'] = function(now, jid, ...)
   return Reqless.recurring(jid):tag(unpack(arg))
+end
+
+ReqlessAPI['recurringJob.removeTag'] = function(now, jid, ...)
+  return Reqless.recurring(jid):untag(unpack(arg))
 end
 
 ReqlessAPI['recurringJob.unrecur'] = function(now, jid)
   return Reqless.recurring(jid):unrecur()
-end
-
-ReqlessAPI['recurringJob.untag'] = function(now, jid, ...)
-  return Reqless.recurring(jid):untag(unpack(arg))
 end
 
 ReqlessAPI['recurringJob.update'] = function(now, jid, ...)
@@ -2510,11 +2510,11 @@ ReqlessAPI['recur.get'] = function(now, jid)
 end
 
 ReqlessAPI['recur.tag'] = function(now, jid, ...)
-  return ReqlessAPI['recurringJob.tag'](now, jid, unpack(arg))
+  return ReqlessAPI['recurringJob.addTag'](now, jid, unpack(arg))
 end
 
 ReqlessAPI['recur.untag'] = function(now, jid, ...)
-  return ReqlessAPI['recurringJob.untag'](now, jid, unpack(arg))
+  return ReqlessAPI['recurringJob.removeTag'](now, jid, unpack(arg))
 end
 
 ReqlessAPI['recur.update'] = function(now, jid, ...)

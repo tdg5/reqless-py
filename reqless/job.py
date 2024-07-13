@@ -520,10 +520,10 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     def tag(self, *tags: str) -> List[str]:
         """Add tags to this recurring job"""
-        response: List[str] = self.client("recurringJob.tag", self.jid, *tags)
+        response: List[str] = self.client("recurringJob.addTag", self.jid, *tags)
         return response
 
     def untag(self, *tags: str) -> List[str]:
         """Remove tags from this job"""
-        response: List[str] = self.client("recurringJob.untag", self.jid, *tags)
+        response: List[str] = self.client("recurringJob.removeTag", self.jid, *tags)
         return response
