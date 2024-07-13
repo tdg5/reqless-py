@@ -1,4 +1,4 @@
--- Current SHA: dd5bf762055d02a1af69111e0223c3b42494bc7b
+-- Current SHA: 4504ab481b84f03fcfd10318bf18c5835b31d159
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -854,15 +854,15 @@ function ReqlessJob:priority(priority)
 
   if queue_name == nil then
     error('Priority(): Job ' .. self.jid .. ' does not exist')
-  elseif queue_name == '' then
-    redis.call('hset', ReqlessJob.ns .. self.jid, 'priority', priority)
-    return priority
   end
 
-  local queue = Reqless.queue(queue_name)
-  if queue.work.score(self.jid) then
-    queue.work.add(0, priority, self.jid)
+  if queue_name ~= '' then
+    local queue = Reqless.queue(queue_name)
+    if queue.work.score(self.jid) then
+      queue.work.add(0, priority, self.jid)
+    end
   end
+
   redis.call('hset', ReqlessJob.ns .. self.jid, 'priority', priority)
   return priority
 end
@@ -2166,6 +2166,10 @@ ReqlessAPI['job.addDependency'] = function(now, jid, ...)
   return Reqless.job(jid):depends(now, "on", unpack(arg))
 end
 
+ReqlessAPI['job.addTag'] = function(now, jid, ...)
+  return cjson.encode(Reqless.tag(now, 'add', jid, unpack(arg)))
+end
+
 ReqlessAPI['job.cancel'] = function(now, ...)
   return Reqless.cancel(now, unpack(arg))
 end
@@ -2232,10 +2236,6 @@ ReqlessAPI['job.setPriority'] = function(now, jid, priority)
   return Reqless.job(jid):priority(priority)
 end
 
-ReqlessAPI['job.tag'] = function(now, jid, ...)
-  return cjson.encode(Reqless.tag(now, 'add', jid, unpack(arg)))
-end
-
 ReqlessAPI['job.timeout'] = function(now, ...)
   for _, jid in ipairs(arg) do
     Reqless.job(jid):timeout(now)
@@ -2246,7 +2246,7 @@ ReqlessAPI['job.track'] = function(now, jid)
   return cjson.encode(Reqless.track(now, 'track', jid))
 end
 
-ReqlessAPI['job.untag'] = function(now, jid, ...)
+ReqlessAPI['job.removeTag'] = function(now, jid, ...)
   return cjson.encode(Reqless.tag(now, 'remove', jid, unpack(arg)))
 end
 
@@ -2535,10 +2535,10 @@ end
 
 ReqlessAPI['tag'] = function(now, command, ...)
   if command == 'add' then
-    return ReqlessAPI['job.tag'](now, unpack(arg))
+    return ReqlessAPI['job.addTag'](now, unpack(arg))
   end
   if command == 'remove' then
-    return ReqlessAPI['job.untag'](now, unpack(arg))
+    return ReqlessAPI['job.removeTag'](now, unpack(arg))
   end
   if command == 'get' then
     return ReqlessAPI['jobs.tagged'](now, unpack(arg))

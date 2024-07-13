@@ -126,12 +126,12 @@ class BaseJob(AbstractBaseJob):
 
     def tag(self, *tags: str) -> List[str]:
         """Tag a job with additional tags"""
-        response: List[str] = self.client("job.tag", self.jid, *tags)
+        response: List[str] = self.client("job.addTag", self.jid, *tags)
         return response
 
     def untag(self, *tags: str) -> List[str]:
         """Remove tags from a job"""
-        response: List[str] = self.client("job.untag", self.jid, *tags)
+        response: List[str] = self.client("job.removeTag", self.jid, *tags)
         return response
 
 

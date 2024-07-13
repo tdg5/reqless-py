@@ -1,4 +1,4 @@
--- Current SHA: d658205ece465f9b27ebd7aba93ededc4b2ae0ed
+-- Current SHA: 4504ab481b84f03fcfd10318bf18c5835b31d159
 -- This is a generated file
 -------------------------------------------------------------------------------
 -- Forward declarations to make everything happy
@@ -1179,18 +1179,17 @@ function ReqlessJob:priority(priority)
   if queue_name == nil then
     -- If the job doesn't exist, throw an error
     error('Priority(): Job ' .. self.jid .. ' does not exist')
-  elseif queue_name == '' then
-    -- Just adjust the priority
-    redis.call('hset', ReqlessJob.ns .. self.jid, 'priority', priority)
-    return priority
   end
 
-  -- Adjust the priority and see if it's a candidate for updating
-  -- its priority in the queue it's currently in
-  local queue = Reqless.queue(queue_name)
-  if queue.work.score(self.jid) then
-    queue.work.add(0, priority, self.jid)
+  -- See if the job is a candidate for updating its priority in the queue it's
+  -- currently in
+  if queue_name ~= '' then
+    local queue = Reqless.queue(queue_name)
+    if queue.work.score(self.jid) then
+      queue.work.add(0, priority, self.jid)
+    end
   end
+
   redis.call('hset', ReqlessJob.ns .. self.jid, 'priority', priority)
   return priority
 end
