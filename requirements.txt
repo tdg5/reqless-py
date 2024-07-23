@@ -8,7 +8,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 coverage==7.4.4
 coverage-badge==1.1.0
-cryptography==42.0.5
+cryptography==42.0.8
 decorator==5.1.1
 distlib==0.3.7
 docutils==0.20.1
@@ -70,7 +70,7 @@ types-decorator==5.1.8.4
 types-pyOpenSSL==24.0.0.20240311
 types-redis==4.6.0.11
 typing_extensions==4.8.0
-urllib3==2.1.0
+urllib3==2.2.2
 virtualenv==20.24.7
 zipp==3.17.0
 zope.event==5.0
