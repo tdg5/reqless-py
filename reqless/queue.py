@@ -205,12 +205,11 @@ class Queue(AbstractQueue):
     ) -> str:
         """Place a recurring job in this queue"""
         response: str = self.client(
-            "queue.recur",
+            "queue.recurAtInterval",
             self.name,
             jid or uuid.uuid4().hex,
             self.class_string(klass),
             data,
-            "interval",
             interval,
             offset,
             "priority",
