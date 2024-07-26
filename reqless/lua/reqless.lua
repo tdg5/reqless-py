@@ -1,4 +1,4 @@
--- Current SHA: 4be6bbd08890c671ef03e5f48c837d941f892ebd
+-- Current SHA: be21dd39fba640234ed989fe40aaaefc31653dcc
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -460,10 +460,10 @@ function ReqlessJob:complete(now, worker, queue_name, raw_data, ...)
 
   self:throttles_release(now)
 
-  local time = tonumber(
+  local popped_time = tonumber(
     redis.call('hget', ReqlessJob.ns .. self.jid, 'time') or now)
-  local waiting = now - time
-  queue:stat(now, 'run', waiting)
+  local run_time = now - popped_time
+  queue:stat(now, 'run', run_time)
   redis.call('hset', ReqlessJob.ns .. self.jid,
     'time', string.format("%.20f", now))
 
@@ -1597,10 +1597,10 @@ function ReqlessQueue:unfail(now, group, count)
 end
 
 function ReqlessQueue:recurAtInterval(now, jid, klass, raw_data, interval, offset, ...)
-  assert(jid  , 'RecurringJob On(): Arg "jid" missing')
-  assert(klass, 'RecurringJob On(): Arg "klass" missing')
+  assert(jid  , 'Recur(): Arg "jid" missing')
+  assert(klass, 'Recur(): Arg "klass" missing')
   local data = assert(cjson.decode(raw_data),
-    'RecurringJob On(): Arg "data" not JSON: ' .. tostring(raw_data))
+    'Recur(): Arg "data" not JSON: ' .. tostring(raw_data))
 
   local interval = assert(tonumber(interval),
     'Recur(): Arg "interval" not a number: ' .. tostring(interval))
@@ -1611,7 +1611,7 @@ function ReqlessQueue:recurAtInterval(now, jid, klass, raw_data, interval, offse
   end
 
   if #arg % 2 == 1 then
-    error('Odd number of additional args: ' .. tostring(arg))
+    error('Recur(): Odd number of additional args: ' .. tostring(arg))
   end
 
   local options = {}
@@ -2064,6 +2064,12 @@ function ReqlessThrottle:data()
   return data
 end
 
+function ReqlessThrottle:dataWithTtl()
+  local data = self:data()
+  data.ttl = self:ttl()
+  return data
+end
+
 function ReqlessThrottle:set(data, expiration)
   redis.call('hmset', ReqlessThrottle.ns .. self.id, 'id', self.id, 'maximum', data.maximum)
   if expiration > 0 then
@@ -2309,7 +2315,7 @@ ReqlessAPI['queue.stats'] = function(now, queue, date)
 end
 
 ReqlessAPI['queue.throttle.get'] = function(now, queue)
-  local data = Reqless.throttle(ReqlessQueue.ns .. queue):data()
+  local data = throttle:dataWithTtl()
   if data then
     return cjson.encode(data)
   end
@@ -2363,7 +2369,7 @@ ReqlessAPI['throttle.delete'] = function(now, tid)
 end
 
 ReqlessAPI['throttle.get'] = function(now, tid)
-  return cjson.encode(Reqless.throttle(tid):data())
+  return cjson.encode(Reqless.throttle(tid):dataWithTtl())
 end
 
 ReqlessAPI['throttle.locks'] = function(now, tid)
@@ -2388,10 +2394,6 @@ ReqlessAPI['throttle.set'] = function(now, tid, max, ...)
     maximum = max
   }
   Reqless.throttle(tid):set(data, tonumber(expiration or 0))
-end
-
-ReqlessAPI['throttle.ttl'] = function(now, tid)
-  return Reqless.throttle(tid):ttl()
 end
 
 ReqlessAPI['worker.counts'] = function(now, worker)
@@ -2539,6 +2541,10 @@ ReqlessAPI['tag'] = function(now, command, ...)
     return ReqlessAPI['tags.top'](now, unpack(arg))
   end
   error('Tag(): Unknown command ' .. command)
+end
+
+ReqlessAPI['throttle.ttl'] = function(now, tid)
+  return Reqless.throttle(tid):ttl()
 end
 
 ReqlessAPI['timeout'] = function(now, ...)

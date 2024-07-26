@@ -39,5 +39,7 @@ class Throttle(AbstractThrottle):
         return response
 
     def ttl(self) -> int:
-        response: int = self.client("throttle.ttl", self.name)
-        return response
+        json_state = self.client("throttle.get", self.name)
+        state: Dict[str, Any] = json.loads(json_state) if json_state else {}
+        ttl: int = state.get("ttl", -2)
+        return ttl

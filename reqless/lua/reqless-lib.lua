@@ -1,4 +1,4 @@
--- Current SHA: 4be6bbd08890c671ef03e5f48c837d941f892ebd
+-- Current SHA: be21dd39fba640234ed989fe40aaaefc31653dcc
 -- This is a generated file
 -------------------------------------------------------------------------------
 -- Forward declarations to make everything happy
@@ -643,15 +643,11 @@ function ReqlessJob:complete(now, worker, queue_name, raw_data, ...)
 
   self:throttles_release(now)
 
-  ----------------------------------------------------------
-  -- This is the massive stats update that we have to do
-  ----------------------------------------------------------
-  -- This is how long we've been waiting to get popped
-  -- local waiting = math.floor(now) - history[#history]['popped']
-  local time = tonumber(
+  -- Calculate how long the job has been running.
+  local popped_time = tonumber(
     redis.call('hget', ReqlessJob.ns .. self.jid, 'time') or now)
-  local waiting = now - time
-  queue:stat(now, 'run', waiting)
+  local run_time = now - popped_time
+  queue:stat(now, 'run', run_time)
   redis.call('hset', ReqlessJob.ns .. self.jid,
     'time', string.format("%.20f", now))
 
@@ -2134,10 +2130,10 @@ end
 
 -- Recur a job of type klass in this queue
 function ReqlessQueue:recurAtInterval(now, jid, klass, raw_data, interval, offset, ...)
-  assert(jid  , 'RecurringJob On(): Arg "jid" missing')
-  assert(klass, 'RecurringJob On(): Arg "klass" missing')
+  assert(jid  , 'Recur(): Arg "jid" missing')
+  assert(klass, 'Recur(): Arg "klass" missing')
   local data = assert(cjson.decode(raw_data),
-    'RecurringJob On(): Arg "data" not JSON: ' .. tostring(raw_data))
+    'Recur(): Arg "data" not JSON: ' .. tostring(raw_data))
 
   local interval = assert(tonumber(interval),
     'Recur(): Arg "interval" not a number: ' .. tostring(interval))
@@ -2150,7 +2146,7 @@ function ReqlessQueue:recurAtInterval(now, jid, klass, raw_data, interval, offse
   -- Read in all the optional parameters. All of these must come in
   -- pairs, so if we have an odd number of extra args, raise an error
   if #arg % 2 == 1 then
-    error('Odd number of additional args: ' .. tostring(arg))
+    error('Recur(): Odd number of additional args: ' .. tostring(arg))
   end
 
   -- Read in all the optional parameters
@@ -2758,6 +2754,13 @@ function ReqlessThrottle:data()
     data.maximum = tonumber(throttle[2])
   end
 
+  return data
+end
+
+-- Like data, but includes ttl.
+function ReqlessThrottle:dataWithTtl()
+  local data = self:data()
+  data.ttl = self:ttl()
   return data
 end
 
