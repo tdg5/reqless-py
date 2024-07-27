@@ -17,7 +17,8 @@ class Throttle(AbstractThrottle):
         return self._name
 
     def locks(self) -> List[str]:
-        response: List[str] = self.client("throttle.locks", self.name)
+        response_json: str = self.client("throttle.locks", self.name)
+        response: List[str] = json.loads(response_json)
         return response
 
     def maximum(self) -> int:
@@ -35,7 +36,8 @@ class Throttle(AbstractThrottle):
         self.client("throttle.set", self.name, _maximum, expiration or 0)
 
     def pending(self) -> List[str]:
-        response: List[str] = self.client("throttle.pending", self.name)
+        response_json: str = self.client("throttle.pending", self.name)
+        response: List[str] = json.loads(response_json)
         return response
 
     def ttl(self) -> int:

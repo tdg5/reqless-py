@@ -52,7 +52,8 @@ class Jobs(AbstractJobs):
 
     def complete(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return the paginated jids of complete jobs"""
-        response: List[str] = self.client("jobs.completed", offset, count)
+        response_json = self.client("jobs.completed", offset, count)
+        response: List[str] = json.loads(response_json)
         return response
 
     def tracked(self) -> Dict[str, List[Any]]:
@@ -114,12 +115,12 @@ class Workers(AbstractWorkers):
 
     @property
     def counts(self) -> Dict[str, Any]:
-        counts: Dict[str, Any] = json.loads(self.client("workers.list"))
+        counts: Dict[str, Any] = json.loads(self.client("workers.counts"))
         return counts
 
     def __getitem__(self, worker_name: str) -> Dict[str, Any]:
         """Which jobs does a particular worker have running"""
-        result: Dict[str, Any] = json.loads(self.client("worker.counts", worker_name))
+        result: Dict[str, Any] = json.loads(self.client("worker.jobs", worker_name))
         result["jobs"] = result["jobs"] or []
         result["stalled"] = result["stalled"] or []
         return result
@@ -133,7 +134,7 @@ class Queues(AbstractQueues):
 
     @property
     def counts(self) -> Dict:
-        counts: Dict = json.loads(self.client("queues.list"))
+        counts: Dict = json.loads(self.client("queues.counts"))
         return counts
 
     def __getitem__(self, queue_name: str) -> AbstractQueue:

@@ -28,37 +28,42 @@ class Jobs(AbstractQueueJobs):
 
     def depends(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently dependent jobs"""
-        response: List[str] = self.client(
+        response_json: str = self.client(
             "queue.jobsByState", "depends", self.name, offset, count
         )
+        response: List[str] = json.loads(response_json)
         return response
 
     def recurring(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the recurring jobs"""
-        response: List[str] = self.client(
+        response_json: str = self.client(
             "queue.jobsByState", "recurring", self.name, offset, count
         )
+        response: List[str] = json.loads(response_json)
         return response
 
     def running(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-running jobs"""
-        response: List[str] = self.client(
+        response_json: str = self.client(
             "queue.jobsByState", "running", self.name, offset, count
         )
+        response: List[str] = json.loads(response_json)
         return response
 
     def scheduled(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-scheduled jobs"""
-        response: List[str] = self.client(
+        response_json: str = self.client(
             "queue.jobsByState", "scheduled", self.name, offset, count
         )
+        response: List[str] = json.loads(response_json)
         return response
 
     def stalled(self, offset: int = 0, count: int = 25) -> List[str]:
         """Return all the currently-stalled jobs"""
-        response: List[str] = self.client(
+        response_json: str = self.client(
             "queue.jobsByState", "stalled", self.name, offset, count
         )
+        response: List[str] = json.loads(response_json)
         return response
 
 

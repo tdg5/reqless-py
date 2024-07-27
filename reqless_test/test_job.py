@@ -132,12 +132,14 @@ class TestJob(TestReqless):
         """Exposes a way to tag and untag a job"""
         self.client.queues["foo"].put("reqless_test.test_job.Foo", "{}", jid="jid")
         job = self.get_job("jid")
-        job.tag("foo")
+        result = job.tag("foo", "bar")
+        self.assertEqual(["foo", "bar"], result)
         job = self.get_job("jid")
-        self.assertEqual(job.tags, ["foo"])
-        job.untag("foo")
+        self.assertEqual(job.tags, ["foo", "bar"])
+        result = job.untag("foo")
+        self.assertEqual(["bar"], result)
         job = self.get_job("jid")
-        self.assertEqual(job.tags, [])
+        self.assertEqual(job.tags, ["bar"])
 
     def test_move(self) -> None:
         """Able to move jobs through the move method"""

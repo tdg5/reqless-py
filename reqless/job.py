@@ -126,12 +126,14 @@ class BaseJob(AbstractBaseJob):
 
     def tag(self, *tags: str) -> List[str]:
         """Tag a job with additional tags"""
-        response: List[str] = self.client("job.addTag", self.jid, *tags)
+        response_json: str = self.client("job.addTag", self.jid, *tags)
+        response: List[str] = json.loads(response_json)
         return response
 
     def untag(self, *tags: str) -> List[str]:
         """Remove tags from a job"""
-        response: List[str] = self.client("job.removeTag", self.jid, *tags)
+        response_json: str = self.client("job.removeTag", self.jid, *tags)
+        response: List[str] = json.loads(response_json)
         return response
 
 
@@ -515,7 +517,7 @@ class RecurringJob(BaseJob, AbstractRecurringJob):
 
     def cancel(self) -> List[str]:
         """Cancel all future recurring jobs"""
-        self.client("recurringJob.unrecur", self.jid)
+        self.client("recurringJob.cancel", self.jid)
         return [self.jid]
 
     def tag(self, *tags: str) -> List[str]:

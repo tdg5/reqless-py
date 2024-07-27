@@ -36,7 +36,7 @@ class TestClient(TestReqless):
 
     def test_tags(self) -> None:
         """Provides access to top tags"""
-        self.assertEqual(self.client.tags(), {})
+        self.assertEqual(self.client.tags(), [])
         for _ in range(10):
             self.client.queues["foo"].put(
                 "reqless_test.common.NoopJob", "{}", tags=["foo"]
@@ -125,7 +125,7 @@ class TestQueues(TestReqless):
 
     def test_counts(self) -> None:
         """Gives us access to counts"""
-        self.assertEqual(self.client.queues.counts, {})
+        self.assertEqual(self.client.queues.counts, [])
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}")
         self.assertEqual(
             self.client.queues.counts,
@@ -210,7 +210,7 @@ class TestWorkers(TestReqless):
     def test_counts(self) -> None:
         """Gives us access to worker counts"""
         self.client.queues["foo"].put("reqless_test.common.NoopJob", "{}", jid="jid")
-        self.assertEqual(self.client.workers.counts, {})
+        self.assertEqual(self.client.workers.counts, [])
         job = next(self.worker.jobs())
         assert job is not None
         self.assertEqual(

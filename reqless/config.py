@@ -15,7 +15,7 @@ class Config(AbstractConfig):
 
     @property
     def all(self) -> Dict[str, Any]:
-        response: Dict[str, Any] = json.loads(self._client("config.get"))
+        response: Dict[str, Any] = json.loads(self._client("config.getAll"))
         return response
 
     def __len__(self) -> int:

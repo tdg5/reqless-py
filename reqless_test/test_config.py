@@ -20,13 +20,13 @@ class TestConfig(TestReqless):
             self.client.config.all,
             {
                 "application": "reqless",
-                "grace-period": 10,
-                "heartbeat": 60,
-                "jobs-history": 604800,
-                "jobs-history-count": 50000,
-                "max-job-history": 100,
-                "max-pop-retry": 1,
-                "max-worker-age": 86400,
+                "grace-period": "10",
+                "heartbeat": "60",
+                "jobs-history": "604800",
+                "jobs-history-count": "50000",
+                "max-job-history": "100",
+                "max-pop-retry": "1",
+                "max-worker-age": "86400",
             },
         )
 
