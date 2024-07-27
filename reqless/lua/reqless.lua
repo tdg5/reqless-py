@@ -1,4 +1,4 @@
--- Current SHA: be21dd39fba640234ed989fe40aaaefc31653dcc
+-- Current SHA: 1b5bb93e846bbf76be594efe6fc19268dd3a20b2
 -- This is a generated file
 local Reqless = {
   ns = 'ql:'
@@ -2315,10 +2315,7 @@ ReqlessAPI['queue.stats'] = function(now, queue, date)
 end
 
 ReqlessAPI['queue.throttle.get'] = function(now, queue)
-  local data = throttle:dataWithTtl()
-  if data then
-    return cjson.encode(data)
-  end
+  return ReqlessAPI['throttle.get'](now, ReqlessQueue.ns .. queue)
 end
 
 ReqlessAPI['queue.throttle.set'] = function(now, queue, max)
