@@ -24,7 +24,7 @@ class TestQmoreClient(TestReqless):
         }
         self.database.hset(QUEUE_IDENTIFIER_PATTERNS_KEY, mapping=json_mapping)
         fetched_mapping = self.subject.get_queue_identifier_patterns()
-        self.assertEqual({"default": "*", **mapping}, fetched_mapping)
+        self.assertEqual({"default": ["*"], **mapping}, fetched_mapping)
 
     def test_set_queue_identifier_patterns(self) -> None:
         """It sets the expected queue identifier patterns"""

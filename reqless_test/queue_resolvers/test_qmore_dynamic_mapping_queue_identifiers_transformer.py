@@ -309,7 +309,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
         """It tolerates when no dynamic queue mapping is defined"""
         subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
         mapping = subject._get_dynamic_queue_mapping()
-        self.assertEqual({"default": "*"}, mapping)
+        self.assertEqual({"default": ["*"]}, mapping)
 
     def test_get_dynamic_queue_mapping_returns_expected_mapping(self) -> None:
         """It fetches and returns the expected dynamic queue mapping"""
@@ -329,13 +329,13 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
             dynamic_queue_mapping_refresh_frequency_milliseconds=refresh_frequency,
         )
         mapping = subject._get_dynamic_queue_mapping()
-        self.assertEqual({"default": "*"}, mapping)
+        self.assertEqual({"default": ["*"]}, mapping)
 
         default_mapping = ["ignore"]
         other_mapping = ["one", "two*", "th*ree", "four"]
         self.set_dynamic_queues({"default": default_mapping, "other": other_mapping})
         mapping = subject._get_dynamic_queue_mapping()
-        self.assertEqual({"default": "*"}, mapping)
+        self.assertEqual({"default": ["*"]}, mapping)
 
         time.sleep(refresh_frequency / 1000.0)
 

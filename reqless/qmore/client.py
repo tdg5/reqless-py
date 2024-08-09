@@ -35,7 +35,7 @@ class QmoreClient:
             for identifier, json_patterns in serialized_patterns.items()
         }
         if "default" not in patterns:
-            patterns["default"] = "*"
+            patterns["default"] = ["*"]
         return patterns
 
     def set_queue_identifier_patterns(
