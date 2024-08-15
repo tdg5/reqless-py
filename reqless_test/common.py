@@ -65,5 +65,5 @@ class TestReqless(unittest.TestCase):
                     job.cancel()
 
     def tearDown(self) -> None:
-        # Ensure that we leave no keys behind, and that we've unfrozen time
+        # Ensure that we leave no keys behind
         self.database.flushdb()

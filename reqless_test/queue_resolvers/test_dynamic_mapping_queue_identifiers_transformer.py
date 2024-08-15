@@ -2,7 +2,7 @@ import time
 from typing import Dict, List
 from uuid import uuid4
 
-from reqless.queue_resolvers.dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
+from reqless.queue_resolvers.dynamic_mapping_queue_identifiers_transformer import (
     DynamicMappingQueueIdentifiersTransformer,
 )
 from reqless.queue_resolvers.transforming_queue_resolver import (

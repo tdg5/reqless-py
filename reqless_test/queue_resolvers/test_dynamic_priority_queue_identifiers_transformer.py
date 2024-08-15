@@ -2,7 +2,7 @@ import time
 from typing import List
 
 from reqless.models import QueuePriorityPattern
-from reqless.queue_resolvers.dynamic_priority_queue_identifiers_transformer import (  # noqa: E501
+from reqless.queue_resolvers.dynamic_priority_queue_identifiers_transformer import (
     DynamicPriorityQueueIdentifiersTransformer,
 )
 from reqless.queue_resolvers.transforming_queue_resolver import (
