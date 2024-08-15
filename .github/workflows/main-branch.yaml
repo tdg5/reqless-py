@@ -1,4 +1,4 @@
-name: Test, build, and publish the package
+name: Test, build, and update metadata
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   test-and-build-and-update-metadata:
-    name: Test, build, and publish the package
+    name: Test, build, and update metadata
     runs-on: ubuntu-latest
 
     steps:
