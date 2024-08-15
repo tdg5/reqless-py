@@ -13,6 +13,7 @@ from reqless.abstract.abstract_queue_identifiers_transformer import (
     AbstractQueueIdentifiersTransformer,
 )
 from reqless.abstract.abstract_queue_jobs import AbstractQueueJobs
+from reqless.abstract.abstract_queue_patterns import AbstractQueuePatterns
 from reqless.abstract.abstract_queue_resolver import AbstractQueueResolver
 from reqless.abstract.abstract_queues import AbstractQueues
 from reqless.abstract.abstract_throttle import AbstractThrottle
@@ -32,6 +33,7 @@ __all__ = [
     "AbstractQueue",
     "AbstractQueueJobs",
     "AbstractQueueResolver",
+    "AbstractQueuePatterns",
     "AbstractQueues",
     "AbstractRecurringJob",
     "AbstractThrottle",
