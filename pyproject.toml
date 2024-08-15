@@ -58,6 +58,7 @@ test = [
     "coverage",
     "coverage-badge~=1.1.0",
     "pytest~=7.4.0",
+    "pytest-watcher~=0.4.2",
     "setuptools>=69",
 ]
 all = ["reqless[dev,test]"]
