@@ -100,3 +100,5 @@ jobs:
             --title "$RELEASE_NAME" \
             --verify-tag \
             "$RELEASE_NAME"
+
+    timeout-minutes: 10

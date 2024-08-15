@@ -52,3 +52,5 @@ jobs:
           source venv/bin/activate
           make test-with-coverage
           python -m build
+
+    timeout-minutes: 10

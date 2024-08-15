@@ -74,3 +74,5 @@ jobs:
           optionalFilePaths: |
             .meta/coverage/badge.svg
             .meta/coverage/report.txt
+
+    timeout-minutes: 10
