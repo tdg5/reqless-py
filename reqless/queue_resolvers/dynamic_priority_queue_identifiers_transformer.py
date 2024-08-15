@@ -6,21 +6,15 @@ from typing import List, Optional
 from reqless import Client
 from reqless.abstract import AbstractQueueIdentifiersTransformer
 from reqless.models import QueuePriorityPattern
-from reqless.qmore.client import QmoreClient
 
 
-class QmoreDynamicPriorityQueueIdentifiersTransformer(
-    AbstractQueueIdentifiersTransformer
-):
+class DynamicPriorityQueueIdentifiersTransformer(AbstractQueueIdentifiersTransformer):
     def __init__(
         self,
         client: Client,
         dynamic_queue_priorities_refresh_frequency_milliseconds: Optional[int] = None,
     ):
-        self.reqless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(
-            database=self.reqless_client.database
-        )
+        self.client: Client = client
 
         self._dynamic_queue_priorities: Optional[List[QueuePriorityPattern]] = None
         self._dynamic_queue_priorities_ttl_time_delta: timedelta = timedelta(
@@ -39,7 +33,7 @@ class QmoreDynamicPriorityQueueIdentifiersTransformer(
             <= datetime.now(tz=timezone.utc)
         ):
             self._dynamic_queue_priorities = (
-                self.qmore_client.get_queue_priority_patterns()
+                self.client.queue_patterns.get_queue_priority_patterns()
             )
             self._dynamic_queue_priorities_expires_at = (
                 datetime.now(tz=timezone.utc)
@@ -112,7 +106,7 @@ class QmoreDynamicPriorityQueueIdentifiersTransformer(
         return prioritized_queues
 
     def transform(self, queue_identifiers: List[str]) -> List[str]:
-        return QmoreDynamicPriorityQueueIdentifiersTransformer.prioritize_queues(
+        return DynamicPriorityQueueIdentifiersTransformer.prioritize_queues(
             queue_identifiers=queue_identifiers,
             queue_priority_patterns=self._get_dynamic_queue_priorities(),
         )

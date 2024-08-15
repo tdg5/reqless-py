@@ -16,6 +16,7 @@ from reqless.abstract import (
     AbstractJob,
     AbstractJobs,
     AbstractQueue,
+    AbstractQueuePatterns,
     AbstractQueues,
     AbstractThrottles,
     AbstractWorkers,
@@ -26,6 +27,7 @@ from reqless.job import Job, RecurringJob
 from reqless.listener import Events
 from reqless.logger import logger
 from reqless.queue import Queue
+from reqless.queue_patterns import QueuePatterns
 from reqless.throttle import Throttle
 
 
@@ -175,6 +177,7 @@ class Client(AbstractClient):
         self._config: AbstractConfig = Config(self)
         self._workers: AbstractWorkers = Workers(self)
         self._events: Optional[Events] = None
+        self._queue_patterns: AbstractQueuePatterns = QueuePatterns(self)
 
         # We now have a single unified core script.
         data = pkgutil.get_data("reqless", "lua/reqless.lua")
@@ -193,6 +196,10 @@ class Client(AbstractClient):
     @property
     def queues(self) -> AbstractQueues:
         return self._queues
+
+    @property
+    def queue_patterns(self) -> AbstractQueuePatterns:
+        return self._queue_patterns
 
     @property
     def database(self) -> Redis:

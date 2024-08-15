@@ -27,7 +27,6 @@ description = "Queue Management built on remote data structure stores like redis
 dynamic = ["version"]
 keywords = [
     "job",
-    "qmore",
     "redis",
     "reqless",
     "valkey",
@@ -132,7 +131,6 @@ include = [
   "reqless",
   "reqless.abstract",
   "reqless.models",
-  "reqless.qmore",
   "reqless.queue_resolvers",
   "reqless.workers",
 ]

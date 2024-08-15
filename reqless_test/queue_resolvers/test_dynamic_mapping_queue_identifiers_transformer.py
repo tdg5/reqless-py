@@ -2,9 +2,8 @@ import time
 from typing import Dict, List
 from uuid import uuid4
 
-from reqless.qmore.client import QmoreClient
-from reqless.queue_resolvers.qmore_dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
-    QmoreDynamicMappingQueueIdentifiersTransformer,
+from reqless.queue_resolvers.dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
+    DynamicMappingQueueIdentifiersTransformer,
 )
 from reqless.queue_resolvers.transforming_queue_resolver import (
     TransformingQueueResolver,
@@ -12,13 +11,12 @@ from reqless.queue_resolvers.transforming_queue_resolver import (
 from reqless_test.common import TestReqless
 
 
-class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
+class TestDynamicMappingQueueIdentifiersTransformer(TestReqless):
     def setUp(self) -> None:
         TestReqless.setUp(self)
-        self.qmore_client = QmoreClient(database=self.client.database)
 
     def set_dynamic_queues(self, mapping: Dict[str, List[str]]) -> None:
-        self.qmore_client.set_queue_identifier_patterns(mapping)
+        self.client.queue_patterns.set_queue_identifier_patterns(mapping)
 
     def collect_queue_names(
         self,
@@ -26,7 +24,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
         known_queue_names: List[str],
         patterns: List[str],
     ) -> List[str]:
-        subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
+        subject = DynamicMappingQueueIdentifiersTransformer(client=self.client)
         if known_queue_names:
             self.ensure_queues_exist(known_queue_names)
         self.set_dynamic_queues(dynamic_queue_mapping)
@@ -307,7 +305,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
 
     def test_get_dynamic_queue_mapping_handles_no_defined_mapping(self) -> None:
         """It tolerates when no dynamic queue mapping is defined"""
-        subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
+        subject = DynamicMappingQueueIdentifiersTransformer(client=self.client)
         mapping = subject._get_dynamic_queue_mapping()
         self.assertEqual({"default": ["*"]}, mapping)
 
@@ -316,7 +314,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
         default_mapping = ["*"]
         other_mapping = ["one", "two*", "th*ree", "four"]
         self.set_dynamic_queues({"default": default_mapping, "other": other_mapping})
-        subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
+        subject = DynamicMappingQueueIdentifiersTransformer(client=self.client)
         mapping = subject._get_dynamic_queue_mapping()
         self.assertEqual(default_mapping, mapping["default"])
         self.assertEqual(other_mapping, mapping["other"])
@@ -324,7 +322,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
     def test_get_dynamic_queue_mapping_caches_mapping_for_some_duration(self) -> None:
         """It caches the dynamic queue mapping for the configured duration"""
         refresh_frequency = 500
-        subject = QmoreDynamicMappingQueueIdentifiersTransformer(
+        subject = DynamicMappingQueueIdentifiersTransformer(
             client=self.client,
             dynamic_queue_mapping_refresh_frequency_milliseconds=refresh_frequency,
         )
@@ -362,7 +360,7 @@ class TestQmoreDynamicMappingQueueIdentifiersTransformer(TestReqless):
         self.ensure_queues_exist(expected_queue_names)
 
         patterns = ["ten", "tw*", "eleven", "tweleve", "@no_exist", "@other", "!skip"]
-        subject = QmoreDynamicMappingQueueIdentifiersTransformer(client=self.client)
+        subject = DynamicMappingQueueIdentifiersTransformer(client=self.client)
         queue_resolver = TransformingQueueResolver(
             queue_identifiers=patterns,
             transformers=[subject],

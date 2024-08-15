@@ -1,8 +1,8 @@
-from reqless.queue_resolvers.qmore_dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
-    QmoreDynamicMappingQueueIdentifiersTransformer,
+from reqless.queue_resolvers.dynamic_mapping_queue_identifiers_transformer import (  # noqa: E501
+    DynamicMappingQueueIdentifiersTransformer,
 )
-from reqless.queue_resolvers.qmore_dynamic_priority_queue_identifiers_transformer import (  # noqa: E501
-    QmoreDynamicPriorityQueueIdentifiersTransformer,
+from reqless.queue_resolvers.dynamic_priority_queue_identifiers_transformer import (  # noqa: E501
+    DynamicPriorityQueueIdentifiersTransformer,
 )
 from reqless.queue_resolvers.transforming_queue_resolver import (
     TransformingQueueResolver,
@@ -10,7 +10,7 @@ from reqless.queue_resolvers.transforming_queue_resolver import (
 
 
 __all__ = [
-    "QmoreDynamicMappingQueueIdentifiersTransformer",
-    "QmoreDynamicPriorityQueueIdentifiersTransformer",
+    "DynamicMappingQueueIdentifiersTransformer",
+    "DynamicPriorityQueueIdentifiersTransformer",
     "TransformingQueueResolver",
 ]

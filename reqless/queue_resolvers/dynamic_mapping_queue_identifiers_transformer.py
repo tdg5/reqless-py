@@ -4,21 +4,15 @@ from typing import Dict, List, Optional
 
 from reqless import Client
 from reqless.abstract import AbstractQueueIdentifiersTransformer
-from reqless.qmore.client import QmoreClient
 
 
-class QmoreDynamicMappingQueueIdentifiersTransformer(
-    AbstractQueueIdentifiersTransformer
-):
+class DynamicMappingQueueIdentifiersTransformer(AbstractQueueIdentifiersTransformer):
     def __init__(
         self,
         client: Client,
         dynamic_queue_mapping_refresh_frequency_milliseconds: Optional[int] = None,
     ):
-        self.reqless_client: Client = client
-        self.qmore_client: QmoreClient = QmoreClient(
-            database=self.reqless_client.database
-        )
+        self.client: Client = client
 
         self._dynamic_queue_mapping: Optional[Dict[str, List[str]]] = None
         self._dynamic_queue_mapping_ttl_time_delta: timedelta = timedelta(
@@ -34,7 +28,7 @@ class QmoreDynamicMappingQueueIdentifiersTransformer(
             or self._dynamic_queue_mapping_expires_at <= datetime.now(tz=timezone.utc)
         ):
             self._dynamic_queue_mapping = (
-                self.qmore_client.get_queue_identifier_patterns()
+                self.client.queue_patterns.get_queue_identifier_patterns()
             )
             self._dynamic_queue_mapping_expires_at = (
                 datetime.now(tz=timezone.utc)
@@ -92,10 +86,8 @@ class QmoreDynamicMappingQueueIdentifiersTransformer(
         return matched_queues
 
     def transform(self, queue_identifiers: List[str]) -> List[str]:
-        return QmoreDynamicMappingQueueIdentifiersTransformer.resolve_queue_names(
+        return DynamicMappingQueueIdentifiersTransformer.resolve_queue_names(
             dynamic_queue_mapping=self._get_dynamic_queue_mapping(),
-            known_queue_names=[
-                count["name"] for count in self.reqless_client.queues.counts
-            ],
+            known_queue_names=[count["name"] for count in self.client.queues.counts],
             patterns=queue_identifiers,
         )
