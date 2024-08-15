@@ -18,7 +18,7 @@ reqless-core:
 
 .PHONY: test-with-coverage
 test-with-coverage: reqless-core
-	coverage run -m pytest
+	coverage run -m pytest -s
 	coverage report | tee .meta/coverage/report.txt
 	coverage-badge -f -o .meta/coverage/badge.svg
 
