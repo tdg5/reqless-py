@@ -1,7 +1,7 @@
 async-timeout==4.0.3
 black==24.4.0
 build==1.0.3
-certifi==2024.2.2
+certifi==2024.7.4
 cffi==1.16.0
 cfgv==3.4.0
 charset-normalizer==3.3.2
@@ -74,6 +74,6 @@ typing_extensions==4.8.0
 urllib3==2.2.2
 virtualenv==20.24.7
 watchdog==4.0.2
-zipp==3.17.0
+zipp==3.20.0
 zope.event==5.0
 zope.interface==6.2
