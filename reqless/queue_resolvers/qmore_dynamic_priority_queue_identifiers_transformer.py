@@ -5,7 +5,8 @@ from typing import List, Optional
 
 from reqless import Client
 from reqless.abstract import AbstractQueueIdentifiersTransformer
-from reqless.qmore.client import QmoreClient, QueuePriorityPattern
+from reqless.models import QueuePriorityPattern
+from reqless.qmore.client import QmoreClient
 
 
 class QmoreDynamicPriorityQueueIdentifiersTransformer(

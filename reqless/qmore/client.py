@@ -3,25 +3,11 @@ from typing import Dict, List, Mapping, Union
 
 from redis import Redis
 
+from reqless.models import QueuePriorityPattern
+
 
 QUEUE_IDENTIFIER_PATTERNS_KEY = "qmore:dynamic"
 QUEUE_PRIORITY_PATTERNS_KEY = "qmore:priority"
-
-
-class QueuePriorityPattern:
-    def __init__(
-        self,
-        patterns: List[str],
-        should_distribute_fairly: bool,
-    ):
-        self.patterns: List[str] = patterns
-        self.should_distribute_fairly: bool = should_distribute_fairly
-
-    def __repr__(self) -> str:
-        return (
-            f"<QueuePriorityPattern patterns={self.patterns}"
-            f" should_distribute_fairly={self.should_distribute_fairly}>"
-        )
 
 
 class QmoreClient:

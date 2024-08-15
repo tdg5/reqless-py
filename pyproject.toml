@@ -131,6 +131,7 @@ script-files = ["bin/reqless-py-worker"]
 include = [
   "reqless",
   "reqless.abstract",
+  "reqless.models",
   "reqless.qmore",
   "reqless.queue_resolvers",
   "reqless.workers",
