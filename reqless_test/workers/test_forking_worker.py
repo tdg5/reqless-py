@@ -3,7 +3,6 @@
 import json
 import os
 import signal
-import time
 from threading import Thread
 from typing import Optional
 
@@ -11,6 +10,7 @@ from reqless.abstract import AbstractJob
 from reqless.workers.base_worker import BaseWorker
 from reqless.workers.forking_worker import ForkingWorker
 from reqless_test.common import TestReqless
+from reqless_test.test_helpers import wait_for_condition
 
 
 class Foo:
@@ -60,26 +60,49 @@ class TestForkingWorker(TestReqless):
 
     def test_respawn(self) -> None:
         """It respawns workers as needed"""
-        self.thread = Thread(target=self.worker.run)
+        thread_started = False
+
+        def start_worker() -> None:
+            nonlocal thread_started
+            thread_started = True
+            self.worker.run()
+
+        thread = Thread(target=start_worker)
+        self.thread = thread
         self.thread.start()
-        time.sleep(0.1)
+        wait_for_condition(lambda: thread_started)
         self.worker.shutdown = True
         self.queue.put(Foo, "{}")
-        self.thread.join(1)
-        self.assertFalse(self.thread.is_alive())
+        wait_for_condition(lambda: not thread.is_alive())
 
     def test_cwd(self) -> None:
         """Should set the child's cwd appropriately"""
-        self.thread = Thread(target=self.worker.run)
+        thread_started = False
+
+        def start_worker() -> None:
+            nonlocal thread_started
+            thread_started = True
+            self.worker.run()
+
+        thread = Thread(target=start_worker)
+        self.thread = thread
         self.thread.start()
-        time.sleep(0.1)
-        self.worker.shutdown = True
+        wait_for_condition(lambda: thread_started)
         jid = self.queue.put(CWD, "{}")
-        self.thread.join(1)
-        self.assertFalse(self.thread.is_alive())
+
+        self.worker.shutdown = True
+
+        def job_is_complete() -> bool:
+            job = self.client.jobs[jid]
+            assert isinstance(job, AbstractJob)
+            return job.state == "complete"
+
+        wait_for_condition(job_is_complete)
+
         expected = os.path.join(os.getcwd(), "reqless-py-workers/sandbox-0")
         job = self.client.jobs[jid]
         assert isinstance(job, AbstractJob)
+        wait_for_condition(lambda: not thread.is_alive())
         self.assertEqual(json.loads(job.data)["cwd"], expected)
 
     def test_spawn_klass_string(self) -> None:
