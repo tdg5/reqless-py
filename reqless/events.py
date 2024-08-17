@@ -63,6 +63,9 @@ class Events:
         """Run in a thread"""
         thread = threading.Thread(target=self.listen)
         thread.start()
+        # Wait for the listener to start listening to ensure we don't unlisten
+        # before the listener has started listening.
+        self._listener.wait_until_listening()
         try:
             yield self
         finally:
