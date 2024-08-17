@@ -22,9 +22,9 @@ from reqless.abstract import (
     AbstractWorkers,
 )
 from reqless.config import Config
+from reqless.events import Events
 from reqless.exceptions import ReqlessError
 from reqless.job import Job, RecurringJob
-from reqless.listener import Events
 from reqless.logger import logger
 from reqless.queue import Queue
 from reqless.queue_patterns import QueuePatterns

@@ -21,12 +21,11 @@ class TestEvents(TestReqless):
 
         count = 0
 
-        def func(event: Dict) -> None:
-            """No docstring"""
+        def on_popped(event: Dict) -> None:
             nonlocal count
             count += 1
 
-        self.client.events.on("popped", func)
+        self.client.events.on("popped", on_popped)
         with self.client.events.thread():
             self.client.queues["foo"].pop()
         self.assertEqual(count, 1)
@@ -36,20 +35,18 @@ class TestEvents(TestReqless):
 
         popped_count = 0
 
-        def popped(event: Dict) -> None:
-            """No docstring"""
+        def on_popped(event: Dict) -> None:
             nonlocal popped_count
             popped_count += 1
 
         completed_count = 0
 
-        def completed(event: Dict) -> None:
-            """No docstring"""
+        def on_completed(event: Dict) -> None:
             nonlocal completed_count
             completed_count += 1
 
-        self.client.events.on("popped", popped)
-        self.client.events.on("completed", completed)
+        self.client.events.on("popped", on_popped)
+        self.client.events.on("completed", on_completed)
         self.client.events.off("popped")
         with self.client.events.thread():
             job = self.client.queues["foo"].pop()
