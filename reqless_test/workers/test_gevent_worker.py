@@ -8,7 +8,6 @@ from typing import Generator, Optional
 import gevent
 
 from reqless.abstract import AbstractJob, AbstractQueue
-from reqless.listener import Listener
 from reqless.workers.gevent_worker import GeventWorker
 from reqless_test.common import TestReqless
 
@@ -38,10 +37,6 @@ class PatchedGeventWorker(GeventWorker):
         generator = GeventWorker.jobs(self)
         for _ in range(5):
             yield next(generator)
-
-    def listen(self, listener: Listener) -> None:
-        """Don't actually listen for pubsub events"""
-        pass
 
 
 class TestGeventWorker(TestReqless):

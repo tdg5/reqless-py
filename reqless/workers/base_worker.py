@@ -107,6 +107,7 @@ class BaseWorker:
         listener = Listener(self.client.database, channels)
         thread = threading.Thread(target=self.listen, args=(listener,))
         thread.start()
+        listener.wait_until_listening()
         try:
             yield
         finally:

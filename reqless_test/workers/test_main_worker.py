@@ -10,6 +10,7 @@ import pytest
 from reqless.abstract import AbstractJob
 from reqless.workers.main_worker import MainWorker
 from reqless_test.common import BlockingJob, TestReqless
+from reqless_test.test_helpers import wait_for_condition
 
 
 class ShortLivedMainWorker(MainWorker):
@@ -52,20 +53,25 @@ class TestMainWorker(TestReqless):
         temp_file = NamedTemporaryFile()
         jid = self.queue.put(BlockingJob, json.dumps({"blocker_file": temp_file.name}))
 
+        thread_started = False
+
         def job_killer() -> None:
+            nonlocal thread_started
+            thread_started = True
             job = self.client.jobs[jid]
-            assert job is not None and isinstance(job, AbstractJob)
+            assert isinstance(job, AbstractJob)
             # Now, we'll timeout one of the jobs and ensure that
             # halt_job_processing is invoked
             while job.state != "running":
                 time.sleep(0.01)
                 job = self.client.jobs[jid]
-                assert job is not None and isinstance(job, AbstractJob)
+                assert isinstance(job, AbstractJob)
             job.timeout()
             temp_file.close()
 
         thread = Thread(target=job_killer)
         thread.start()
+        wait_for_condition(lambda: thread_started)
         with pytest.raises(KeyboardInterrupt) as exinfo:
             ShortLivedMainWorker(["foo"], self.client, interval=0.2).run()
         assert KeyboardInterrupt == exinfo.type

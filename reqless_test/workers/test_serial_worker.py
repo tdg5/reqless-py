@@ -7,7 +7,6 @@ from threading import Thread
 from typing import Generator, Optional
 
 from reqless.abstract import AbstractJob
-from reqless.listener import Listener
 from reqless.workers.serial_worker import SerialWorker
 from reqless_test.common import BlockingJob, TestReqless
 
@@ -20,11 +19,6 @@ class ShortLivedSerialWorker(SerialWorker):
 
     def halt_job_processing(self, jid: str) -> None:
         self.client.database.rpush("foo", jid)
-
-
-class NoListenSerialWorker(ShortLivedSerialWorker):
-    def listen(self, listener: Listener) -> None:
-        pass
 
 
 class TestSerialWorker(TestReqless):
@@ -43,7 +37,7 @@ class TestSerialWorker(TestReqless):
     def test_basic(self) -> None:
         """Can complete jobs in a basic way"""
         jids = [self.queue.put(BlockingJob, "{}") for _ in range(5)]
-        NoListenSerialWorker(["foo"], self.client, interval=0.2).run()
+        ShortLivedSerialWorker(["foo"], self.client, interval=0.2).run()
         states = []
         for jid in jids:
             job = self.client.jobs[jid]
@@ -53,7 +47,7 @@ class TestSerialWorker(TestReqless):
 
     def test_jobs(self) -> None:
         """The jobs method yields None if there are no jobs"""
-        worker = NoListenSerialWorker(["foo"], self.client, interval=0.2)
+        worker = ShortLivedSerialWorker(["foo"], self.client, interval=0.2)
         self.assertEqual(next(worker.jobs()), None)
 
     def test_sleeps(self) -> None:
@@ -61,7 +55,7 @@ class TestSerialWorker(TestReqless):
         for _ in range(4):
             self.queue.put(BlockingJob, "{}")
         before = time.time()
-        NoListenSerialWorker(["foo"], self.client, interval=0.2).run()
+        ShortLivedSerialWorker(["foo"], self.client, interval=0.2).run()
         self.assertGreater(time.time() - before, 0.2)
 
     def test_lost_locks(self) -> None:
