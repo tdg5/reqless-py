@@ -3,7 +3,6 @@
 import json
 import time
 import traceback
-import types
 from typing import Any, Dict, List, Optional, Type, Union
 
 from reqless.abstract import (
@@ -246,16 +245,6 @@ class Job(BaseJob, AbstractJob):
                 + self.queue_name
                 + '" or "process"',
             )
-            return
-
-        if not isinstance(method, types.FunctionType):
-            logger.error(
-                "Failed %s in %s : %s is not static",
-                self.jid,
-                self.queue_name,
-                repr(method),
-            )
-            self.fail(self.queue_name + "-method-type", repr(method) + " is not static")
             return
 
         try:
