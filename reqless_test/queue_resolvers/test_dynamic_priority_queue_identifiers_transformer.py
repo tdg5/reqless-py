@@ -12,6 +12,10 @@ from reqless_test.common import TestReqless
 
 
 class TestDynamicPriorityQueueIdentifiersTransformer(TestReqless):
+    default_queue_priority_patterns = [
+        QueuePriorityPattern(patterns=["default"], should_distribute_fairly=False),
+    ]
+
     def setUp(self) -> None:
         TestReqless.setUp(self)
         # We use many queues to reduce the chances that we shuffle a list into
@@ -279,24 +283,24 @@ class TestDynamicPriorityQueueIdentifiersTransformer(TestReqless):
         )
         self.client.queue_patterns.set_queue_priority_patterns([])
         priorities = subject._get_dynamic_queue_priorities()
-        self.assertEqual([], priorities)
+        self.assertEqual(priorities, self.default_queue_priority_patterns)
 
         self.client.queue_patterns.set_queue_priority_patterns(
             [
                 QueuePriorityPattern(
-                    patterns=["default"], should_distribute_fairly=False
+                    patterns=["default"], should_distribute_fairly=True
                 ),
             ]
         )
         priorities = subject._get_dynamic_queue_priorities()
-        self.assertEqual([], priorities)
+        self.assertEqual(self.default_queue_priority_patterns, priorities)
 
         time.sleep(refresh_frequency / 1000.0)
 
         priorities = subject._get_dynamic_queue_priorities()
         self.assertEqual(1, len(priorities))
         self.assertEqual(["default"], priorities[0].patterns)
-        self.assertFalse(priorities[0].should_distribute_fairly)
+        self.assertTrue(priorities[0].should_distribute_fairly)
 
     def test_with_transforming_queue_resolver(self) -> None:
         """It works with TransformingQueueResolver"""

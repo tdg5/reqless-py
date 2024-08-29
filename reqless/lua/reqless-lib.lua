@@ -1,4 +1,4 @@
--- Current SHA: 8b6600adb988e7f4922f606798b6ad64c06a245d
+-- Current SHA: 54efb0679992da71b576cf16c043e9c9f985f426
 -- This is a generated file
 -- cjson can't tell an empty array from an empty object, so empty arrays end up
 -- encoded as objects. This function makes empty arrays look like empty arrays.
@@ -2527,6 +2527,7 @@ function ReqlessQueue.counts(now, name)
 end
 local ReqlessQueuePatterns = {
   default_identifiers_default_pattern = '["*"]',
+  default_priority_pattern = '{"fairly": false, "pattern": ["default"]}',
   ns = Reqless.ns .. "qp:",
 }
 ReqlessQueuePatterns.__index = ReqlessQueuePatterns
@@ -2599,6 +2600,10 @@ ReqlessQueuePatterns['getPriorityPatterns'] = function(now)
     reply = redis.call('lrange', 'qmore:priority', 0, -1)
   end
 
+  if #reply == 0 then
+    reply = {ReqlessQueuePatterns.default_priority_pattern}
+  end
+
   return reply
 end
 
@@ -2610,7 +2615,21 @@ ReqlessQueuePatterns['setPriorityPatterns'] = function(now, ...)
   redis.call('del', key)
   -- Clear out the legacy key
   redis.call('del', 'qmore:priority')
+
   if #arg > 0 then
+    -- Check for the default priority pattern and add one if none is given.
+    local found_default = false
+    for i = 1, #arg do
+      local pattern = cjson.decode(arg[i])['pattern']
+      if #pattern == 1 and pattern[1] == 'default' then
+        found_default = true
+        break
+      end
+    end
+    if not found_default then
+      table.insert(arg, ReqlessQueuePatterns.default_priority_pattern)
+    end
+
     redis.call('rpush', key, unpack(arg))
   end
 end

@@ -1,4 +1,4 @@
--- Current SHA: 8b6600adb988e7f4922f606798b6ad64c06a245d
+-- Current SHA: 54efb0679992da71b576cf16c043e9c9f985f426
 -- This is a generated file
 local function cjsonArrayDegenerationWorkaround(array)
   if #array == 0 then
@@ -1898,6 +1898,7 @@ function ReqlessQueue.counts(now, name)
 end
 local ReqlessQueuePatterns = {
   default_identifiers_default_pattern = '["*"]',
+  default_priority_pattern = '{"fairly": false, "pattern": ["default"]}',
   ns = Reqless.ns .. "qp:",
 }
 ReqlessQueuePatterns.__index = ReqlessQueuePatterns
@@ -1961,6 +1962,10 @@ ReqlessQueuePatterns['getPriorityPatterns'] = function(now)
     reply = redis.call('lrange', 'qmore:priority', 0, -1)
   end
 
+  if #reply == 0 then
+    reply = {ReqlessQueuePatterns.default_priority_pattern}
+  end
+
   return reply
 end
 
@@ -1968,7 +1973,20 @@ ReqlessQueuePatterns['setPriorityPatterns'] = function(now, ...)
   local key = ReqlessQueuePatterns.ns .. 'priorities'
   redis.call('del', key)
   redis.call('del', 'qmore:priority')
+
   if #arg > 0 then
+    local found_default = false
+    for i = 1, #arg do
+      local pattern = cjson.decode(arg[i])['pattern']
+      if #pattern == 1 and pattern[1] == 'default' then
+        found_default = true
+        break
+      end
+    end
+    if not found_default then
+      table.insert(arg, ReqlessQueuePatterns.default_priority_pattern)
+    end
+
     redis.call('rpush', key, unpack(arg))
   end
 end
