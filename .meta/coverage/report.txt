@@ -26,7 +26,7 @@ reqless/job.py                                                                27
 reqless/listener.py                                                            32      0   100%
 reqless/logger.py                                                              13      0   100%
 reqless/models/__init__.py                                                      2      0   100%
-reqless/models/queue_priority_pattern.py                                        7      1    86%
+reqless/models/queue_priority_pattern.py                                        9      1    89%
 reqless/proctitle.py                                                            3      0   100%
 reqless/queue.py                                                               96      0   100%
 reqless/queue_patterns.py                                                      27      0   100%
@@ -37,7 +37,7 @@ reqless/queue_resolvers/transforming_queue_resolver.py                         1
 reqless/throttle.py                                                            33      0   100%
 reqless/util.py                                                                 7      0   100%
 reqless/workers/__init__.py                                                     5      0   100%
-reqless/workers/base_worker.py                                                 65      2    97%
+reqless/workers/base_worker.py                                                 66      2    97%
 reqless/workers/forking_worker.py                                              58      3    95%
 reqless/workers/gevent_worker.py                                               53      0   100%
 reqless/workers/main_worker.py                                                 13      0   100%
@@ -45,4 +45,4 @@ reqless/workers/serial_worker.py                                               2
 reqless/workers/signals.py                                                     13      0   100%
 reqless/workers/util.py                                                        39      1    97%
 -----------------------------------------------------------------------------------------------
-TOTAL                                                                        1404     23    98%
+TOTAL                                                                        1407     23    98%
